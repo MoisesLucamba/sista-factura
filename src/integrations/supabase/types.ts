@@ -14,6 +14,230 @@ export type Database = {
   }
   public: {
     Tables: {
+      clientes: {
+        Row: {
+          created_at: string
+          email: string | null
+          endereco: string
+          id: string
+          nif: string
+          nome: string
+          telefone: string | null
+          tipo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          endereco: string
+          id?: string
+          nif: string
+          nome: string
+          telefone?: string | null
+          tipo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          endereco?: string
+          id?: string
+          nif?: string
+          nome?: string
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      faturas: {
+        Row: {
+          assinatura_digital: string | null
+          cliente_id: string
+          created_at: string
+          data_emissao: string
+          data_pagamento: string | null
+          data_vencimento: string
+          estado: string
+          id: string
+          metodo_pagamento: string | null
+          numero: string
+          observacoes: string | null
+          qr_code: string | null
+          referencia_pagamento: string | null
+          serie: string
+          subtotal: number
+          tipo: string
+          total: number
+          total_iva: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assinatura_digital?: string | null
+          cliente_id: string
+          created_at?: string
+          data_emissao?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          estado?: string
+          id?: string
+          metodo_pagamento?: string | null
+          numero: string
+          observacoes?: string | null
+          qr_code?: string | null
+          referencia_pagamento?: string | null
+          serie?: string
+          subtotal?: number
+          tipo: string
+          total?: number
+          total_iva?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assinatura_digital?: string | null
+          cliente_id?: string
+          created_at?: string
+          data_emissao?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          estado?: string
+          id?: string
+          metodo_pagamento?: string | null
+          numero?: string
+          observacoes?: string | null
+          qr_code?: string | null
+          referencia_pagamento?: string | null
+          serie?: string
+          subtotal?: number
+          tipo?: string
+          total?: number
+          total_iva?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faturas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_fatura: {
+        Row: {
+          created_at: string
+          desconto: number
+          fatura_id: string
+          id: string
+          preco_unitario: number
+          produto_id: string
+          quantidade: number
+          subtotal: number
+          taxa_iva: number
+          total: number
+          valor_iva: number
+        }
+        Insert: {
+          created_at?: string
+          desconto?: number
+          fatura_id: string
+          id?: string
+          preco_unitario: number
+          produto_id: string
+          quantidade: number
+          subtotal: number
+          taxa_iva?: number
+          total: number
+          valor_iva: number
+        }
+        Update: {
+          created_at?: string
+          desconto?: number
+          fatura_id?: string
+          id?: string
+          preco_unitario?: number
+          produto_id?: string
+          quantidade?: number
+          subtotal?: number
+          taxa_iva?: number
+          total?: number
+          valor_iva?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_fatura_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itens_fatura_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          iva_incluido: boolean
+          nome: string
+          preco_unitario: number
+          stock: number | null
+          stock_minimo: number | null
+          taxa_iva: number
+          tipo: string
+          unidade: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          iva_incluido?: boolean
+          nome: string
+          preco_unitario: number
+          stock?: number | null
+          stock_minimo?: number | null
+          taxa_iva?: number
+          tipo: string
+          unidade: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          iva_incluido?: boolean
+          nome?: string
+          preco_unitario?: number
+          stock?: number | null
+          stock_minimo?: number | null
+          taxa_iva?: number
+          tipo?: string
+          unidade?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -70,6 +294,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_invoice_number: {
+        Args: { _serie: string; _user_id: string }
+        Returns: string
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

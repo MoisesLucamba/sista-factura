@@ -22,9 +22,10 @@ import {
 } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { mockClientes, mockProdutos } from '@/lib/mock-data';
-import { formatCurrency, generateInvoiceNumber, calculateIVA } from '@/lib/format';
-import { Cliente, Produto, ItemFatura, TipoDocumento } from '@/types';
+import { useClientes } from '@/hooks/useClientes';
+import { useProdutos } from '@/hooks/useProdutos';
+import { useCreateFatura, type FaturaInput } from '@/hooks/useFaturas';
+import { formatCurrency, calculateIVA } from '@/lib/format';
 import { 
   ArrowLeft, 
   Plus, 
@@ -35,33 +36,53 @@ import {
   Calculator,
   Building2,
   User,
+  Loader2,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+
+type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito';
+
+interface ItemLocal {
+  id: string;
+  produto_id: string;
+  produto_nome?: string;
+  quantidade: number;
+  preco_unitario: number;
+  desconto: number;
+  taxa_iva: number;
+  subtotal: number;
+  valor_iva: number;
+  total: number;
+}
 
 export default function NovaFatura() {
   const navigate = useNavigate();
+  const { data: clientes = [], isLoading: loadingClientes } = useClientes();
+  const { data: produtos = [], isLoading: loadingProdutos } = useProdutos();
+  const createFatura = useCreateFatura();
+
   const [tipo, setTipo] = useState<TipoDocumento>('fatura');
   const [clienteId, setClienteId] = useState<string>('');
   const [observacoes, setObservacoes] = useState('');
-  const [itens, setItens] = useState<Partial<ItemFatura>[]>([]);
+  const [metodoPagamento, setMetodoPagamento] = useState('');
+  const [itens, setItens] = useState<ItemLocal[]>([]);
   const [dataVencimento, setDataVencimento] = useState<string>(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
 
-  const clienteSelecionado = mockClientes.find(c => c.id === clienteId);
+  const clienteSelecionado = clientes.find(c => c.id === clienteId);
 
   const addItem = () => {
     setItens([...itens, {
       id: Date.now().toString(),
-      produtoId: '',
+      produto_id: '',
       quantidade: 1,
-      precoUnitario: 0,
+      preco_unitario: 0,
       desconto: 0,
-      taxaIva: 14,
+      taxa_iva: 14,
       subtotal: 0,
-      valorIva: 0,
+      valor_iva: 0,
       total: 0,
     }]);
   };
@@ -70,31 +91,31 @@ export default function NovaFatura() {
     setItens(itens.filter((_, i) => i !== index));
   };
 
-  const updateItem = (index: number, field: string, value: any) => {
+  const updateItem = (index: number, field: string, value: string | number) => {
     const newItens = [...itens];
     const item = { ...newItens[index], [field]: value };
 
     // If product changed, update price and IVA
-    if (field === 'produtoId') {
-      const produto = mockProdutos.find(p => p.id === value);
+    if (field === 'produto_id') {
+      const produto = produtos.find(p => p.id === value);
       if (produto) {
-        item.produto = produto;
-        item.precoUnitario = produto.precoUnitario;
-        item.taxaIva = produto.taxaIva;
+        item.produto_nome = produto.nome;
+        item.preco_unitario = Number(produto.preco_unitario);
+        item.taxa_iva = Number(produto.taxa_iva);
       }
     }
 
     // Recalculate totals
     const quantidade = item.quantidade || 0;
-    const precoUnitario = item.precoUnitario || 0;
+    const precoUnitario = item.preco_unitario || 0;
     const desconto = item.desconto || 0;
-    const taxaIva = item.taxaIva || 14;
+    const taxaIva = item.taxa_iva || 14;
 
     const subtotalBruto = quantidade * precoUnitario;
     const valorDesconto = subtotalBruto * (desconto / 100);
     item.subtotal = subtotalBruto - valorDesconto;
-    item.valorIva = calculateIVA(item.subtotal, taxaIva);
-    item.total = item.subtotal + item.valorIva;
+    item.valor_iva = calculateIVA(item.subtotal, taxaIva);
+    item.total = item.subtotal + item.valor_iva;
 
     newItens[index] = item;
     setItens(newItens);
@@ -102,12 +123,12 @@ export default function NovaFatura() {
 
   const totais = useMemo(() => {
     const subtotal = itens.reduce((acc, item) => acc + (item.subtotal || 0), 0);
-    const totalIva = itens.reduce((acc, item) => acc + (item.valorIva || 0), 0);
+    const totalIva = itens.reduce((acc, item) => acc + (item.valor_iva || 0), 0);
     const total = itens.reduce((acc, item) => acc + (item.total || 0), 0);
     return { subtotal, totalIva, total };
   }, [itens]);
 
-  const handleSave = (emitir: boolean = false) => {
+  const handleSave = async (emitir: boolean = false) => {
     if (!clienteId) {
       toast.error('Selecione um cliente');
       return;
@@ -116,14 +137,36 @@ export default function NovaFatura() {
       toast.error('Adicione pelo menos um item');
       return;
     }
-    if (itens.some(item => !item.produtoId)) {
+    if (itens.some(item => !item.produto_id)) {
       toast.error('Preencha todos os itens');
       return;
     }
 
-    // In real implementation, this would save to database
-    toast.success(emitir ? 'Fatura emitida com sucesso!' : 'Rascunho guardado');
-    navigate('/faturas');
+    const faturaInput: FaturaInput = {
+      tipo,
+      cliente_id: clienteId,
+      data_emissao: new Date().toISOString().split('T')[0],
+      data_vencimento: dataVencimento,
+      observacoes: observacoes || undefined,
+      metodo_pagamento: metodoPagamento || undefined,
+      itens: itens.map(item => ({
+        produto_id: item.produto_id,
+        quantidade: item.quantidade,
+        preco_unitario: item.preco_unitario,
+        desconto: item.desconto,
+        taxa_iva: item.taxa_iva,
+        subtotal: item.subtotal,
+        valor_iva: item.valor_iva,
+        total: item.total,
+      })),
+    };
+
+    try {
+      await createFatura.mutateAsync(faturaInput);
+      navigate('/faturas');
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+    }
   };
 
   const tipoLabels: Record<TipoDocumento, string> = {
@@ -132,6 +175,18 @@ export default function NovaFatura() {
     'recibo': 'Recibo',
     'nota-credito': 'Nota de Crédito',
   };
+
+  const isLoading = loadingClientes || loadingProdutos;
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -153,12 +208,16 @@ export default function NovaFatura() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => handleSave(false)}>
-            <Save className="w-4 h-4 mr-2" />
-            Guardar Rascunho
-          </Button>
-          <Button className="gradient-primary border-0" onClick={() => handleSave(true)}>
-            <Send className="w-4 h-4 mr-2" />
+          <Button 
+            className="gradient-primary border-0" 
+            onClick={() => handleSave(true)}
+            disabled={createFatura.isPending}
+          >
+            {createFatura.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4 mr-2" />
+            )}
             Emitir Fatura
           </Button>
         </div>
@@ -193,7 +252,7 @@ export default function NovaFatura() {
                 <div className="space-y-2">
                   <Label>Número</Label>
                   <Input 
-                    value={generateInvoiceNumber('FT', 4)}
+                    value="Gerado automaticamente"
                     disabled
                     className="font-mono bg-muted"
                   />
@@ -237,21 +296,30 @@ export default function NovaFatura() {
                     <SelectValue placeholder="Escolha um cliente..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockClientes.map((cliente) => (
-                      <SelectItem key={cliente.id} value={cliente.id}>
-                        <div className="flex items-center gap-2">
-                          {cliente.tipo === 'empresa' ? (
-                            <Building2 className="w-4 h-4 text-muted-foreground" />
-                          ) : (
-                            <User className="w-4 h-4 text-muted-foreground" />
-                          )}
-                          <span>{cliente.nome}</span>
-                          <span className="text-muted-foreground text-xs">
-                            NIF: {cliente.nif}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {clientes.length === 0 ? (
+                      <div className="p-2 text-center text-muted-foreground text-sm">
+                        Nenhum cliente cadastrado.
+                        <Link to="/clientes" className="block text-primary mt-1">
+                          Criar cliente
+                        </Link>
+                      </div>
+                    ) : (
+                      clientes.map((cliente) => (
+                        <SelectItem key={cliente.id} value={cliente.id}>
+                          <div className="flex items-center gap-2">
+                            {cliente.tipo === 'empresa' ? (
+                              <Building2 className="w-4 h-4 text-muted-foreground" />
+                            ) : (
+                              <User className="w-4 h-4 text-muted-foreground" />
+                            )}
+                            <span>{cliente.nome}</span>
+                            <span className="text-muted-foreground text-xs">
+                              NIF: {cliente.nif}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -316,18 +384,27 @@ export default function NovaFatura() {
                         <TableRow key={item.id}>
                           <TableCell>
                             <Select
-                              value={item.produtoId}
-                              onValueChange={(v) => updateItem(index, 'produtoId', v)}
+                              value={item.produto_id}
+                              onValueChange={(v) => updateItem(index, 'produto_id', v)}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Selecionar..." />
                               </SelectTrigger>
                               <SelectContent>
-                                {mockProdutos.map((produto) => (
-                                  <SelectItem key={produto.id} value={produto.id}>
-                                    {produto.nome} - {formatCurrency(produto.precoUnitario)}
-                                  </SelectItem>
-                                ))}
+                                {produtos.length === 0 ? (
+                                  <div className="p-2 text-center text-muted-foreground text-sm">
+                                    Nenhum produto cadastrado.
+                                    <Link to="/produtos" className="block text-primary mt-1">
+                                      Criar produto
+                                    </Link>
+                                  </div>
+                                ) : (
+                                  produtos.map((produto) => (
+                                    <SelectItem key={produto.id} value={produto.id}>
+                                      {produto.nome} - {formatCurrency(Number(produto.preco_unitario))}
+                                    </SelectItem>
+                                  ))
+                                )}
                               </SelectContent>
                             </Select>
                           </TableCell>
@@ -345,8 +422,8 @@ export default function NovaFatura() {
                               type="number"
                               min="0"
                               step="0.01"
-                              value={item.precoUnitario}
-                              onChange={(e) => updateItem(index, 'precoUnitario', parseFloat(e.target.value) || 0)}
+                              value={item.preco_unitario}
+                              onChange={(e) => updateItem(index, 'preco_unitario', parseFloat(e.target.value) || 0)}
                               className="w-full"
                             />
                           </TableCell>
@@ -366,7 +443,7 @@ export default function NovaFatura() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">{item.taxaIva}%</Badge>
+                            <Badge variant="outline">{item.taxa_iva}%</Badge>
                           </TableCell>
                           <TableCell className="text-right font-medium">
                             {formatCurrency(item.total || 0)}
@@ -390,18 +467,36 @@ export default function NovaFatura() {
             </CardContent>
           </Card>
 
-          {/* Observations */}
+          {/* Payment Method & Observations */}
           <Card className="card-shadow">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-display">Observações</CardTitle>
+              <CardTitle className="text-lg font-display">Detalhes Adicionais</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Notas ou observações adicionais (opcional)"
-                value={observacoes}
-                onChange={(e) => setObservacoes(e.target.value)}
-                rows={3}
-              />
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Método de Pagamento</Label>
+                <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Transferência Bancária">Transferência Bancária</SelectItem>
+                    <SelectItem value="Numerário">Numerário</SelectItem>
+                    <SelectItem value="Cheque">Cheque</SelectItem>
+                    <SelectItem value="Multicaixa">Multicaixa</SelectItem>
+                    <SelectItem value="Outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Observações</Label>
+                <Textarea
+                  placeholder="Notas ou observações adicionais (opcional)"
+                  value={observacoes}
+                  onChange={(e) => setObservacoes(e.target.value)}
+                  rows={3}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -440,16 +535,30 @@ export default function NovaFatura() {
                   <span className="text-muted-foreground">Tipo</span>
                   <Badge variant="secondary">{tipoLabels[tipo]}</Badge>
                 </div>
+                {clienteSelecionado && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Cliente</span>
+                    <span className="text-right truncate max-w-[150px]">
+                      {clienteSelecionado.nome}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div className="pt-4 space-y-2">
-                <Button className="w-full gradient-primary border-0" onClick={() => handleSave(true)}>
-                  <Send className="w-4 h-4 mr-2" />
+              <Separator />
+
+              <div className="space-y-2">
+                <Button 
+                  className="w-full gradient-primary border-0" 
+                  onClick={() => handleSave(true)}
+                  disabled={createFatura.isPending || itens.length === 0 || !clienteId}
+                >
+                  {createFatura.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
                   Emitir Fatura
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => handleSave(false)}>
-                  <Save className="w-4 h-4 mr-2" />
-                  Guardar Rascunho
                 </Button>
               </div>
             </CardContent>

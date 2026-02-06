@@ -29,9 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockClientes } from '@/lib/mock-data';
-import { formatDate, formatNIF } from '@/lib/format';
-import { Cliente } from '@/types';
+import { useClientes, useCreateCliente, useUpdateCliente, useDeleteCliente, type Cliente, type ClienteInput } from '@/hooks/useClientes';
+import { formatNIF } from '@/lib/format';
 import { 
   Plus, 
   Search, 
@@ -41,6 +40,7 @@ import {
   FileText,
   Building2,
   User,
+  Loader2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -51,18 +51,22 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function Clientes() {
-  const [clientes, setClientes] = useState<Cliente[]>(mockClientes);
+  const { data: clientes = [], isLoading } = useClientes();
+  const createCliente = useCreateCliente();
+  const updateCliente = useUpdateCliente();
+  const deleteCliente = useDeleteCliente();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ClienteInput>({
     nome: '',
     nif: '',
     endereco: '',
     telefone: '',
     email: '',
-    tipo: 'empresa' as 'particular' | 'empresa',
+    tipo: 'empresa',
   });
 
   const filteredClientes = clientes.filter(
@@ -72,23 +76,13 @@ export default function Clientes() {
       cliente.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingCliente) {
-      setClientes(clientes.map(c => 
-        c.id === editingCliente.id 
-          ? { ...c, ...formData, updatedAt: new Date() }
-          : c
-      ));
+      await updateCliente.mutateAsync({ id: editingCliente.id, ...formData });
     } else {
-      const newCliente: Cliente = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setClientes([newCliente, ...clientes]);
+      await createCliente.mutateAsync(formData);
     }
 
     setIsDialogOpen(false);
@@ -116,9 +110,23 @@ export default function Clientes() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setClientes(clientes.filter(c => c.id !== id));
+  const handleDelete = async (id: string) => {
+    await deleteCliente.mutateAsync(id);
   };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-AO');
+  };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -234,7 +242,14 @@ export default function Clientes() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" className="gradient-primary border-0">
+                <Button 
+                  type="submit" 
+                  className="gradient-primary border-0"
+                  disabled={createCliente.isPending || updateCliente.isPending}
+                >
+                  {(createCliente.isPending || updateCliente.isPending) && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
                   {editingCliente ? 'Guardar' : 'Criar Cliente'}
                 </Button>
               </DialogFooter>
@@ -291,72 +306,80 @@ export default function Clientes() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClientes.map((cliente) => (
-                  <TableRow key={cliente.id} className="cursor-pointer hover:bg-muted/50">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                          cliente.tipo === 'empresa' ? 'bg-primary/10' : 'bg-secondary'
-                        )}>
-                          {cliente.tipo === 'empresa' ? (
-                            <Building2 className="w-5 h-5 text-primary" />
-                          ) : (
-                            <User className="w-5 h-5 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{cliente.nome}</p>
-                          <p className="text-sm text-muted-foreground truncate max-w-[200px]">
-                            {cliente.endereco}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="font-mono">
-                        {formatNIF(cliente.nif)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="text-sm">
-                        {cliente.telefone && <p>{cliente.telefone}</p>}
-                        {cliente.email && (
-                          <p className="text-muted-foreground">{cliente.email}</p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell text-muted-foreground">
-                      {formatDate(cliente.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(cliente)}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <FileText className="w-4 h-4 mr-2" />
-                            Ver Faturas
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => handleDelete(cliente.id)}
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {filteredClientes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      {searchTerm ? 'Nenhum cliente encontrado.' : 'Ainda não tem clientes. Crie o primeiro!'}
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredClientes.map((cliente) => (
+                    <TableRow key={cliente.id} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
+                            cliente.tipo === 'empresa' ? 'bg-primary/10' : 'bg-secondary'
+                          )}>
+                            {cliente.tipo === 'empresa' ? (
+                              <Building2 className="w-5 h-5 text-primary" />
+                            ) : (
+                              <User className="w-5 h-5 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium">{cliente.nome}</p>
+                            <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                              {cliente.endereco}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="font-mono">
+                          {formatNIF(cliente.nif)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="text-sm">
+                          {cliente.telefone && <p>{cliente.telefone}</p>}
+                          {cliente.email && (
+                            <p className="text-muted-foreground">{cliente.email}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell text-muted-foreground">
+                        {formatDate(cliente.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(cliente)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <FileText className="w-4 h-4 mr-2" />
+                              Ver Faturas
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => handleDelete(cliente.id)}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

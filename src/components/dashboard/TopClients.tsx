@@ -1,18 +1,49 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { mockClientes } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/format';
-import { ArrowRight, TrendingUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import type { Cliente } from '@/hooks/useClientes';
+import type { Fatura } from '@/hooks/useFaturas';
 
-// Simulated revenue per client
-const clientesFaturacao = mockClientes.map((cliente, index) => ({
-  ...cliente,
-  faturacao: [2166000, 991800, 285000, 150000, 85000][index] || 0,
-})).sort((a, b) => b.faturacao - a.faturacao);
+interface TopClientsProps {
+  clientes: Cliente[];
+  faturas: Fatura[];
+}
 
-export function TopClients() {
+export function TopClients({ clientes, faturas }: TopClientsProps) {
+  // Calculate revenue per client
+  const clientesFaturacao = clientes.map((cliente) => {
+    const faturacaoCliente = faturas
+      .filter(f => f.cliente_id === cliente.id && f.estado !== 'anulada')
+      .reduce((sum, f) => sum + Number(f.total), 0);
+    return {
+      ...cliente,
+      faturacao: faturacaoCliente,
+    };
+  }).sort((a, b) => b.faturacao - a.faturacao);
+
+  if (clientes.length === 0) {
+    return (
+      <Card className="card-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-display">Principais Clientes</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Nenhum cliente cadastrado.</p>
+            <Button asChild className="mt-2" variant="outline" size="sm">
+              <Link to="/clientes">Criar cliente</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="card-shadow">
       <CardHeader className="pb-3">
@@ -53,10 +84,6 @@ export function TopClients() {
                 <p className="font-semibold text-sm">
                   {formatCurrency(cliente.faturacao)}
                 </p>
-                <div className="flex items-center gap-1 text-success text-xs">
-                  <TrendingUp className="w-3 h-3" />
-                  <span>12%</span>
-                </div>
               </div>
             </div>
           ))}

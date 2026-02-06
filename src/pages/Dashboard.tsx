@@ -3,7 +3,8 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { RecentInvoices } from '@/components/dashboard/RecentInvoices';
 import { TopClients } from '@/components/dashboard/TopClients';
-import { mockDashboardStats } from '@/lib/mock-data';
+import { useDashboardStats, useFaturas } from '@/hooks/useFaturas';
+import { useClientes } from '@/hooks/useClientes';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import { 
   Banknote, 
@@ -13,11 +14,30 @@ import {
   AlertCircle,
   Clock,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
+  const { data: stats, isLoading: loadingStats } = useDashboardStats();
+  const { data: faturas = [] } = useFaturas();
+  const { data: clientes = [] } = useClientes();
+
+  const faturasVencidas = faturas.filter(f => 
+    f.estado === 'emitida' && new Date(f.data_vencimento) < new Date()
+  ).length;
+
+  if (loadingStats) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       {/* Page Header */}
@@ -42,51 +62,51 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="Faturação Mensal"
-          value={formatCurrency(mockDashboardStats.faturacaoMensal)}
+          value={formatCurrency(stats?.faturacaoMensal || 0)}
           icon={Banknote}
-          trend={{ value: 12.5, isPositive: true }}
           variant="primary"
         />
         <StatCard
           title="IVA a Entregar"
-          value={formatCurrency(mockDashboardStats.ivaMensal)}
+          value={formatCurrency(stats?.ivaMensal || 0)}
           subtitle="14% sobre faturação"
           icon={Receipt}
           variant="warning"
         />
         <StatCard
           title="Faturas Emitidas"
-          value={formatNumber(mockDashboardStats.faturasEmitidas)}
-          subtitle={`${mockDashboardStats.faturasPendentes} pendentes`}
+          value={formatNumber(stats?.faturasEmitidas || 0)}
+          subtitle={`${stats?.faturasPendentes || 0} pendentes`}
           icon={FileText}
           variant="success"
         />
         <StatCard
           title="Total Clientes"
-          value={formatNumber(mockDashboardStats.totalClientes)}
+          value={formatNumber(stats?.totalClientes || 0)}
           icon={Users}
-          trend={{ value: 8, isPositive: true }}
           variant="default"
         />
       </div>
 
       {/* Alert for overdue invoices */}
-      {mockDashboardStats.faturasVencidas > 0 && (
+      {faturasVencidas > 0 && (
         <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-8 flex items-center gap-4 animate-fade-in">
           <div className="w-10 h-10 rounded-lg bg-destructive/20 flex items-center justify-center flex-shrink-0">
             <AlertCircle className="w-5 h-5 text-destructive" />
           </div>
           <div className="flex-1">
             <p className="font-medium text-destructive">
-              {mockDashboardStats.faturasVencidas} fatura(s) vencida(s)
+              {faturasVencidas} fatura(s) vencida(s)
             </p>
             <p className="text-sm text-destructive/80">
               Existem faturas por cobrar com data de vencimento ultrapassada.
             </p>
           </div>
-          <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/10">
-            <Clock className="w-4 h-4 mr-2" />
-            Ver Faturas
+          <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/10" asChild>
+            <Link to="/faturas?estado=vencida">
+              <Clock className="w-4 h-4 mr-2" />
+              Ver Faturas
+            </Link>
           </Button>
         </div>
       )}
@@ -97,12 +117,12 @@ export default function Dashboard() {
           <RevenueChart />
         </div>
         <div className="lg:col-span-1">
-          <TopClients />
+          <TopClients clientes={clientes} faturas={faturas} />
         </div>
       </div>
 
       <div className="mt-6">
-        <RecentInvoices />
+        <RecentInvoices faturas={faturas.slice(0, 5)} />
       </div>
     </MainLayout>
   );
