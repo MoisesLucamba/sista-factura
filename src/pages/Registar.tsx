@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileText, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import logoFaktura from '@/assets/logo-faktura.png';
 
 export default function Registar() {
   const [nome, setNome] = useState('');
@@ -85,14 +86,12 @@ export default function Registar() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-background p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="p-2 bg-primary rounded-xl">
-            <FileText className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Faktura Angola</h1>
-            <p className="text-sm text-muted-foreground">Sistema de Faturação</p>
-          </div>
+        <div className="flex items-center justify-center mb-8">
+          <img 
+            src={logoFaktura} 
+            alt="Faktura Angola" 
+            className="h-14 object-contain"
+          />
         </div>
 
         <Card className="border-border/50 shadow-xl">

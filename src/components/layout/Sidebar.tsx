@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import logoFaktura from '@/assets/logo-faktura.png';
 
 interface NavItem {
   icon: React.ElementType;
@@ -103,18 +104,20 @@ export function Sidebar() {
         'flex items-center h-16 px-4 border-b border-sidebar-border',
         collapsed ? 'justify-center' : 'gap-3'
       )}>
-        <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
-          <FileText className="w-5 h-5 text-primary-foreground" />
-        </div>
-        {!collapsed && (
-          <div className="flex flex-col">
-            <span className="font-display font-bold text-sidebar-foreground text-lg leading-tight">
-              Faktura
-            </span>
-            <span className="text-[10px] text-sidebar-foreground/60 uppercase tracking-wider">
-              Angola
-            </span>
+        {collapsed ? (
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <img 
+              src={logoFaktura} 
+              alt="Faktura" 
+              className="w-8 h-8 object-contain"
+            />
           </div>
+        ) : (
+          <img 
+            src={logoFaktura} 
+            alt="Faktura Angola" 
+            className="h-10 object-contain"
+          />
         )}
       </div>
 
