@@ -31,9 +31,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { mockProdutos } from '@/lib/mock-data';
+import { useProdutos, useCreateProduto, useUpdateProduto, useDeleteProduto, type Produto, type ProdutoInput } from '@/hooks/useProdutos';
 import { formatCurrency, formatNumber } from '@/lib/format';
-import { Produto } from '@/types';
 import { 
   Plus, 
   Search, 
@@ -43,6 +42,7 @@ import {
   Package,
   Wrench,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -53,7 +53,11 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function Produtos() {
-  const [produtos, setProdutos] = useState<Produto[]>(mockProdutos);
+  const { data: produtos = [], isLoading } = useProdutos();
+  const createProduto = useCreateProduto();
+  const updateProduto = useUpdateProduto();
+  const deleteProduto = useDeleteProduto();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
@@ -63,12 +67,12 @@ export default function Produtos() {
     nome: '',
     descricao: '',
     tipo: 'produto' as 'produto' | 'servico',
-    precoUnitario: '',
+    preco_unitario: '',
     unidade: 'unidade',
-    ivaIncluido: false,
-    taxaIva: '14',
+    iva_incluido: false,
+    taxa_iva: '14',
     stock: '',
-    stockMinimo: '',
+    stock_minimo: '',
   });
 
   const filteredProdutos = produtos.filter(
@@ -78,40 +82,26 @@ export default function Produtos() {
       produto.descricao?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const produtoData: ProdutoInput = {
+      codigo: formData.codigo,
+      nome: formData.nome,
+      descricao: formData.descricao || undefined,
+      tipo: formData.tipo,
+      preco_unitario: parseFloat(formData.preco_unitario) || 0,
+      unidade: formData.unidade,
+      iva_incluido: formData.iva_incluido,
+      taxa_iva: parseFloat(formData.taxa_iva) || 14,
+      stock: formData.tipo === 'produto' ? parseInt(formData.stock) || undefined : undefined,
+      stock_minimo: formData.tipo === 'produto' ? parseInt(formData.stock_minimo) || undefined : undefined,
+    };
+
     if (editingProduto) {
-      setProdutos(produtos.map(p => 
-        p.id === editingProduto.id 
-          ? { 
-              ...p, 
-              ...formData,
-              precoUnitario: parseFloat(formData.precoUnitario) || 0,
-              taxaIva: parseFloat(formData.taxaIva) || 14,
-              stock: formData.tipo === 'produto' ? parseInt(formData.stock) || undefined : undefined,
-              stockMinimo: formData.tipo === 'produto' ? parseInt(formData.stockMinimo) || undefined : undefined,
-              updatedAt: new Date() 
-            }
-          : p
-      ));
+      await updateProduto.mutateAsync({ id: editingProduto.id, ...produtoData });
     } else {
-      const newProduto: Produto = {
-        id: Date.now().toString(),
-        codigo: formData.codigo,
-        nome: formData.nome,
-        descricao: formData.descricao,
-        tipo: formData.tipo,
-        precoUnitario: parseFloat(formData.precoUnitario) || 0,
-        unidade: formData.unidade,
-        ivaIncluido: formData.ivaIncluido,
-        taxaIva: parseFloat(formData.taxaIva) || 14,
-        stock: formData.tipo === 'produto' ? parseInt(formData.stock) || undefined : undefined,
-        stockMinimo: formData.tipo === 'produto' ? parseInt(formData.stockMinimo) || undefined : undefined,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setProdutos([newProduto, ...produtos]);
+      await createProduto.mutateAsync(produtoData);
     }
 
     setIsDialogOpen(false);
@@ -125,12 +115,12 @@ export default function Produtos() {
       nome: '',
       descricao: '',
       tipo: 'produto',
-      precoUnitario: '',
+      preco_unitario: '',
       unidade: 'unidade',
-      ivaIncluido: false,
-      taxaIva: '14',
+      iva_incluido: false,
+      taxa_iva: '14',
       stock: '',
-      stockMinimo: '',
+      stock_minimo: '',
     });
   };
 
@@ -141,23 +131,33 @@ export default function Produtos() {
       nome: produto.nome,
       descricao: produto.descricao || '',
       tipo: produto.tipo,
-      precoUnitario: produto.precoUnitario.toString(),
+      preco_unitario: produto.preco_unitario.toString(),
       unidade: produto.unidade,
-      ivaIncluido: produto.ivaIncluido,
-      taxaIva: produto.taxaIva.toString(),
+      iva_incluido: produto.iva_incluido,
+      taxa_iva: produto.taxa_iva.toString(),
       stock: produto.stock?.toString() || '',
-      stockMinimo: produto.stockMinimo?.toString() || '',
+      stock_minimo: produto.stock_minimo?.toString() || '',
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setProdutos(produtos.filter(p => p.id !== id));
+  const handleDelete = async (id: string) => {
+    await deleteProduto.mutateAsync(id);
   };
 
   const lowStockItems = produtos.filter(
-    p => p.tipo === 'produto' && p.stock !== undefined && p.stockMinimo !== undefined && p.stock <= p.stockMinimo
+    p => p.tipo === 'produto' && p.stock !== undefined && p.stock_minimo !== undefined && p.stock <= p.stock_minimo
   );
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -259,14 +259,14 @@ export default function Produtos() {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="precoUnitario">Preço (Kz) *</Label>
+                    <Label htmlFor="preco_unitario">Preço (Kz) *</Label>
                     <Input
-                      id="precoUnitario"
+                      id="preco_unitario"
                       type="number"
                       min="0"
                       step="0.01"
-                      value={formData.precoUnitario}
-                      onChange={(e) => setFormData({ ...formData, precoUnitario: e.target.value })}
+                      value={formData.preco_unitario}
+                      onChange={(e) => setFormData({ ...formData, preco_unitario: e.target.value })}
                       placeholder="0.00"
                       required
                     />
@@ -292,10 +292,10 @@ export default function Produtos() {
                     </Select>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="taxaIva">IVA (%)</Label>
+                    <Label htmlFor="taxa_iva">IVA (%)</Label>
                     <Select
-                      value={formData.taxaIva}
-                      onValueChange={(value) => setFormData({ ...formData, taxaIva: value })}
+                      value={formData.taxa_iva}
+                      onValueChange={(value) => setFormData({ ...formData, taxa_iva: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -310,13 +310,13 @@ export default function Produtos() {
 
                 <div className="flex items-center justify-between py-2 px-3 bg-muted/50 rounded-lg">
                   <div className="flex flex-col">
-                    <Label htmlFor="ivaIncluido" className="cursor-pointer">IVA incluído no preço</Label>
+                    <Label htmlFor="iva_incluido" className="cursor-pointer">IVA incluído no preço</Label>
                     <span className="text-xs text-muted-foreground">O preço já inclui o IVA</span>
                   </div>
                   <Switch
-                    id="ivaIncluido"
-                    checked={formData.ivaIncluido}
-                    onCheckedChange={(checked) => setFormData({ ...formData, ivaIncluido: checked })}
+                    id="iva_incluido"
+                    checked={formData.iva_incluido}
+                    onCheckedChange={(checked) => setFormData({ ...formData, iva_incluido: checked })}
                   />
                 </div>
 
@@ -334,13 +334,13 @@ export default function Produtos() {
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="stockMinimo">Stock Mínimo</Label>
+                      <Label htmlFor="stock_minimo">Stock Mínimo</Label>
                       <Input
-                        id="stockMinimo"
+                        id="stock_minimo"
                         type="number"
                         min="0"
-                        value={formData.stockMinimo}
-                        onChange={(e) => setFormData({ ...formData, stockMinimo: e.target.value })}
+                        value={formData.stock_minimo}
+                        onChange={(e) => setFormData({ ...formData, stock_minimo: e.target.value })}
                         placeholder="0"
                       />
                     </div>
@@ -351,7 +351,14 @@ export default function Produtos() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" className="gradient-primary border-0">
+                <Button 
+                  type="submit" 
+                  className="gradient-primary border-0"
+                  disabled={createProduto.isPending || updateProduto.isPending}
+                >
+                  {(createProduto.isPending || updateProduto.isPending) && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
                   {editingProduto ? 'Guardar' : 'Criar Item'}
                 </Button>
               </DialogFooter>
@@ -426,92 +433,100 @@ export default function Produtos() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProdutos.map((produto) => {
-                  const isLowStock = produto.tipo === 'produto' && 
-                    produto.stock !== undefined && 
-                    produto.stockMinimo !== undefined && 
-                    produto.stock <= produto.stockMinimo;
+                {filteredProdutos.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      {searchTerm ? 'Nenhum produto encontrado.' : 'Ainda não tem produtos. Crie o primeiro!'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredProdutos.map((produto) => {
+                    const isLowStock = produto.tipo === 'produto' && 
+                      produto.stock !== undefined && 
+                      produto.stock_minimo !== undefined && 
+                      produto.stock <= produto.stock_minimo;
 
-                  return (
-                    <TableRow key={produto.id} className="cursor-pointer hover:bg-muted/50">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                            produto.tipo === 'produto' ? 'bg-primary/10' : 'bg-secondary'
-                          )}>
-                            {produto.tipo === 'produto' ? (
-                              <Package className="w-5 h-5 text-primary" />
-                            ) : (
-                              <Wrench className="w-5 h-5 text-muted-foreground" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium">{produto.nome}</p>
-                            {produto.descricao && (
-                              <p className="text-sm text-muted-foreground truncate max-w-[250px]">
-                                {produto.descricao}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="font-mono">
-                          {produto.codigo}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(produto.precoUnitario)}
-                        <span className="text-xs text-muted-foreground ml-1">/{produto.unidade}</span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant={produto.taxaIva === 0 ? 'secondary' : 'outline'}>
-                          {produto.taxaIva}%
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-center">
-                        {produto.tipo === 'produto' ? (
-                          <div className="flex items-center justify-center gap-1">
-                            {isLowStock && (
-                              <AlertTriangle className="w-4 h-4 text-warning" />
-                            )}
-                            <span className={cn(
-                              'font-medium',
-                              isLowStock && 'text-warning'
+                    return (
+                      <TableRow key={produto.id} className="cursor-pointer hover:bg-muted/50">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
+                              produto.tipo === 'produto' ? 'bg-primary/10' : 'bg-secondary'
                             )}>
-                              {formatNumber(produto.stock || 0)}
-                            </span>
+                              {produto.tipo === 'produto' ? (
+                                <Package className="w-5 h-5 text-primary" />
+                              ) : (
+                                <Wrench className="w-5 h-5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">{produto.nome}</p>
+                              {produto.descricao && (
+                                <p className="text-sm text-muted-foreground truncate max-w-[250px]">
+                                  {produto.descricao}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(produto)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => handleDelete(produto.id)}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-mono">
+                            {produto.codigo}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <p className="font-semibold">{formatCurrency(produto.preco_unitario)}</p>
+                          <p className="text-xs text-muted-foreground">/{produto.unidade}</p>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={Number(produto.taxa_iva) === 0 ? 'secondary' : 'default'} className="text-xs">
+                            {produto.taxa_iva}%
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-center">
+                          {produto.tipo === 'produto' ? (
+                            <div className="flex flex-col items-center">
+                              <span className={cn(
+                                'font-medium',
+                                isLowStock && 'text-destructive'
+                              )}>
+                                {formatNumber(produto.stock || 0)}
+                              </span>
+                              {isLowStock && (
+                                <AlertTriangle className="w-3 h-3 text-destructive" />
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(produto)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => handleDelete(produto.id)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
               </TableBody>
             </Table>
           </div>

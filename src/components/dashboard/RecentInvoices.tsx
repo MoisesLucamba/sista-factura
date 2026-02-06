@@ -1,21 +1,49 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockFaturas } from '@/lib/mock-data';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { FileText, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import type { Fatura } from '@/hooks/useFaturas';
 
-const estadoStyles = {
+interface RecentInvoicesProps {
+  faturas: Fatura[];
+}
+
+const estadoStyles: Record<string, { label: string; className: string }> = {
   rascunho: { label: 'Rascunho', className: 'bg-muted text-muted-foreground' },
   emitida: { label: 'Emitida', className: 'bg-primary/10 text-primary' },
-  paga: { label: 'Paga', className: 'bg-success/10 text-success' },
+  paga: { label: 'Paga', className: 'bg-accent text-accent-foreground' },
   anulada: { label: 'Anulada', className: 'bg-muted text-muted-foreground line-through' },
   vencida: { label: 'Vencida', className: 'bg-destructive/10 text-destructive' },
 };
 
-export function RecentInvoices() {
+export function RecentInvoices({ faturas }: RecentInvoicesProps) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-AO');
+  };
+
+  if (faturas.length === 0) {
+    return (
+      <Card className="card-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-display">Faturas Recentes</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Nenhuma fatura emitida.</p>
+            <Button asChild className="mt-2" variant="outline" size="sm">
+              <Link to="/faturas/nova">Criar fatura</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="card-shadow">
       <CardHeader className="pb-3">
@@ -31,8 +59,8 @@ export function RecentInvoices() {
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y divide-border">
-          {mockFaturas.slice(0, 5).map((fatura) => {
-            const estado = estadoStyles[fatura.estado];
+          {faturas.map((fatura) => {
+            const estado = estadoStyles[fatura.estado] || estadoStyles.emitida;
             return (
               <div
                 key={fatura.id}
@@ -51,15 +79,15 @@ export function RecentInvoices() {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground truncate">
-                    {fatura.cliente.nome}
+                    {fatura.cliente?.nome || 'Cliente'}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="font-semibold text-sm">
-                    {formatCurrency(fatura.total)}
+                    {formatCurrency(Number(fatura.total))}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDate(fatura.dataEmissao)}
+                    {formatDate(fatura.data_emissao)}
                   </p>
                 </div>
               </div>
