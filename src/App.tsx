@@ -11,6 +11,7 @@ import Produtos from "./pages/Produtos";
 import Faturas from "./pages/Faturas";
 import NovaFatura from "./pages/NovaFatura";
 import Relatorios from "./pages/Relatorios";
+import Configuracoes from "./pages/Configuracoes";
 import Login from "./pages/Login";
 import Registar from "./pages/Registar";
 import NotFound from "./pages/NotFound";
@@ -75,6 +76,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin', 'contador']}>
                   <Relatorios />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/configuracoes"
+              element={
+                <ProtectedRoute>
+                  <Configuracoes />
                 </ProtectedRoute>
               }
             />
