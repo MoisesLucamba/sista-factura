@@ -28,12 +28,12 @@ import {
   MoreVertical, 
   Eye,
   Download,
-  Mail,
   Printer,
   FileText,
   XCircle,
   CheckCircle,
   Loader2,
+  Send,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -52,6 +52,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { SendInvoiceDialog } from '@/components/faturas/SendInvoiceDialog';
 
 type EstadoFatura = 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
 type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito';
@@ -79,6 +80,7 @@ export default function Faturas() {
   const [tipoFilter, setTipoFilter] = useState<string>('all');
   const [selectedFaturaId, setSelectedFaturaId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
+  const [sendDialogFatura, setSendDialogFatura] = useState<Fatura | null>(null);
 
   const { data: selectedFatura } = useFatura(selectedFaturaId || '');
 
@@ -359,9 +361,9 @@ export default function Faturas() {
                                 <Printer className="w-4 h-4 mr-2" />
                                 Imprimir
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Mail className="w-4 h-4 mr-2" />
-                                Enviar por Email
+                              <DropdownMenuItem onClick={() => setSendDialogFatura(fatura)}>
+                                <Send className="w-4 h-4 mr-2" />
+                                Enviar ao Cliente
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               {fatura.estado === 'emitida' && (
@@ -471,6 +473,13 @@ export default function Faturas() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Send Invoice Dialog */}
+      <SendInvoiceDialog
+        fatura={sendDialogFatura}
+        open={!!sendDialogFatura}
+        onOpenChange={(open) => !open && setSendDialogFatura(null)}
+      />
     </MainLayout>
   );
 }
