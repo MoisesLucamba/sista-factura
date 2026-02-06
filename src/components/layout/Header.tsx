@@ -1,4 +1,4 @@
-import { Bell, Search, User, Building2 } from 'lucide-react';
+import { Bell, Search, User, Building2, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,8 +11,38 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export function Header() {
+  const { profile, role, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'default';
+      case 'contador':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-lg border-b border-border">
       <div className="flex items-center justify-between h-full px-6">
@@ -79,7 +109,7 @@ export function Header() {
               <Button variant="ghost" size="icon" className="relative">
                 <Avatar className="w-8 h-8">
                   <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-                    AM
+                    {profile ? getInitials(profile.nome) : 'U'}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -87,10 +117,19 @@ export function Header() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
-                  <span>António Manuel</span>
+                  <span>{profile?.nome || 'Utilizador'}</span>
                   <span className="text-sm font-normal text-muted-foreground">
-                    antonio@empresa.ao
+                    {profile?.email}
                   </span>
+                  {role && (
+                    <Badge 
+                      variant={getRoleBadgeVariant(role)} 
+                      className="w-fit mt-1 capitalize"
+                    >
+                      <Shield className="w-3 h-3 mr-1" />
+                      {role}
+                    </Badge>
+                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -103,7 +142,11 @@ export function Header() {
                 Dados da Empresa
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
                 Terminar Sessão
               </DropdownMenuItem>
             </DropdownMenuContent>
