@@ -14,6 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
+      agt_config: {
+        Row: {
+          auto_send_invoice: boolean | null
+          certificate_number: string | null
+          certificate_status: string | null
+          certificate_valid_until: string | null
+          created_at: string
+          declaracao_conformidade_reference: string | null
+          default_send_channel:
+            | Database["public"]["Enums"]["send_channel"]
+            | null
+          endereco_empresa: string | null
+          id: string
+          invoice_language: string | null
+          memoria_descritiva_reference: string | null
+          modelo_8_reference: string | null
+          nif_produtor: string | null
+          nome_empresa: string | null
+          public_key: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_send_invoice?: boolean | null
+          certificate_number?: string | null
+          certificate_status?: string | null
+          certificate_valid_until?: string | null
+          created_at?: string
+          declaracao_conformidade_reference?: string | null
+          default_send_channel?:
+            | Database["public"]["Enums"]["send_channel"]
+            | null
+          endereco_empresa?: string | null
+          id?: string
+          invoice_language?: string | null
+          memoria_descritiva_reference?: string | null
+          modelo_8_reference?: string | null
+          nif_produtor?: string | null
+          nome_empresa?: string | null
+          public_key?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_send_invoice?: boolean | null
+          certificate_number?: string | null
+          certificate_status?: string | null
+          certificate_valid_until?: string | null
+          created_at?: string
+          declaracao_conformidade_reference?: string | null
+          default_send_channel?:
+            | Database["public"]["Enums"]["send_channel"]
+            | null
+          endereco_empresa?: string | null
+          id?: string
+          invoice_language?: string | null
+          memoria_descritiva_reference?: string | null
+          modelo_8_reference?: string | null
+          nif_produtor?: string | null
+          nome_empresa?: string | null
+          public_key?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
           created_at: string
@@ -53,9 +158,48 @@ export type Database = {
         }
         Relationships: []
       }
+      document_signatures: {
+        Row: {
+          certificate_number: string | null
+          document_hash: string
+          fatura_id: string
+          id: string
+          signature_algorithm: string | null
+          signature_hash: string
+          signed_at: string
+        }
+        Insert: {
+          certificate_number?: string | null
+          document_hash: string
+          fatura_id: string
+          id?: string
+          signature_algorithm?: string | null
+          signature_hash: string
+          signed_at?: string
+        }
+        Update: {
+          certificate_number?: string | null
+          document_hash?: string
+          fatura_id?: string
+          id?: string
+          signature_algorithm?: string | null
+          signature_hash?: string
+          signed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_signatures_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: true
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faturas: {
         Row: {
           assinatura_digital: string | null
+          certificate_number: string | null
           cliente_id: string
           created_at: string
           data_emissao: string
@@ -63,12 +207,14 @@ export type Database = {
           data_vencimento: string
           estado: string
           id: string
+          is_locked: boolean | null
           metodo_pagamento: string | null
           numero: string
           observacoes: string | null
           qr_code: string | null
           referencia_pagamento: string | null
           serie: string
+          signature_hash: string | null
           subtotal: number
           tipo: string
           total: number
@@ -78,6 +224,7 @@ export type Database = {
         }
         Insert: {
           assinatura_digital?: string | null
+          certificate_number?: string | null
           cliente_id: string
           created_at?: string
           data_emissao?: string
@@ -85,12 +232,14 @@ export type Database = {
           data_vencimento: string
           estado?: string
           id?: string
+          is_locked?: boolean | null
           metodo_pagamento?: string | null
           numero: string
           observacoes?: string | null
           qr_code?: string | null
           referencia_pagamento?: string | null
           serie?: string
+          signature_hash?: string | null
           subtotal?: number
           tipo: string
           total?: number
@@ -100,6 +249,7 @@ export type Database = {
         }
         Update: {
           assinatura_digital?: string | null
+          certificate_number?: string | null
           cliente_id?: string
           created_at?: string
           data_emissao?: string
@@ -107,12 +257,14 @@ export type Database = {
           data_vencimento?: string
           estado?: string
           id?: string
+          is_locked?: boolean | null
           metodo_pagamento?: string | null
           numero?: string
           observacoes?: string | null
           qr_code?: string | null
           referencia_pagamento?: string | null
           serie?: string
+          signature_hash?: string | null
           subtotal?: number
           tipo?: string
           total?: number
@@ -126,6 +278,65 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_sends: {
+        Row: {
+          channel: Database["public"]["Enums"]["send_channel"]
+          created_at: string
+          delivered_at: string | null
+          external_message_id: string | null
+          failed_at: string | null
+          failure_reason: string | null
+          fatura_id: string
+          id: string
+          read_at: string | null
+          recipient: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["send_status"] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: Database["public"]["Enums"]["send_channel"]
+          created_at?: string
+          delivered_at?: string | null
+          external_message_id?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
+          fatura_id: string
+          id?: string
+          read_at?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["send_status"] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["send_channel"]
+          created_at?: string
+          delivered_at?: string | null
+          external_message_id?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
+          fatura_id?: string
+          id?: string
+          read_at?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["send_status"] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_sends_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
             referencedColumns: ["id"]
           },
         ]
@@ -294,6 +505,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_audit_log: {
+        Args: {
+          _action: string
+          _entity_id: string
+          _entity_type: string
+          _new_data?: Json
+          _old_data?: Json
+          _user_id: string
+        }
+        Returns: string
+      }
       generate_invoice_number: {
         Args: { _serie: string; _user_id: string }
         Returns: string
@@ -312,6 +534,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "operador" | "contador"
+      send_channel: "whatsapp" | "sms" | "email"
+      send_status: "pending" | "sent" | "delivered" | "failed" | "read"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -440,6 +664,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "operador", "contador"],
+      send_channel: ["whatsapp", "sms", "email"],
+      send_status: ["pending", "sent", "delivered", "failed", "read"],
     },
   },
 } as const
