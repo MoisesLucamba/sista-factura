@@ -131,6 +131,8 @@ export type Database = {
           tipo: string
           updated_at: string
           user_id: string
+          whatsapp_consent: boolean
+          whatsapp_enabled: boolean
         }
         Insert: {
           created_at?: string
@@ -143,6 +145,8 @@ export type Database = {
           tipo: string
           updated_at?: string
           user_id: string
+          whatsapp_consent?: boolean
+          whatsapp_enabled?: boolean
         }
         Update: {
           created_at?: string
@@ -155,6 +159,8 @@ export type Database = {
           tipo?: string
           updated_at?: string
           user_id?: string
+          whatsapp_consent?: boolean
+          whatsapp_enabled?: boolean
         }
         Relationships: []
       }
@@ -290,10 +296,14 @@ export type Database = {
           external_message_id: string | null
           failed_at: string | null
           failure_reason: string | null
+          fallback_used: boolean
           fatura_id: string
           id: string
+          max_retries: number
+          pdf_url: string | null
           read_at: string | null
           recipient: string
+          retry_count: number
           sent_at: string | null
           status: Database["public"]["Enums"]["send_status"] | null
           updated_at: string
@@ -306,10 +316,14 @@ export type Database = {
           external_message_id?: string | null
           failed_at?: string | null
           failure_reason?: string | null
+          fallback_used?: boolean
           fatura_id: string
           id?: string
+          max_retries?: number
+          pdf_url?: string | null
           read_at?: string | null
           recipient: string
+          retry_count?: number
           sent_at?: string | null
           status?: Database["public"]["Enums"]["send_status"] | null
           updated_at?: string
@@ -322,10 +336,14 @@ export type Database = {
           external_message_id?: string | null
           failed_at?: string | null
           failure_reason?: string | null
+          fallback_used?: boolean
           fatura_id?: string
           id?: string
+          max_retries?: number
+          pdf_url?: string | null
           read_at?: string | null
           recipient?: string
+          retry_count?: number
           sent_at?: string | null
           status?: Database["public"]["Enums"]["send_status"] | null
           updated_at?: string

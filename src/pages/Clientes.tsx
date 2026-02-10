@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { useClientes, useCreateCliente, useUpdateCliente, useDeleteCliente, type Cliente, type ClienteInput } from '@/hooks/useClientes';
 import { formatNIF } from '@/lib/format';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Plus, 
   Search, 
@@ -41,6 +42,7 @@ import {
   Building2,
   User,
   Loader2,
+  MessageCircle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -67,6 +69,8 @@ export default function Clientes() {
     telefone: '',
     email: '',
     tipo: 'empresa',
+    whatsapp_consent: false,
+    whatsapp_enabled: true,
   });
 
   const filteredClientes = clientes.filter(
@@ -94,6 +98,8 @@ export default function Clientes() {
       telefone: '',
       email: '',
       tipo: 'empresa',
+      whatsapp_consent: false,
+      whatsapp_enabled: true,
     });
   };
 
@@ -106,6 +112,8 @@ export default function Clientes() {
       telefone: cliente.telefone || '',
       email: cliente.email || '',
       tipo: cliente.tipo,
+      whatsapp_consent: cliente.whatsapp_consent,
+      whatsapp_enabled: cliente.whatsapp_enabled,
     });
     setIsDialogOpen(true);
   };
@@ -225,7 +233,39 @@ export default function Clientes() {
                       onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
                       placeholder="+244 9XX XXX XXX"
                     />
+                </div>
+                
+                {/* WhatsApp Consent */}
+                <div className="p-4 rounded-lg border bg-muted/30 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle className="w-4 h-4 text-primary" />
+                    <Label className="font-medium">WhatsApp</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="whatsapp_consent"
+                      checked={formData.whatsapp_consent}
+                      onCheckedChange={(checked) => 
+                        setFormData({ ...formData, whatsapp_consent: checked === true })
+                      }
+                    />
+                    <Label htmlFor="whatsapp_consent" className="text-sm font-normal">
+                      Cliente autoriza receber faturas via WhatsApp
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="whatsapp_enabled"
+                      checked={formData.whatsapp_enabled}
+                      onCheckedChange={(checked) => 
+                        setFormData({ ...formData, whatsapp_enabled: checked === true })
+                      }
+                    />
+                    <Label htmlFor="whatsapp_enabled" className="text-sm font-normal">
+                      Envio automático de faturas activo
+                    </Label>
+                  </div>
+                </div>
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -340,11 +380,17 @@ export default function Clientes() {
                           {formatNIF(cliente.nif)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">
+                        <TableCell className="hidden md:table-cell">
                         <div className="text-sm">
                           {cliente.telefone && <p>{cliente.telefone}</p>}
                           {cliente.email && (
                             <p className="text-muted-foreground">{cliente.email}</p>
+                          )}
+                          {cliente.whatsapp_consent && (
+                            <Badge variant="secondary" className="mt-1 text-xs bg-accent/10 text-accent-foreground">
+                              <MessageCircle className="w-3 h-3 mr-1" />
+                              WhatsApp
+                            </Badge>
                           )}
                         </div>
                       </TableCell>

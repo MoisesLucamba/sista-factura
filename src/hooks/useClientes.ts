@@ -12,6 +12,8 @@ export interface Cliente {
   telefone?: string;
   email?: string;
   tipo: 'particular' | 'empresa';
+  whatsapp_consent: boolean;
+  whatsapp_enabled: boolean;
   created_at: string;
   updated_at: string;
 }

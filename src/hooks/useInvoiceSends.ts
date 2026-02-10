@@ -16,6 +16,10 @@ export interface InvoiceSend {
   failed_at?: string;
   failure_reason?: string;
   external_message_id?: string;
+  retry_count: number;
+  max_retries: number;
+  fallback_used: boolean;
+  pdf_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -49,11 +53,11 @@ export interface SendInvoiceInput {
   channel: 'whatsapp' | 'sms' | 'email';
   recipient: string;
   message?: string;
+  pdf_url?: string;
 }
 
 export function useSendInvoice() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (input: SendInvoiceInput) => {
@@ -87,12 +91,38 @@ export function useSendInvoice() {
       queryClient.invalidateQueries({ queryKey: ['invoice-sends'] });
       if (data.simulated) {
         toast.info('Fatura enviada em modo simulação (configure a chave API para envio real)');
+      } else if (data.fallback_used) {
+        toast.warning('Fatura enviada por email (fallback após falha no canal principal)');
       } else {
         toast.success('Fatura enviada com sucesso!');
       }
     },
     onError: (error: Error) => {
       toast.error('Erro ao enviar fatura: ' + error.message);
+    },
+  });
+}
+
+// Hook to upload PDF to storage and get public URL
+export function useUploadInvoicePDF() {
+  return useMutation({
+    mutationFn: async ({ blob, fileName, userId }: { blob: Blob; fileName: string; userId: string }) => {
+      const filePath = `${userId}/${fileName}`;
+      
+      const { data, error } = await supabase.storage
+        .from('invoices')
+        .upload(filePath, blob, {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('invoices')
+        .getPublicUrl(data.path);
+
+      return urlData.publicUrl;
     },
   });
 }
