@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { useClientes } from '@/hooks/useClientes';
 import { useProdutos } from '@/hooks/useProdutos';
 import { useCreateFatura, type FaturaInput } from '@/hooks/useFaturas';
+import { useAutoSendInvoice } from '@/hooks/useAutoSendInvoice';
 import { formatCurrency, calculateIVA } from '@/lib/format';
 import { 
   ArrowLeft, 
@@ -61,6 +62,7 @@ export default function NovaFatura() {
   const { data: clientes = [], isLoading: loadingClientes } = useClientes();
   const { data: produtos = [], isLoading: loadingProdutos } = useProdutos();
   const createFatura = useCreateFatura();
+  const { autoSend, isAutoSendEnabled } = useAutoSendInvoice();
 
   const [tipo, setTipo] = useState<TipoDocumento>('fatura');
   const [clienteId, setClienteId] = useState<string>('');
@@ -162,7 +164,13 @@ export default function NovaFatura() {
     };
 
     try {
-      await createFatura.mutateAsync(faturaInput);
+      const result = await createFatura.mutateAsync(faturaInput);
+      
+      // Auto-send via WhatsApp if enabled
+      if (isAutoSendEnabled && result?.id) {
+        autoSend(result.id);
+      }
+      
       navigate('/faturas');
     } catch (error) {
       console.error('Error creating invoice:', error);

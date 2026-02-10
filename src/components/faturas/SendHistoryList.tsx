@@ -65,6 +65,9 @@ export function SendHistoryList({ faturaId, limit }: SendHistoryListProps) {
                 <p className="text-sm font-medium">{send.recipient}</p>
                 <p className="text-xs text-muted-foreground">
                   {new Date(send.created_at).toLocaleString('pt-AO')}
+                  {send.retry_count > 0 && ` · ${send.retry_count} tentativa(s)`}
+                  {send.fallback_used && ' · Fallback email'}
+                  {send.pdf_url && ' · PDF anexo'}
                 </p>
               </div>
             </div>

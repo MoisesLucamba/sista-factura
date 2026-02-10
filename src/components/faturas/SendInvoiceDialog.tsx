@@ -11,19 +11,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useSendInvoice } from '@/hooks/useInvoiceSends';
+import { useSendInvoice, useUploadInvoicePDF } from '@/hooks/useInvoiceSends';
 import { useAgtConfig } from '@/hooks/useAgtConfig';
-import { MessageCircle, Phone, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { generateInvoicePDF } from '@/lib/pdf-generator';
+import { supabase } from '@/integrations/supabase/client';
+import { MessageCircle, Phone, Mail, Loader2, AlertCircle, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Fatura } from '@/hooks/useFaturas';
 import { formatCurrency } from '@/lib/format';
+import { toast } from 'sonner';
 
 interface SendInvoiceDialogProps {
   fatura: Fatura | null;
@@ -44,22 +41,23 @@ const channelLabels = {
 };
 
 export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDialogProps) {
+  const { user } = useAuth();
   const { data: agtConfig } = useAgtConfig();
   const sendInvoice = useSendInvoice();
+  const uploadPDF = useUploadInvoicePDF();
   
   const [channel, setChannel] = useState<'whatsapp' | 'sms' | 'email'>(
     agtConfig?.default_send_channel || 'whatsapp'
   );
   const [recipient, setRecipient] = useState('');
   const [customMessage, setCustomMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
-  // Pre-fill recipient from client data
   const handleOpen = () => {
     if (fatura?.cliente) {
       if (channel === 'email' && fatura.cliente.email) {
         setRecipient(fatura.cliente.email);
       } else if ((channel === 'whatsapp' || channel === 'sms') && fatura.cliente.telefone) {
-        // Format phone number for WhatsApp (add country code if missing)
         let phone = fatura.cliente.telefone.replace(/\s+/g, '');
         if (!phone.startsWith('+') && !phone.startsWith('244')) {
           phone = '244' + phone;
@@ -69,7 +67,6 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
     }
   };
 
-  // Update recipient when channel changes
   const handleChannelChange = (newChannel: 'whatsapp' | 'sms' | 'email') => {
     setChannel(newChannel);
     if (fatura?.cliente) {
@@ -88,21 +85,60 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
   };
 
   const handleSend = async () => {
-    if (!fatura) return;
+    if (!fatura || !user) return;
+    setIsSending(true);
 
-    await sendInvoice.mutateAsync({
-      fatura_id: fatura.id,
-      channel,
-      recipient,
-      message: customMessage || undefined,
-    });
+    try {
+      // Step 1: Fetch full invoice data for PDF
+      const { data: fullFaturaData, error: fetchError } = await supabase
+        .from('faturas')
+        .select(`*, cliente:clientes(*)`)
+        .eq('id', fatura.id)
+        .single();
 
-    onOpenChange(false);
-    setCustomMessage('');
+      if (fetchError) throw fetchError;
+
+      const { data: itens, error: itensError } = await supabase
+        .from('itens_fatura')
+        .select(`*, produto:produtos(*)`)
+        .eq('fatura_id', fatura.id);
+
+      if (itensError) throw itensError;
+
+      const fullFatura = { ...fullFaturaData, itens: itens || [] } as Fatura;
+
+      // Step 2: Generate PDF
+      const pdfBlob = await generateInvoicePDF(fullFatura);
+
+      // Step 3: Upload PDF to storage
+      const fileName = `${fatura.numero.replace(/\//g, '-')}.pdf`;
+      const pdfUrl = await uploadPDF.mutateAsync({
+        blob: pdfBlob,
+        fileName,
+        userId: user.id,
+      });
+
+      // Step 4: Send invoice with PDF URL
+      await sendInvoice.mutateAsync({
+        fatura_id: fatura.id,
+        channel,
+        recipient,
+        message: customMessage || undefined,
+        pdf_url: pdfUrl,
+      });
+
+      onOpenChange(false);
+      setCustomMessage('');
+    } catch (error) {
+      console.error('Error sending invoice:', error);
+      toast.error('Erro ao processar envio da fatura');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const defaultMessage = fatura ? 
-    `Olá ${fatura.cliente?.nome || 'Cliente'},\n\nSegue a sua fatura nº ${fatura.numero} no valor de ${formatCurrency(Number(fatura.total))}.\n\nData de vencimento: ${new Date(fatura.data_vencimento).toLocaleDateString('pt-AO')}\n\nObrigado,\n${agtConfig?.nome_empresa || 'Empresa'}` 
+    `Olá ${fatura.cliente?.nome || 'Cliente'},\n\nSegue em anexo a sua fatura nº ${fatura.numero} no valor de ${formatCurrency(Number(fatura.total))}.\n\nData de vencimento: ${new Date(fatura.data_vencimento).toLocaleDateString('pt-AO')}\n\nObrigado pela preferência.\n${agtConfig?.nome_empresa || 'Empresa'}` 
     : '';
 
   const ChannelIcon = channelIcons[channel];
@@ -113,10 +149,10 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ChannelIcon className="w-5 h-5 text-primary" />
-            Enviar Fatura
+            Enviar Fatura via {channelLabels[channel]}
           </DialogTitle>
           <DialogDescription>
-            Envie a fatura {fatura?.numero} para o cliente via {channelLabels[channel]}
+            A fatura será gerada em PDF e enviada como anexo ao cliente
           </DialogDescription>
         </DialogHeader>
 
@@ -136,6 +172,14 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
                 <span className="text-sm text-muted-foreground">Total</span>
                 <span className="font-bold text-primary">{formatCurrency(Number(fatura.total))}</span>
               </div>
+            </div>
+
+            {/* PDF Attachment Info */}
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+              <p className="text-xs text-muted-foreground">
+                O PDF da fatura será gerado automaticamente e enviado como anexo
+              </p>
             </div>
 
             {/* Channel Selection */}
@@ -167,7 +211,7 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
             {/* Recipient */}
             <div className="space-y-2">
               <Label htmlFor="recipient">
-                {channel === 'email' ? 'Email do Destinatário' : 'Número de Telefone'}
+                {channel === 'email' ? 'Email do Destinatário' : 'Número de Telefone (formato internacional)'}
               </Label>
               <Input
                 id="recipient"
@@ -178,7 +222,7 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
               />
               {(channel === 'whatsapp' || channel === 'sms') && (
                 <p className="text-xs text-muted-foreground">
-                  Inclua o código do país (ex: 244 para Angola)
+                  O número deve estar no formato internacional (+244...)
                 </p>
               )}
             </div>
@@ -194,16 +238,20 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
                 rows={4}
               />
               <p className="text-xs text-muted-foreground">
-                Deixe vazio para usar a mensagem padrão
+                Deixe vazio para usar a mensagem padrão com template
               </p>
             </div>
 
             {/* Simulation Warning */}
             <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
               <AlertCircle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-warning">
-                Modo de simulação activo. Configure a chave API MessageBird nas configurações para envio real.
-              </p>
+              <div>
+                <p className="text-xs font-medium text-warning">Modo de Simulação</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Configure a chave API do WhatsApp Business nas configurações para envio real. 
+                  Caso o WhatsApp falhe, o sistema tentará reenviar até 3 vezes e usará email como alternativa.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -214,13 +262,13 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
           </Button>
           <Button 
             onClick={handleSend} 
-            disabled={!recipient || sendInvoice.isPending}
+            disabled={!recipient || isSending}
             className="gradient-primary border-0"
           >
-            {sendInvoice.isPending ? (
+            {isSending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                A enviar...
+                A gerar PDF e enviar...
               </>
             ) : (
               <>
