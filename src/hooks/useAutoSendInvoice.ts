@@ -1,128 +1,127 @@
-import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAgtConfig } from './useAgtConfig';
-import { generateInvoicePDF } from '@/lib/pdf-generator';
-import type { Fatura } from './useFaturas';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { generateInvoicePDF } from '@/lib/pdf-generator';
+import type { Fatura } from '@/hooks/useFaturas';
 
 export function useAutoSendInvoice() {
-  const { user } = useAuth();
-  const { data: agtConfig } = useAgtConfig();
+  const [isSending, setIsSending] = useState(false);
 
-  const autoSend = useCallback(async (faturaId: string) => {
-    if (!user || !agtConfig?.auto_send_invoice) return;
+  // Check if auto-send is enabled in settings
+  const isAutoSendEnabled = () => {
+    // You can store this in localStorage or user settings
+    const settings = localStorage.getItem('invoiceSettings');
+    if (settings) {
+      const parsed = JSON.parse(settings);
+      return parsed.autoSendWhatsApp === true;
+    }
+    return false;
+  };
+
+  const formatPhoneForWhatsApp = (phone: string): string => {
+    const cleaned = phone.replace(/\D/g, '');
+    if (!cleaned.startsWith('244')) {
+      return '244' + cleaned;
+    }
+    return cleaned;
+  };
+
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('pt-AO', {
+      style: 'currency',
+      currency: 'AOA',
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('pt-AO');
+  };
+
+  const getDefaultMessage = (fatura: Fatura): string => {
+    return `Olá ${fatura.cliente?.nome || 'Cliente'},
+
+Segue em anexo a ${fatura.tipo === 'fatura' ? 'fatura' : 'fatura-recibo'} ${fatura.numero}.
+
+Valor total: ${formatCurrency(Number(fatura.total))}
+Data de vencimento: ${formatDate(fatura.data_vencimento)}
+
+Qualquer dúvida, estamos à disposição.
+
+Atenciosamente`;
+  };
+
+  const autoSend = async (faturaId: string) => {
+    if (!isAutoSendEnabled()) {
+      return;
+    }
+
+    setIsSending(true);
 
     try {
-      // Fetch full invoice with client and items
+      // Fetch full fatura
       const { data: fatura, error: faturaError } = await supabase
         .from('faturas')
         .select(`*, cliente:clientes(*)`)
         .eq('id', faturaId)
         .single();
 
-      if (faturaError || !fatura) {
-        console.error('Auto-send: Invoice not found', faturaError);
+      if (faturaError) throw faturaError;
+
+      // Check if client has phone
+      if (!fatura.cliente?.telefone) {
+        toast.warning('Cliente sem telefone cadastrado', {
+          description: 'Não foi possível enviar automaticamente via WhatsApp',
+        });
         return;
       }
 
-      const cliente = fatura.cliente as any;
-
-      // Check if client has WhatsApp consent and is enabled
-      if (!cliente?.whatsapp_consent || !cliente?.whatsapp_enabled) {
-        console.log('Auto-send: Client has no WhatsApp consent or is disabled');
-        return;
-      }
-
-      // Determine recipient
-      const channel = agtConfig.default_send_channel || 'whatsapp';
-      let recipient = '';
-
-      if (channel === 'email') {
-        recipient = cliente.email || '';
-      } else {
-        let phone = (cliente.telefone || '').replace(/\s+/g, '');
-        if (phone && !phone.startsWith('+') && !phone.startsWith('244')) {
-          phone = '244' + phone;
-        }
-        recipient = phone;
-      }
-
-      if (!recipient) {
-        console.log('Auto-send: No recipient available');
-        return;
-      }
-
-      // Fetch items for PDF generation
-      const { data: itens } = await supabase
+      // Fetch items
+      const { data: itens, error: itensError } = await supabase
         .from('itens_fatura')
         .select(`*, produto:produtos(*)`)
         .eq('fatura_id', faturaId);
 
-      const fullFatura = { ...fatura, itens: itens || [] } as Fatura;
+      if (itensError) throw itensError;
+
+      const fullFatura = { ...fatura, itens } as Fatura;
 
       // Generate PDF
       const pdfBlob = await generateInvoicePDF(fullFatura);
 
-      // Upload PDF to storage
-      const fileName = `${fatura.numero.replace(/\//g, '-')}.pdf`;
-      const filePath = `${user.id}/${fileName}`;
+      // Download PDF
+      const downloadUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${fatura.numero.replace(/\//g, '-')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
 
-      const { error: uploadError } = await supabase.storage
-        .from('invoices')
-        .upload(filePath, pdfBlob, {
-          contentType: 'application/pdf',
-          upsert: true,
-        });
+      // Prepare WhatsApp message
+      const message = getDefaultMessage(fullFatura);
+      const phone = formatPhoneForWhatsApp(fatura.cliente.telefone);
+      const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-      if (uploadError) {
-        console.error('Auto-send: PDF upload failed', uploadError);
-        return;
-      }
+      // Open WhatsApp
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 500); // Small delay to allow PDF download to complete
 
-      const { data: urlData } = supabase.storage
-        .from('invoices')
-        .getPublicUrl(filePath);
-
-      const pdfUrl = urlData.publicUrl;
-
-      // Get session for auth
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      // Send invoice
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-invoice`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            fatura_id: faturaId,
-            channel,
-            recipient,
-            pdf_url: pdfUrl,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (result.success) {
-        if (result.simulated) {
-          toast.info(`Fatura ${fatura.numero} enviada automaticamente (modo simulação)`);
-        } else {
-          toast.success(`Fatura ${fatura.numero} enviada automaticamente via ${channel}!`);
-        }
-      } else {
-        toast.warning(`Envio automático da fatura ${fatura.numero} falhou: ${result.error || 'erro desconhecido'}`);
-      }
+      toast.success('WhatsApp aberto automaticamente', {
+        description: 'PDF baixado. Anexe o arquivo e envie.',
+      });
     } catch (error) {
-      console.error('Auto-send error:', error);
+      console.error('Error auto-sending invoice:', error);
+      toast.error('Erro ao enviar automaticamente');
+    } finally {
+      setIsSending(false);
     }
-  }, [user, agtConfig]);
+  };
 
-  return { autoSend, isAutoSendEnabled: agtConfig?.auto_send_invoice || false };
+  return {
+    autoSend,
+    isSending,
+    isAutoSendEnabled: isAutoSendEnabled(),
+  };
 }

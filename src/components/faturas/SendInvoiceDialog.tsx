@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,19 +8,15 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useSendInvoice, useUploadInvoicePDF } from '@/hooks/useInvoiceSends';
-import { useAgtConfig } from '@/hooks/useAgtConfig';
-import { useAuth } from '@/contexts/AuthContext';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Send, Loader2, FileText, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { generateInvoicePDF } from '@/lib/pdf-generator';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageCircle, Phone, Mail, Loader2, AlertCircle, FileText } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { Fatura } from '@/hooks/useFaturas';
-import { formatCurrency } from '@/lib/format';
-import { toast } from 'sonner';
 
 interface SendInvoiceDialogProps {
   fatura: Fatura | null;
@@ -28,252 +24,306 @@ interface SendInvoiceDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const channelIcons = {
-  whatsapp: MessageCircle,
-  sms: Phone,
-  email: Mail,
+// Helper functions outside component to avoid hoisting issues
+const formatPhoneForWhatsApp = (phone: string): string => {
+  // Remove all non-numeric characters
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Ensure it has country code (244 for Angola)
+  if (!cleaned.startsWith('244')) {
+    return '244' + cleaned;
+  }
+  return cleaned;
 };
 
-const channelLabels = {
-  whatsapp: 'WhatsApp',
-  sms: 'SMS',
-  email: 'Email',
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-AO', {
+    style: 'currency',
+    currency: 'AOA',
+  }).format(value);
+};
+
+const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString('pt-AO');
+};
+
+const getEmpresaName = (): string => {
+  // You can fetch this from your company settings
+  const settings = localStorage.getItem('invoiceSettings');
+  if (settings) {
+    const parsed = JSON.parse(settings);
+    return parsed.companyName || 'Sua Empresa';
+  }
+  return 'Sua Empresa';
+};
+
+const getDefaultMessage = (fatura: Fatura | null): string => {
+  if (!fatura) return '';
+  
+  return `Olá ${fatura.cliente?.nome || 'Cliente'},
+
+Segue em anexo a ${fatura.tipo === 'fatura' ? 'fatura' : 'fatura-recibo'} ${fatura.numero}.
+
+Valor total: ${formatCurrency(Number(fatura.total))}
+Data de vencimento: ${formatDate(fatura.data_vencimento)}
+
+Qualquer dúvida, estamos à disposição.
+
+Atenciosamente,
+${getEmpresaName()}`;
 };
 
 export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDialogProps) {
-  const { user } = useAuth();
-  const { data: agtConfig } = useAgtConfig();
-  const sendInvoice = useSendInvoice();
-  const uploadPDF = useUploadInvoicePDF();
-  
-  const [channel, setChannel] = useState<'whatsapp' | 'sms' | 'email'>(
-    agtConfig?.default_send_channel || 'whatsapp'
-  );
-  const [recipient, setRecipient] = useState('');
-  const [customMessage, setCustomMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [message, setMessage] = useState('');
+  const [includePDF, setIncludePDF] = useState(true);
+  const [useClientPhone, setUseClientPhone] = useState(true);
 
-  const handleOpen = () => {
-    if (fatura?.cliente) {
-      if (channel === 'email' && fatura.cliente.email) {
-        setRecipient(fatura.cliente.email);
-      } else if ((channel === 'whatsapp' || channel === 'sms') && fatura.cliente.telefone) {
-        let phone = fatura.cliente.telefone.replace(/\s+/g, '');
-        if (!phone.startsWith('+') && !phone.startsWith('244')) {
-          phone = '244' + phone;
-        }
-        setRecipient(phone);
+  // Initialize with default message and client phone when fatura changes
+  useEffect(() => {
+    if (fatura) {
+      setMessage(getDefaultMessage(fatura));
+      if (fatura.cliente?.telefone) {
+        setPhoneNumber(formatPhoneForWhatsApp(fatura.cliente.telefone));
       }
     }
-  };
-
-  const handleChannelChange = (newChannel: 'whatsapp' | 'sms' | 'email') => {
-    setChannel(newChannel);
-    if (fatura?.cliente) {
-      if (newChannel === 'email' && fatura.cliente.email) {
-        setRecipient(fatura.cliente.email);
-      } else if ((newChannel === 'whatsapp' || newChannel === 'sms') && fatura.cliente.telefone) {
-        let phone = fatura.cliente.telefone.replace(/\s+/g, '');
-        if (!phone.startsWith('+') && !phone.startsWith('244')) {
-          phone = '244' + phone;
-        }
-        setRecipient(phone);
-      } else {
-        setRecipient('');
-      }
-    }
-  };
+  }, [fatura]);
 
   const handleSend = async () => {
-    if (!fatura || !user) return;
+    if (!fatura) return;
+
+    // Validate phone number
+    const finalPhone = useClientPhone && fatura.cliente?.telefone
+      ? formatPhoneForWhatsApp(fatura.cliente.telefone)
+      : phoneNumber;
+
+    if (!finalPhone) {
+      toast.error('Por favor, insira um número de telefone');
+      return;
+    }
+
     setIsSending(true);
 
     try {
-      // Step 1: Fetch full invoice data for PDF
-      const { data: fullFaturaData, error: fetchError } = await supabase
-        .from('faturas')
-        .select(`*, cliente:clientes(*)`)
-        .eq('id', fatura.id)
-        .single();
+      let pdfBlob: Blob | null = null;
+      let pdfUrl = '';
 
-      if (fetchError) throw fetchError;
+      // Generate PDF if requested
+      if (includePDF) {
+        // Fetch full fatura with items
+        const { data: fullFatura, error: fetchError } = await supabase
+          .from('faturas')
+          .select(`*, cliente:clientes(*)`)
+          .eq('id', fatura.id)
+          .single();
 
-      const { data: itens, error: itensError } = await supabase
-        .from('itens_fatura')
-        .select(`*, produto:produtos(*)`)
-        .eq('fatura_id', fatura.id);
+        if (fetchError) throw fetchError;
 
-      if (itensError) throw itensError;
+        const { data: itens, error: itensError } = await supabase
+          .from('itens_fatura')
+          .select(`*, produto:produtos(*)`)
+          .eq('fatura_id', fatura.id);
 
-      const fullFatura = { ...fullFaturaData, itens: itens || [] } as Fatura;
+        if (itensError) throw itensError;
 
-      // Step 2: Generate PDF
-      const pdfBlob = await generateInvoicePDF(fullFatura);
+        // Generate PDF
+        pdfBlob = await generateInvoicePDF({ ...fullFatura, itens } as Fatura);
 
-      // Step 3: Upload PDF to storage
-      const fileName = `${fatura.numero.replace(/\//g, '-')}.pdf`;
-      const pdfUrl = await uploadPDF.mutateAsync({
-        blob: pdfBlob,
-        fileName,
-        userId: user.id,
-      });
+        // Upload PDF to storage (optional, for sharing link)
+        const fileName = `${fatura.numero.replace(/\//g, '-')}_${Date.now()}.pdf`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('invoices')
+          .upload(fileName, pdfBlob, {
+            contentType: 'application/pdf',
+            upsert: false,
+          });
 
-      // Step 4: Send invoice with PDF URL
-      await sendInvoice.mutateAsync({
-        fatura_id: fatura.id,
-        channel,
-        recipient,
-        message: customMessage || undefined,
-        pdf_url: pdfUrl,
+        if (uploadError) {
+          console.warn('Failed to upload PDF to storage:', uploadError);
+          // Continue without uploaded file - we'll use direct PDF
+        } else {
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('invoices')
+            .getPublicUrl(uploadData.path);
+          
+          pdfUrl = urlData.publicUrl;
+        }
+      }
+
+      // Format WhatsApp message
+      let whatsappMessage = encodeURIComponent(message);
+      let whatsappUrl = '';
+
+      if (includePDF && pdfUrl) {
+        // If we have a PDF URL, include it in the message
+        whatsappMessage = encodeURIComponent(`${message}\n\nPDF: ${pdfUrl}`);
+        whatsappUrl = `https://wa.me/${finalPhone}?text=${whatsappMessage}`;
+      } else if (includePDF && pdfBlob) {
+        // For direct PDF sending, we'll use WhatsApp Web API
+        // Note: WhatsApp Web doesn't support direct file upload via URL
+        // We need to use the business API or manual sharing
+        toast.info('PDF gerado. Por favor, anexe manualmente no WhatsApp.');
+        
+        // Download PDF for user to send manually
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${fatura.numero.replace(/\//g, '-')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(downloadUrl);
+
+        whatsappUrl = `https://wa.me/${finalPhone}?text=${whatsappMessage}`;
+      } else {
+        // Just message, no PDF
+        whatsappUrl = `https://wa.me/${finalPhone}?text=${whatsappMessage}`;
+      }
+
+      // Open WhatsApp
+      window.open(whatsappUrl, '_blank');
+
+      // Update fatura status to 'emitida' if it was 'rascunho'
+      if (fatura.estado === 'rascunho') {
+        await supabase
+          .from('faturas')
+          .update({ estado: 'emitida' })
+          .eq('id', fatura.id);
+      }
+
+      toast.success('WhatsApp aberto com sucesso!', {
+        description: includePDF 
+          ? 'Mensagem preparada. Anexe o PDF baixado e envie.'
+          : 'Mensagem preparada para envio.',
       });
 
       onOpenChange(false);
-      setCustomMessage('');
     } catch (error) {
       console.error('Error sending invoice:', error);
-      toast.error('Erro ao processar envio da fatura');
+      toast.error('Erro ao preparar envio');
     } finally {
       setIsSending(false);
     }
   };
 
-  const defaultMessage = fatura ? 
-    `Olá ${fatura.cliente?.nome || 'Cliente'},\n\nSegue em anexo a sua fatura nº ${fatura.numero} no valor de ${formatCurrency(Number(fatura.total))}.\n\nData de vencimento: ${new Date(fatura.data_vencimento).toLocaleDateString('pt-AO')}\n\nObrigado pela preferência.\n${agtConfig?.nome_empresa || 'Empresa'}` 
-    : '';
-
-  const ChannelIcon = channelIcons[channel];
+  if (!fatura) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" onOpenAutoFocus={handleOpen}>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ChannelIcon className="w-5 h-5 text-primary" />
-            Enviar Fatura via {channelLabels[channel]}
+            <Send className="w-5 h-5 text-primary" />
+            Enviar Fatura via WhatsApp
           </DialogTitle>
           <DialogDescription>
-            A fatura será gerada em PDF e enviada como anexo ao cliente
+            Envie a fatura {fatura.numero} para o cliente
           </DialogDescription>
         </DialogHeader>
 
-        {fatura && (
-          <div className="space-y-4">
-            {/* Invoice Summary */}
-            <div className="p-3 rounded-lg bg-muted/50">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Fatura</span>
-                <span className="font-mono font-medium">{fatura.numero}</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-sm text-muted-foreground">Cliente</span>
-                <span className="font-medium truncate max-w-[200px]">{fatura.cliente?.nome}</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-sm text-muted-foreground">Total</span>
-                <span className="font-bold text-primary">{formatCurrency(Number(fatura.total))}</span>
-              </div>
+        <div className="space-y-4 py-4">
+          {/* Client Info */}
+          <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium">{fatura.numero}</span>
             </div>
-
-            {/* PDF Attachment Info */}
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
-              <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-              <p className="text-xs text-muted-foreground">
-                O PDF da fatura será gerado automaticamente e enviado como anexo
-              </p>
-            </div>
-
-            {/* Channel Selection */}
-            <div className="space-y-2">
-              <Label>Canal de Envio</Label>
-              <div className="flex gap-2">
-                {(['whatsapp', 'sms', 'email'] as const).map((ch) => {
-                  const Icon = channelIcons[ch];
-                  return (
-                    <Button
-                      key={ch}
-                      type="button"
-                      variant={channel === ch ? 'default' : 'outline'}
-                      size="sm"
-                      className={cn(
-                        'flex-1',
-                        channel === ch && 'gradient-primary border-0'
-                      )}
-                      onClick={() => handleChannelChange(ch)}
-                    >
-                      <Icon className="w-4 h-4 mr-1" />
-                      {channelLabels[ch]}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Recipient */}
-            <div className="space-y-2">
-              <Label htmlFor="recipient">
-                {channel === 'email' ? 'Email do Destinatário' : 'Número de Telefone (formato internacional)'}
-              </Label>
-              <Input
-                id="recipient"
-                type={channel === 'email' ? 'email' : 'tel'}
-                placeholder={channel === 'email' ? 'cliente@email.com' : '+244 9XX XXX XXX'}
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-              />
-              {(channel === 'whatsapp' || channel === 'sms') && (
-                <p className="text-xs text-muted-foreground">
-                  O número deve estar no formato internacional (+244...)
-                </p>
-              )}
-            </div>
-
-            {/* Custom Message */}
-            <div className="space-y-2">
-              <Label htmlFor="message">Mensagem (opcional)</Label>
-              <Textarea
-                id="message"
-                placeholder={defaultMessage}
-                value={customMessage}
-                onChange={(e) => setCustomMessage(e.target.value)}
-                rows={4}
-              />
-              <p className="text-xs text-muted-foreground">
-                Deixe vazio para usar a mensagem padrão com template
-              </p>
-            </div>
-
-            {/* Simulation Warning */}
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
-              <AlertCircle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-xs font-medium text-warning">Modo de Simulação</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Configure a chave API do WhatsApp Business nas configurações para envio real. 
-                  Caso o WhatsApp falhe, o sistema tentará reenviar até 3 vezes e usará email como alternativa.
-                </p>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Cliente: {fatura.cliente?.nome || 'N/A'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Total: {formatCurrency(Number(fatura.total))}
+            </p>
           </div>
-        )}
+
+          {/* Phone Number */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="use-client-phone"
+                checked={useClientPhone}
+                onCheckedChange={(checked) => setUseClientPhone(checked as boolean)}
+              />
+              <Label htmlFor="use-client-phone" className="text-sm cursor-pointer">
+                Usar telefone do cliente
+                {fatura.cliente?.telefone && (
+                  <span className="text-muted-foreground ml-1">
+                    ({fatura.cliente.telefone})
+                  </span>
+                )}
+              </Label>
+            </div>
+
+            {!useClientPhone && (
+              <div className="space-y-1">
+                <Label htmlFor="phone">Número de WhatsApp</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="244 900 000 000"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Incluir código do país (ex: 244 para Angola)
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Include PDF */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="include-pdf"
+              checked={includePDF}
+              onCheckedChange={(checked) => setIncludePDF(checked as boolean)}
+            />
+            <Label htmlFor="include-pdf" className="text-sm cursor-pointer">
+              Incluir PDF da fatura
+            </Label>
+          </div>
+
+          {/* Message */}
+          <div className="space-y-2">
+            <Label htmlFor="message">Mensagem</Label>
+            <Textarea
+              id="message"
+              rows={8}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Digite a mensagem..."
+              className="resize-none"
+            />
+            <p className="text-xs text-muted-foreground">
+              Personalize a mensagem antes de enviar
+            </p>
+          </div>
+        </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSending}
+          >
             Cancelar
           </Button>
-          <Button 
-            onClick={handleSend} 
-            disabled={!recipient || isSending}
+          <Button
+            onClick={handleSend}
+            disabled={isSending}
             className="gradient-primary border-0"
           >
             {isSending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                A gerar PDF e enviar...
+                Preparando...
               </>
             ) : (
               <>
-                <ChannelIcon className="w-4 h-4 mr-2" />
-                Enviar via {channelLabels[channel]}
+                <Send className="w-4 h-4 mr-2" />
+                Abrir WhatsApp
               </>
             )}
           </Button>

@@ -166,6 +166,10 @@ export default function NovaFatura() {
     try {
       const result = await createFatura.mutateAsync(faturaInput);
       
+      toast.success('Fatura criada com sucesso!', {
+        description: `Fatura ${result.numero} foi emitida.`,
+      });
+      
       // Auto-send via WhatsApp if enabled
       if (isAutoSendEnabled && result?.id) {
         autoSend(result.id);
@@ -174,6 +178,7 @@ export default function NovaFatura() {
       navigate('/faturas');
     } catch (error) {
       console.error('Error creating invoice:', error);
+      toast.error('Erro ao criar fatura');
     }
   };
 
@@ -346,6 +351,9 @@ export default function NovaFatura() {
                   <p className="text-sm text-muted-foreground">{clienteSelecionado.endereco}</p>
                   {clienteSelecionado.email && (
                     <p className="text-sm text-muted-foreground">{clienteSelecionado.email}</p>
+                  )}
+                  {clienteSelecionado.telefone && (
+                    <p className="text-sm text-muted-foreground">Tel: {clienteSelecionado.telefone}</p>
                   )}
                 </div>
               )}
