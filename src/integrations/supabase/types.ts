@@ -16,67 +16,94 @@ export type Database = {
     Tables: {
       agt_config: {
         Row: {
+          actividade_comercial: string | null
+          alvara_comercial: string | null
           auto_send_invoice: boolean | null
           certificate_number: string | null
           certificate_status: string | null
           certificate_valid_until: string | null
+          cidade: string | null
           created_at: string
           declaracao_conformidade_reference: string | null
           default_send_channel:
             | Database["public"]["Enums"]["send_channel"]
             | null
+          email: string | null
           endereco_empresa: string | null
           id: string
           invoice_language: string | null
+          logo_url: string | null
           memoria_descritiva_reference: string | null
           modelo_8_reference: string | null
+          morada: string | null
           nif_produtor: string | null
           nome_empresa: string | null
+          provincia: string | null
           public_key: string | null
+          telefone: string | null
           updated_at: string
           user_id: string
+          website: string | null
         }
         Insert: {
+          actividade_comercial?: string | null
+          alvara_comercial?: string | null
           auto_send_invoice?: boolean | null
           certificate_number?: string | null
           certificate_status?: string | null
           certificate_valid_until?: string | null
+          cidade?: string | null
           created_at?: string
           declaracao_conformidade_reference?: string | null
           default_send_channel?:
             | Database["public"]["Enums"]["send_channel"]
             | null
+          email?: string | null
           endereco_empresa?: string | null
           id?: string
           invoice_language?: string | null
+          logo_url?: string | null
           memoria_descritiva_reference?: string | null
           modelo_8_reference?: string | null
+          morada?: string | null
           nif_produtor?: string | null
           nome_empresa?: string | null
+          provincia?: string | null
           public_key?: string | null
+          telefone?: string | null
           updated_at?: string
           user_id: string
+          website?: string | null
         }
         Update: {
+          actividade_comercial?: string | null
+          alvara_comercial?: string | null
           auto_send_invoice?: boolean | null
           certificate_number?: string | null
           certificate_status?: string | null
           certificate_valid_until?: string | null
+          cidade?: string | null
           created_at?: string
           declaracao_conformidade_reference?: string | null
           default_send_channel?:
             | Database["public"]["Enums"]["send_channel"]
             | null
+          email?: string | null
           endereco_empresa?: string | null
           id?: string
           invoice_language?: string | null
+          logo_url?: string | null
           memoria_descritiva_reference?: string | null
           modelo_8_reference?: string | null
+          morada?: string | null
           nif_produtor?: string | null
           nome_empresa?: string | null
+          provincia?: string | null
           public_key?: string | null
+          telefone?: string | null
           updated_at?: string
           user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -287,6 +314,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fornecedores: {
+        Row: {
+          created_at: string
+          email: string | null
+          endereco: string
+          id: string
+          nif: string
+          nome: string
+          telefone: string | null
+          tipo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          endereco: string
+          id?: string
+          nif: string
+          nome: string
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          endereco?: string
+          id?: string
+          nif?: string
+          nome?: string
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       invoice_sends: {
         Row: {
