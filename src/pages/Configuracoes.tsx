@@ -719,7 +719,7 @@ export default function ConfiguracoesProfessional() {
                         "font-mono text-xs border-2 focus:border-primary transition-all resize-none",
                         !showPublicKey && "text-security-disc"
                       )}
-                      style={!showPublicKey ? { WebkitTextSecurity: 'disc' } : {}}
+                      style={!showPublicKey ? { WebkitTextSecurity: 'disc' } as React.CSSProperties : {}}
                     />
                     <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                       <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />

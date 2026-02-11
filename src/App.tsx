@@ -12,6 +12,9 @@ import Faturas from "./pages/Faturas";
 import NovaFatura from "./pages/NovaFatura";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
+import Fornecedores from "./pages/Fornecedores";
+import Documentos from "./pages/Documentos";
+import Empresa from "./pages/Empresa";
 import Login from "./pages/Login";
 import Registar from "./pages/Registar";
 import NotFound from "./pages/NotFound";
@@ -84,6 +87,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Configuracoes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/fornecedores"
+              element={
+                <ProtectedRoute>
+                  <Fornecedores />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/documentos"
+              element={
+                <ProtectedRoute>
+                  <Documentos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/empresa"
+              element={
+                <ProtectedRoute>
+                  <Empresa />
                 </ProtectedRoute>
               }
             />
