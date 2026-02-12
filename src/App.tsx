@@ -17,6 +17,7 @@ import Documentos from "./pages/Documentos";
 import Empresa from "./pages/Empresa";
 import Login from "./pages/Login";
 import Registar from "./pages/Registar";
+import LandingPage from "./pages/LandingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
+            <Route path="/inicio" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registar" element={<Registar />} />
             
