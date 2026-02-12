@@ -11,7 +11,22 @@ const COLORS = {
   background: [248, 248, 248] as [number, number, number],
 };
 
-export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
+export interface CompanyInfo {
+  nome_empresa?: string;
+  nif_produtor?: string;
+  endereco_empresa?: string;
+  telefone?: string;
+  email?: string;
+  website?: string;
+  morada?: string;
+  cidade?: string;
+  provincia?: string;
+  actividade_comercial?: string;
+  alvara_comercial?: string;
+  logo_url?: string;
+}
+
+export async function generateInvoicePDF(fatura: Fatura, companyInfo?: CompanyInfo): Promise<Blob> {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -23,20 +38,48 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
   const margin = 20;
   let y = margin;
 
+  const companyName = companyInfo?.nome_empresa || 'FAKTURA ANGOLA';
+  const companyNif = companyInfo?.nif_produtor;
+  const companyAddress = companyInfo?.morada || companyInfo?.endereco_empresa;
+  const companyCity = companyInfo?.cidade;
+  const companyProvince = companyInfo?.provincia;
+  const companyPhone = companyInfo?.telefone;
+  const companyEmail = companyInfo?.email;
+  const companyWebsite = companyInfo?.website;
+  const companyActivity = companyInfo?.actividade_comercial;
+  const companyAlvara = companyInfo?.alvara_comercial;
+
   // Header background
   doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, pageWidth, 45, 'F');
+  doc.rect(0, 0, pageWidth, 50, 'F');
 
   // Company name
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
+  doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('FAKTURA ANGOLA', margin, 25);
+  doc.text(companyName.toUpperCase(), margin, 20);
 
-  // Company subtitle
-  doc.setFontSize(10);
+  // Company details under name
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text('Sistema de Faturação', margin, 32);
+  let headerY = 26;
+  if (companyNif) {
+    doc.text(`NIF: ${companyNif}`, margin, headerY);
+    headerY += 4;
+  }
+  if (companyAddress) {
+    const addr = [companyAddress, companyCity, companyProvince].filter(Boolean).join(', ');
+    doc.text(addr, margin, headerY);
+    headerY += 4;
+  }
+  const contactParts = [companyPhone, companyEmail].filter(Boolean);
+  if (contactParts.length > 0) {
+    doc.text(contactParts.join(' | '), margin, headerY);
+    headerY += 4;
+  }
+  if (companyAlvara) {
+    doc.text(`Alvará: ${companyAlvara}`, margin, headerY);
+  }
 
   // Invoice type badge
   const tipoTexto = {
@@ -48,13 +91,13 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
 
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(tipoTexto, pageWidth - margin, 25, { align: 'right' });
+  doc.text(tipoTexto, pageWidth - margin, 22, { align: 'right' });
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text(fatura.numero, pageWidth - margin, 33, { align: 'right' });
+  doc.text(fatura.numero, pageWidth - margin, 30, { align: 'right' });
 
-  y = 55;
+  y = 60;
 
   // Invoice details section
   doc.setTextColor(...COLORS.text);
@@ -86,7 +129,7 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
 
   // Right column - Invoice dates
   const rightCol = pageWidth / 2 + 10;
-  let yRight = 55;
+  let yRight = 60;
 
   doc.setTextColor(...COLORS.text);
   doc.setFont('helvetica', 'bold');
@@ -125,7 +168,6 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
 
-  const colWidths = [60, 20, 30, 20, 25, 25];
   const colX = [margin + 2, margin + 62, margin + 82, margin + 112, margin + 132, margin + 157];
 
   doc.text('Descrição', colX[0], y + 5.5);
@@ -145,7 +187,6 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
     for (const item of fatura.itens) {
       doc.setTextColor(...COLORS.text);
       
-      // Truncate long product names
       const produtoNome = item.produto?.nome || 'Produto';
       const truncatedName = produtoNome.length > 35 ? produtoNome.slice(0, 32) + '...' : produtoNome;
       
@@ -158,7 +199,6 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
 
       y += 7;
 
-      // Draw separator line
       doc.setDrawColor(...COLORS.border);
       doc.line(margin, y - 2, pageWidth - margin, y - 2);
     }
@@ -225,6 +265,7 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
       numero: fatura.numero,
       data: fatura.data_emissao,
       total: fatura.total,
+      nif_emitente: companyNif || '',
     });
 
     const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
@@ -236,7 +277,6 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
       },
     });
 
-    // Position QR code at bottom left
     const qrY = pageHeight - 55;
     doc.addImage(qrCodeDataUrl, 'PNG', margin, qrY, 35, 35);
 
@@ -254,7 +294,7 @@ export async function generateInvoicePDF(fatura: Fatura): Promise<Blob> {
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.muted);
   doc.text(
-    'Documento processado por Faktura Angola - Sistema de Faturação',
+    `Documento processado por ${companyName} - Sistema de Faturação`,
     pageWidth / 2,
     pageHeight - 7,
     { align: 'center' }

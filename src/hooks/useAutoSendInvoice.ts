@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { generateInvoicePDF } from '@/lib/pdf-generator';
+import { generateInvoicePDF, type CompanyInfo } from '@/lib/pdf-generator';
 import type { Fatura } from '@/hooks/useFaturas';
 
 export function useAutoSendInvoice() {
@@ -85,8 +85,26 @@ Atenciosamente`;
 
       const fullFatura = { ...fatura, itens } as Fatura;
 
+      // Fetch company info
+      const { data: agtConfig } = await supabase
+        .from('agt_config')
+        .select('*')
+        .maybeSingle();
+
+      const companyInfo: CompanyInfo | undefined = agtConfig ? {
+        nome_empresa: agtConfig.nome_empresa || undefined,
+        nif_produtor: agtConfig.nif_produtor || undefined,
+        endereco_empresa: agtConfig.endereco_empresa || undefined,
+        telefone: agtConfig.telefone || undefined,
+        email: agtConfig.email || undefined,
+        morada: agtConfig.morada || undefined,
+        cidade: agtConfig.cidade || undefined,
+        provincia: agtConfig.provincia || undefined,
+        alvara_comercial: agtConfig.alvara_comercial || undefined,
+      } : undefined;
+
       // Generate PDF
-      const pdfBlob = await generateInvoicePDF(fullFatura);
+      const pdfBlob = await generateInvoicePDF(fullFatura, companyInfo);
 
       // Download PDF
       const downloadUrl = URL.createObjectURL(pdfBlob);
