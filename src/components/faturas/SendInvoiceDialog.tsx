@@ -14,7 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Send, Loader2, FileText, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { generateInvoicePDF } from '@/lib/pdf-generator';
+import { generateInvoicePDF, type CompanyInfo } from '@/lib/pdf-generator';
+import { useAgtConfig } from '@/hooks/useAgtConfig';
 import { supabase } from '@/integrations/supabase/client';
 import type { Fatura } from '@/hooks/useFaturas';
 
@@ -79,6 +80,7 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
   const [message, setMessage] = useState('');
   const [includePDF, setIncludePDF] = useState(true);
   const [useClientPhone, setUseClientPhone] = useState(true);
+  const { data: agtConfig } = useAgtConfig();
 
   // Initialize with default message and client phone when fatura changes
   useEffect(() => {
@@ -128,7 +130,19 @@ export function SendInvoiceDialog({ fatura, open, onOpenChange }: SendInvoiceDia
         if (itensError) throw itensError;
 
         // Generate PDF
-        pdfBlob = await generateInvoicePDF({ ...fullFatura, itens } as Fatura);
+        const companyInfo: CompanyInfo = agtConfig ? {
+          nome_empresa: agtConfig.nome_empresa || undefined,
+          nif_produtor: agtConfig.nif_produtor || undefined,
+          endereco_empresa: agtConfig.endereco_empresa || undefined,
+          telefone: agtConfig.telefone || undefined,
+          email: agtConfig.email || undefined,
+          morada: agtConfig.morada || undefined,
+          cidade: agtConfig.cidade || undefined,
+          provincia: agtConfig.provincia || undefined,
+          alvara_comercial: agtConfig.alvara_comercial || undefined,
+        } : undefined;
+
+        pdfBlob = await generateInvoicePDF({ ...fullFatura, itens } as Fatura, companyInfo);
 
         // Upload PDF to storage (optional, for sharing link)
         const fileName = `${fatura.numero.replace(/\//g, '-')}_${Date.now()}.pdf`;

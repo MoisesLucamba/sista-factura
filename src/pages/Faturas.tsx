@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/select';
 import { useFaturas, useFatura, useUpdateFaturaEstado, type Fatura } from '@/hooks/useFaturas';
 import { formatCurrency } from '@/lib/format';
-import { generateInvoicePDF, downloadInvoicePDF } from '@/lib/pdf-generator';
+import { generateInvoicePDF, downloadInvoicePDF, type CompanyInfo } from '@/lib/pdf-generator';
+import { useAgtConfig } from '@/hooks/useAgtConfig';
 import { 
   Plus, 
   Search, 
@@ -101,6 +102,7 @@ const tipoDocLabels: Record<TipoDocumento, string> = {
 
 export default function Faturas() {
   const { data: faturas = [], isLoading } = useFaturas();
+  const { data: agtConfig } = useAgtConfig();
   const updateEstado = useUpdateFaturaEstado();
   const [searchTerm, setSearchTerm] = useState('');
   const [estadoFilter, setEstadoFilter] = useState<string>('all');
@@ -158,7 +160,21 @@ export default function Faturas() {
 
       if (error) throw error;
 
-      const blob = await generateInvoicePDF(fullFatura as Fatura);
+      const companyInfo: CompanyInfo = agtConfig ? {
+        nome_empresa: agtConfig.nome_empresa || undefined,
+        nif_produtor: agtConfig.nif_produtor || undefined,
+        endereco_empresa: agtConfig.endereco_empresa || undefined,
+        telefone: agtConfig.telefone || undefined,
+        email: agtConfig.email || undefined,
+        website: agtConfig.website || undefined,
+        morada: agtConfig.morada || undefined,
+        cidade: agtConfig.cidade || undefined,
+        provincia: agtConfig.provincia || undefined,
+        actividade_comercial: agtConfig.actividade_comercial || undefined,
+        alvara_comercial: agtConfig.alvara_comercial || undefined,
+      } : undefined;
+
+      const blob = await generateInvoicePDF(fullFatura as Fatura, companyInfo);
       downloadInvoicePDF(blob, `${fatura.numero.replace(/\//g, '-')}.pdf`);
       toast.success('PDF gerado com sucesso!');
     } catch (error) {
