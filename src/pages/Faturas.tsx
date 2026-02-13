@@ -63,7 +63,7 @@ import { toast } from 'sonner';
 import { SendInvoiceDialog } from '@/components/faturas/SendInvoiceDialog';
 
 type EstadoFatura = 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
-type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito';
+type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'proforma';
 
 const estadoStyles: Record<EstadoFatura, { label: string; className: string; icon: any }> = {
   rascunho: { 
@@ -98,6 +98,7 @@ const tipoDocLabels: Record<TipoDocumento, string> = {
   'fatura-recibo': 'Fatura-Recibo',
   'recibo': 'Recibo',
   'nota-credito': 'Nota de Crédito',
+  'proforma': 'Proforma',
 };
 
 export default function Faturas() {
@@ -366,6 +367,7 @@ export default function Faturas() {
                     <SelectItem value="fatura-recibo">Fatura-Recibo</SelectItem>
                     <SelectItem value="recibo">Recibo</SelectItem>
                     <SelectItem value="nota-credito">Nota de Crédito</SelectItem>
+                    <SelectItem value="proforma">Proforma</SelectItem>
                   </SelectContent>
                 </Select>
                 
