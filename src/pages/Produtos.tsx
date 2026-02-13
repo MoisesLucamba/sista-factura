@@ -394,6 +394,9 @@ export default function Produtos() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="14">14% (Normal)</SelectItem>
+                          <SelectItem value="7">7% (Reduzida)</SelectItem>
+                          <SelectItem value="5">5% (Intermédia)</SelectItem>
+                          <SelectItem value="2">2% (Mínima)</SelectItem>
                           <SelectItem value="0">0% (Isento)</SelectItem>
                         </SelectContent>
                       </Select>

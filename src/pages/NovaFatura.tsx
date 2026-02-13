@@ -668,7 +668,21 @@ export default function NovaFatura() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">{item.taxa_iva}%</Badge>
+                            <Select
+                              value={item.taxa_iva.toString()}
+                              onValueChange={(v) => updateItem(index, 'taxa_iva', parseFloat(v))}
+                            >
+                              <SelectTrigger className="w-[90px] h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="14">14%</SelectItem>
+                                <SelectItem value="7">7%</SelectItem>
+                                <SelectItem value="5">5%</SelectItem>
+                                <SelectItem value="2">2%</SelectItem>
+                                <SelectItem value="0">0%</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </TableCell>
                           <TableCell className="text-right font-medium">
                             {formatCurrency(item.total || 0)}

@@ -9,13 +9,11 @@ import {
   Users,
   Globe,
   CheckCircle,
-  Star,
   ChevronRight,
   Sparkles,
   Clock,
   Play,
   HelpCircle,
-  ChevronDown,
 } from 'lucide-react';
 import {
   Accordion,
@@ -26,6 +24,11 @@ import {
 import logoFaktura from '@/assets/logo-faktura.png';
 import heroBusiness from '@/assets/hero-business.jpg';
 import dashboardPreview from '@/assets/dashboard-preview.png';
+import logoOrbislink from '@/assets/logos/orbislink.png';
+import logoCalmind from '@/assets/logos/calmind.png';
+import logoPlaka from '@/assets/logos/plaka.jpg';
+import logoAgrilink from '@/assets/logos/agrilink.png';
+import logoAlphadata from '@/assets/logos/alphadata.png';
 import teamCollab from '@/assets/team-collab.jpg';
 
 const features = [
@@ -68,25 +71,12 @@ const stats = [
   { value: '24/7', label: 'Suporte' },
 ];
 
-const testimonials = [
-  {
-    name: 'Maria Santos',
-    role: 'CEO, ComércioPlus Lda',
-    text: 'O Faktura revolucionou a nossa facturação. Antes levávamos horas, agora são minutos.',
-    rating: 5,
-  },
-  {
-    name: 'Pedro Neto',
-    role: 'Contabilista, FinAngola',
-    text: 'A conformidade com a AGT é perfeita. Nunca mais tivemos problemas fiscais.',
-    rating: 5,
-  },
-  {
-    name: 'Ana Ferreira',
-    role: 'Directora, TechLuanda',
-    text: 'Interface incrível e fácil de usar. Recomendo a todas as empresas angolanas.',
-    rating: 5,
-  },
+const clientLogos = [
+  { name: 'Orbis.Link', logo: logoOrbislink },
+  { name: 'CalMind', logo: logoCalmind },
+  { name: 'Plaka', logo: logoPlaka },
+  { name: 'AgriLink', logo: logoAgrilink },
+  { name: 'AlphaData', logo: logoAlphadata },
 ];
 
 export default function LandingPage() {
@@ -103,7 +93,7 @@ export default function LandingPage() {
               <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Funcionalidades</a>
               <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Preços</a>
               <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
-              <a href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Testemunhos</a>
+              <a href="#clients" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Clientes</a>
             </div>
             <div className="flex items-center gap-3">
               <Link to="/login">
@@ -275,28 +265,27 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="py-24 bg-muted/30">
+      {/* Clients / Companies */}
+      <section id="clients" className="py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-4">
-              O que dizem os nossos <span className="text-primary">clientes</span>
+              Empresas que já utilizam a <span className="text-primary">Faktura</span>
             </h2>
+            <p className="text-lg text-muted-foreground">Junte-se às empresas que confiam na nossa plataforma.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((t, i) => (
-              <div key={i} className="bg-card rounded-2xl p-8 border border-border/50 shadow-sm">
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: t.rating }).map((_, j) => (
-                    <Star key={j} className="w-5 h-5 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="text-foreground mb-6 leading-relaxed italic">"{t.text}"</p>
-                <div>
-                  <p className="font-bold text-sm">{t.name}</p>
-                  <p className="text-sm text-muted-foreground">{t.role}</p>
-                </div>
+          <div className="flex flex-wrap items-center justify-center gap-10 lg:gap-16">
+            {clientLogos.map((client, i) => (
+              <div
+                key={i}
+                className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 flex items-center justify-center h-28 w-52"
+              >
+                <img
+                  src={client.logo}
+                  alt={client.name}
+                  className="max-h-16 max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                />
               </div>
             ))}
           </div>
