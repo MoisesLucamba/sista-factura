@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Building2, Save, Upload, MapPin, Phone, Mail, Globe, FileText, Loader2 } from 'lucide-react';
+import { Building2, Save, Upload, MapPin, Phone, Mail, Globe, FileText, Loader2, Trash2 } from 'lucide-react';
 import { useAgtConfig, useCreateOrUpdateAgtConfig } from '@/hooks/useAgtConfig';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface EmpresaForm {
   nome_empresa: string;
@@ -21,42 +24,97 @@ interface EmpresaForm {
   endereco_empresa: string;
   cidade: string;
   provincia: string;
+  logo_url: string;
 }
 
 const emptyForm: EmpresaForm = {
   nome_empresa: '', nif_produtor: '', actividade_comercial: '', alvara_comercial: '',
-  telefone: '', email: '', website: '', morada: '', endereco_empresa: '', cidade: '', provincia: '',
+  telefone: '', email: '', website: '', morada: '', endereco_empresa: '', cidade: '', provincia: '', logo_url: '',
 };
 
 export default function Empresa() {
   const { data: config, isLoading } = useAgtConfig();
   const mutation = useCreateOrUpdateAgtConfig();
+  const { user } = useAuth();
   const [form, setForm] = useState<EmpresaForm>(emptyForm);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (config) {
       setForm({
         nome_empresa: config.nome_empresa || '',
         nif_produtor: config.nif_produtor || '',
-        actividade_comercial: (config as any).actividade_comercial || '',
-        alvara_comercial: (config as any).alvara_comercial || '',
-        telefone: (config as any).telefone || '',
-        email: (config as any).email || '',
-        website: (config as any).website || '',
-        morada: (config as any).morada || '',
+        actividade_comercial: config.actividade_comercial || '',
+        alvara_comercial: config.alvara_comercial || '',
+        telefone: config.telefone || '',
+        email: config.email || '',
+        website: config.website || '',
+        morada: config.morada || '',
         endereco_empresa: config.endereco_empresa || '',
-        cidade: (config as any).cidade || '',
-        provincia: (config as any).provincia || '',
+        cidade: config.cidade || '',
+        provincia: config.provincia || '',
+        logo_url: config.logo_url || '',
       });
     }
   }, [config]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('O ficheiro deve ter no máximo 2MB');
+      return;
+    }
+
+    if (!['image/png', 'image/jpeg', 'image/svg+xml'].includes(file.type)) {
+      toast.error('Formato não suportado. Use PNG, JPG ou SVG.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const filePath = `${user.id}/logo.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('logos')
+        .getPublicUrl(filePath);
+
+      setForm(prev => ({ ...prev, logo_url: publicUrl }));
+      toast.success('Logótipo carregado com sucesso!');
+    } catch (err: any) {
+      toast.error('Erro ao carregar logótipo: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setForm(prev => ({ ...prev, logo_url: '' }));
+  };
 
   const handleSave = () => {
     mutation.mutate({
       nome_empresa: form.nome_empresa,
       nif_produtor: form.nif_produtor,
       endereco_empresa: form.endereco_empresa,
-      ...({ actividade_comercial: form.actividade_comercial, alvara_comercial: form.alvara_comercial, telefone: form.telefone, email: form.email, website: form.website, morada: form.morada, cidade: form.cidade, provincia: form.provincia } as any),
+      actividade_comercial: form.actividade_comercial,
+      alvara_comercial: form.alvara_comercial,
+      telefone: form.telefone,
+      email: form.email,
+      website: form.website,
+      morada: form.morada,
+      cidade: form.cidade,
+      provincia: form.provincia,
+      logo_url: form.logo_url,
     });
   };
 
@@ -84,11 +142,37 @@ export default function Empresa() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6">
-              <div className="w-24 h-24 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/30">
-                <Building2 className="w-10 h-10 text-muted-foreground/50" />
+              <div className="w-24 h-24 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center bg-muted/30 overflow-hidden">
+                {form.logo_url ? (
+                  <img src={form.logo_url} alt="Logo da empresa" className="w-full h-full object-contain" />
+                ) : (
+                  <Building2 className="w-10 h-10 text-muted-foreground/50" />
+                )}
               </div>
               <div className="space-y-2">
-                <Button variant="outline" className="gap-2"><Upload className="w-4 h-4" /> Carregar Logo</Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/svg+xml"
+                  className="hidden"
+                  onChange={handleLogoUpload}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    {uploading ? 'A carregar...' : 'Carregar Logo'}
+                  </Button>
+                  {form.logo_url && (
+                    <Button variant="outline" size="icon" onClick={handleRemoveLogo}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">PNG, JPG ou SVG. Máx 2MB.</p>
               </div>
             </div>

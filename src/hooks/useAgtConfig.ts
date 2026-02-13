@@ -46,6 +46,15 @@ export interface AgtConfigInput {
   default_send_channel?: 'whatsapp' | 'sms' | 'email';
   auto_send_invoice?: boolean;
   invoice_language?: string;
+  telefone?: string;
+  email?: string;
+  website?: string;
+  actividade_comercial?: string;
+  alvara_comercial?: string;
+  morada?: string;
+  cidade?: string;
+  provincia?: string;
+  logo_url?: string;
 }
 
 export function useAgtConfig() {
