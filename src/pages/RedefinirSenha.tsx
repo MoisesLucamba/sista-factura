@@ -54,7 +54,7 @@ export default function RedefinirSenha() {
     setLoading(false);
     toast.success('Palavra-passe atualizada com sucesso!');
     
-    setTimeout(() => navigate('/'), 2000);
+    setTimeout(() => navigate('/dashboard'), 2000);
   };
 
   return (

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 const tabs = [
-  { icon: LayoutDashboard, label: 'Início', href: '/' },
+  { icon: LayoutDashboard, label: 'Início', href: '/dashboard' },
   { icon: FileText, label: 'Faturas', href: '/faturas' },
   { icon: Users, label: 'Clientes', href: '/clientes' },
   { icon: Package, label: 'Produtos', href: '/produtos' },
