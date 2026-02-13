@@ -21,7 +21,7 @@ import LandingPage from "./pages/LandingPage";
 import RecuperarSenha from "./pages/RecuperarSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
 import NotFound from "./pages/NotFound";
-
+import Perfil from "./pages/Perfil";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -117,6 +117,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Empresa />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/perfil"
+              element={
+                <ProtectedRoute>
+                  <Perfil />
                 </ProtectedRoute>
               }
             />

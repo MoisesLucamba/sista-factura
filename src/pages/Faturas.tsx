@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useFaturas, useFatura, useUpdateFaturaEstado, type Fatura } from '@/hooks/useFaturas';
+import { useConvertProforma } from '@/hooks/useProformaConversion';
 import { formatCurrency } from '@/lib/format';
 import { generateInvoicePDF, downloadInvoicePDF, type CompanyInfo } from '@/lib/pdf-generator';
 import { useAgtConfig } from '@/hooks/useAgtConfig';
@@ -42,6 +43,7 @@ import {
   AlertCircle,
   Calendar,
   DollarSign,
+  RefreshCw,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -105,6 +107,7 @@ export default function Faturas() {
   const { data: faturas = [], isLoading } = useFaturas();
   const { data: agtConfig } = useAgtConfig();
   const updateEstado = useUpdateFaturaEstado();
+  const convertProforma = useConvertProforma();
   const [searchTerm, setSearchTerm] = useState('');
   const [estadoFilter, setEstadoFilter] = useState<string>('all');
   const [tipoFilter, setTipoFilter] = useState<string>('all');
@@ -563,6 +566,16 @@ export default function Faturas() {
                                 Enviar ao Cliente
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
+                              {fatura.tipo === 'proforma' && fatura.estado === 'emitida' && (
+                                <DropdownMenuItem
+                                  className="text-primary focus:text-primary font-medium"
+                                  onClick={() => convertProforma.mutate(fatura.id)}
+                                  disabled={convertProforma.isPending}
+                                >
+                                  <RefreshCw className="w-4 h-4 mr-2" />
+                                  Converter em Fatura
+                                </DropdownMenuItem>
+                              )}
                               {fatura.estado === 'emitida' && (
                                 <DropdownMenuItem 
                                   className="text-green-600 focus:text-green-600 dark:text-green-400"

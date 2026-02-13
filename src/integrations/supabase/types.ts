@@ -563,6 +563,48 @@ export type Database = {
         }
         Relationships: []
       }
+      proforma_conversions: {
+        Row: {
+          converted_at: string
+          fatura_id: string
+          id: string
+          notes: string | null
+          proforma_id: string
+          user_id: string
+        }
+        Insert: {
+          converted_at?: string
+          fatura_id: string
+          id?: string
+          notes?: string | null
+          proforma_id: string
+          user_id: string
+        }
+        Update: {
+          converted_at?: string
+          fatura_id?: string
+          id?: string
+          notes?: string | null
+          proforma_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proforma_conversions_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proforma_conversions_proforma_id_fkey"
+            columns: ["proforma_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
