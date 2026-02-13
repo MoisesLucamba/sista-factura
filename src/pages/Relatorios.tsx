@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,6 @@ import {
   Bar,
   Legend,
 } from 'recharts';
-import { mockFaturacaoMensal, mockDashboardStats } from '@/lib/mock-data';
 import { formatCurrency, getMonthName } from '@/lib/format';
 import { 
   Download, 
@@ -38,25 +38,15 @@ import {
   ArrowUpRight,
   Sparkles,
   FileDown,
+  Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--chart-4))'];
-
-const estadoFaturas = [
-  { name: 'Pagas', value: 45, color: 'hsl(var(--success))' },
-  { name: 'Emitidas', value: 25, color: 'hsl(var(--primary))' },
-  { name: 'Vencidas', value: 15, color: 'hsl(var(--destructive))' },
-  { name: 'Rascunhos', value: 15, color: 'hsl(var(--muted-foreground))' },
-];
-
-const topProdutos = [
-  { nome: 'Consultoria Empresarial', vendas: 2500000 },
-  { nome: 'Desenvolvimento de Software', vendas: 2000000 },
-  { nome: 'Computador Portátil HP', vendas: 1750000 },
-  { nome: 'Manutenção de Equipamentos', vendas: 900000 },
-  { nome: 'Monitor LED 24"', vendas: 680000 },
-];
+import { useFaturas, useDashboardStats } from '@/hooks/useFaturas';
+import { useClientes } from '@/hooks/useClientes';
+import { useProdutos } from '@/hooks/useProdutos';
+import { useAgtConfig } from '@/hooks/useAgtConfig';
+import { toast } from 'sonner';
+import jsPDF from 'jspdf';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -95,8 +85,401 @@ const CustomPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }:
 };
 
 export default function Relatorios() {
-  const currentMonth = getMonthName(new Date().getMonth());
   const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
+
+  const { data: faturas = [], isLoading: loadingFaturas } = useFaturas();
+  const { data: stats, isLoading: loadingStats } = useDashboardStats();
+  const { data: clientes = [] } = useClientes();
+  const { data: produtos = [] } = useProdutos();
+  const { data: agtConfig } = useAgtConfig();
+
+  // Filter faturas by selected year
+  const faturasDoAno = useMemo(() => {
+    return faturas.filter(f => f.data_emissao?.startsWith(selectedYear));
+  }, [faturas, selectedYear]);
+
+  // Build monthly billing data from real faturas
+  const faturacaoMensal = useMemo(() => {
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    return months.map((mes, i) => {
+      const monthStr = String(i + 1).padStart(2, '0');
+      const faturasDoMes = faturasDoAno.filter(f => {
+        const m = f.data_emissao?.split('-')[1];
+        return m === monthStr && f.estado !== 'anulada';
+      });
+      const valor = faturasDoMes.reduce((sum, f) => sum + Number(f.total || 0), 0);
+      const iva = faturasDoMes.reduce((sum, f) => sum + Number(f.total_iva || 0), 0);
+      return { mes, valor, iva };
+    });
+  }, [faturasDoAno]);
+
+  // Build invoice status pie chart from real data
+  const estadoFaturas = useMemo(() => {
+    const pagas = faturasDoAno.filter(f => f.estado === 'paga').length;
+    const emitidas = faturasDoAno.filter(f => f.estado === 'emitida').length;
+    const vencidas = faturasDoAno.filter(f => f.estado === 'vencida' || (f.estado === 'emitida' && new Date(f.data_vencimento) < new Date())).length;
+    const rascunhos = faturasDoAno.filter(f => f.estado === 'rascunho').length;
+    const anuladas = faturasDoAno.filter(f => f.estado === 'anulada').length;
+    return [
+      { name: 'Pagas', value: pagas, color: 'hsl(var(--success, 142 71% 45%))' },
+      { name: 'Emitidas', value: emitidas, color: 'hsl(var(--primary))' },
+      { name: 'Vencidas', value: vencidas, color: 'hsl(var(--destructive))' },
+      { name: 'Rascunhos', value: rascunhos, color: 'hsl(var(--muted-foreground))' },
+      { name: 'Anuladas', value: anuladas, color: 'hsl(var(--chart-4, 280 65% 60%))' },
+    ].filter(e => e.value > 0);
+  }, [faturasDoAno]);
+
+  // Build top products from real invoice items
+  const topProdutos = useMemo(() => {
+    const productTotals: Record<string, { nome: string; vendas: number }> = {};
+    faturasDoAno.forEach(f => {
+      if (f.estado === 'anulada') return;
+      // We don't have items loaded on list query, so aggregate by total per product from faturas
+      // Instead, use the produtos list and match to faturas indirectly
+    });
+    // Since faturas list doesn't include items, we aggregate total per client as proxy
+    // Better approach: query itens_fatura. For now, show client-based breakdown
+    const clientTotals: Record<string, { nome: string; vendas: number }> = {};
+    faturasDoAno.forEach(f => {
+      if (f.estado === 'anulada') return;
+      const clientName = (f.cliente as any)?.nome || 'Desconhecido';
+      if (!clientTotals[clientName]) {
+        clientTotals[clientName] = { nome: clientName, vendas: 0 };
+      }
+      clientTotals[clientName].vendas += Number(f.total || 0);
+    });
+    return Object.values(clientTotals)
+      .sort((a, b) => b.vendas - a.vendas)
+      .slice(0, 5);
+  }, [faturasDoAno]);
+
+  // Real stats
+  const realStats = useMemo(() => {
+    const faturacaoAnual = faturasDoAno
+      .filter(f => f.estado !== 'anulada')
+      .reduce((sum, f) => sum + Number(f.total || 0), 0);
+    const ivaAnual = faturasDoAno
+      .filter(f => f.estado !== 'anulada')
+      .reduce((sum, f) => sum + Number(f.total_iva || 0), 0);
+    const faturasEmitidas = faturasDoAno.filter(f => f.estado !== 'anulada' && f.estado !== 'rascunho').length;
+    return { faturacaoAnual, ivaAnual, totalClientes: clientes.length, faturasEmitidas };
+  }, [faturasDoAno, clientes]);
+
+  // Available years from data
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    years.add(currentYear.toString());
+    faturas.forEach(f => {
+      const y = f.data_emissao?.split('-')[0];
+      if (y) years.add(y);
+    });
+    return Array.from(years).sort().reverse();
+  }, [faturas, currentYear]);
+
+  // --- EXPORT FUNCTIONS ---
+
+  const exportMapaIVA = () => {
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text('Mapa de IVA', 14, 22);
+      doc.setFontSize(10);
+      doc.text(`Ano: ${selectedYear}`, 14, 30);
+      if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
+      if (agtConfig?.nif_produtor) doc.text(`NIF: ${agtConfig.nif_produtor}`, 14, 42);
+      doc.text(`Data de geração: ${new Date().toLocaleDateString('pt-AO')}`, 14, 48);
+
+      let y = 58;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Mês', 14, y);
+      doc.text('Base Tributável (Kz)', 60, y);
+      doc.text('IVA (Kz)', 120, y);
+      doc.text('Total (Kz)', 160, y);
+      y += 2;
+      doc.line(14, y, 196, y);
+      y += 6;
+
+      doc.setFont('helvetica', 'normal');
+      let totalBase = 0, totalIva = 0, totalGeral = 0;
+      faturacaoMensal.forEach(m => {
+        const base = m.valor - m.iva;
+        doc.text(m.mes, 14, y);
+        doc.text(formatCurrency(base), 60, y);
+        doc.text(formatCurrency(m.iva), 120, y);
+        doc.text(formatCurrency(m.valor), 160, y);
+        totalBase += base;
+        totalIva += m.iva;
+        totalGeral += m.valor;
+        y += 7;
+      });
+
+      y += 2;
+      doc.line(14, y, 196, y);
+      y += 6;
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOTAL', 14, y);
+      doc.text(formatCurrency(totalBase), 60, y);
+      doc.text(formatCurrency(totalIva), 120, y);
+      doc.text(formatCurrency(totalGeral), 160, y);
+
+      doc.save(`Mapa_IVA_${selectedYear}.pdf`);
+      toast.success('Mapa de IVA exportado com sucesso!');
+    } catch {
+      toast.error('Erro ao exportar Mapa de IVA');
+    }
+  };
+
+  const exportFaturacaoMensal = () => {
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text('Relatório de Faturação Mensal', 14, 22);
+      doc.setFontSize(10);
+      doc.text(`Ano: ${selectedYear}`, 14, 30);
+      if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
+      if (agtConfig?.nif_produtor) doc.text(`NIF: ${agtConfig.nif_produtor}`, 14, 42);
+      doc.text(`Data de geração: ${new Date().toLocaleDateString('pt-AO')}`, 14, 48);
+
+      let y = 58;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Mês', 14, y);
+      doc.text('Nº Faturas', 50, y);
+      doc.text('Subtotal (Kz)', 80, y);
+      doc.text('IVA (Kz)', 120, y);
+      doc.text('Total (Kz)', 155, y);
+      y += 2;
+      doc.line(14, y, 196, y);
+      y += 6;
+
+      doc.setFont('helvetica', 'normal');
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      months.forEach((mes, i) => {
+        const monthStr = String(i + 1).padStart(2, '0');
+        const fMes = faturasDoAno.filter(f => f.data_emissao?.split('-')[1] === monthStr && f.estado !== 'anulada');
+        const count = fMes.length;
+        const subtotal = fMes.reduce((s, f) => s + Number(f.subtotal || 0), 0);
+        const iva = fMes.reduce((s, f) => s + Number(f.total_iva || 0), 0);
+        const total = fMes.reduce((s, f) => s + Number(f.total || 0), 0);
+        doc.text(mes, 14, y);
+        doc.text(count.toString(), 50, y);
+        doc.text(formatCurrency(subtotal), 80, y);
+        doc.text(formatCurrency(iva), 120, y);
+        doc.text(formatCurrency(total), 155, y);
+        y += 7;
+      });
+
+      doc.save(`Faturacao_Mensal_${selectedYear}.pdf`);
+      toast.success('Relatório de faturação exportado!');
+    } catch {
+      toast.error('Erro ao exportar relatório');
+    }
+  };
+
+  const exportRelatorioAnual = () => {
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text('Relatório Anual', 14, 22);
+      doc.setFontSize(10);
+      doc.text(`Ano: ${selectedYear}`, 14, 30);
+      if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
+      if (agtConfig?.nif_produtor) doc.text(`NIF: ${agtConfig.nif_produtor}`, 14, 42);
+      doc.text(`Data de geração: ${new Date().toLocaleDateString('pt-AO')}`, 14, 48);
+
+      let y = 60;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Resumo Anual', 14, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Total de Faturas: ${realStats.faturasEmitidas}`, 14, y); y += 6;
+      doc.text(`Total de Clientes: ${realStats.totalClientes}`, 14, y); y += 6;
+      doc.text(`Faturação Total: ${formatCurrency(realStats.faturacaoAnual)}`, 14, y); y += 6;
+      doc.text(`IVA Total: ${formatCurrency(realStats.ivaAnual)}`, 14, y); y += 12;
+
+      // Invoice breakdown by status
+      doc.setFont('helvetica', 'bold');
+      doc.text('Distribuição por Estado', 14, y); y += 8;
+      doc.setFont('helvetica', 'normal');
+      estadoFaturas.forEach(e => {
+        doc.text(`${e.name}: ${e.value} fatura(s)`, 14, y);
+        y += 6;
+      });
+      y += 6;
+
+      // Invoice breakdown by type
+      doc.setFont('helvetica', 'bold');
+      doc.text('Distribuição por Tipo de Documento', 14, y); y += 8;
+      doc.setFont('helvetica', 'normal');
+      const tipos: Record<string, string> = { 'fatura': 'Fatura', 'fatura-recibo': 'Fatura-Recibo', 'recibo': 'Recibo', 'nota-credito': 'Nota de Crédito', 'proforma': 'Proforma' };
+      Object.entries(tipos).forEach(([key, label]) => {
+        const count = faturasDoAno.filter(f => f.tipo === key).length;
+        if (count > 0) {
+          doc.text(`${label}: ${count}`, 14, y);
+          y += 6;
+        }
+      });
+      y += 6;
+
+      // Top clients
+      if (topProdutos.length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Top Clientes por Faturação', 14, y); y += 8;
+        doc.setFont('helvetica', 'normal');
+        topProdutos.forEach(p => {
+          doc.text(`${p.nome}: ${formatCurrency(p.vendas)}`, 14, y);
+          y += 6;
+        });
+      }
+
+      doc.save(`Relatorio_Anual_${selectedYear}.pdf`);
+      toast.success('Relatório anual exportado!');
+    } catch {
+      toast.error('Erro ao exportar relatório');
+    }
+  };
+
+  const exportSAFT = () => {
+    try {
+      const empresa = agtConfig;
+      const now = new Date().toISOString();
+
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<AuditFile xmlns="urn:OECD:StandardAuditFile-Tax:AO_1.01_01">\n`;
+      xml += `  <Header>\n`;
+      xml += `    <AuditFileVersion>1.01_01</AuditFileVersion>\n`;
+      xml += `    <CompanyID>${empresa?.nif_produtor || 'N/A'}</CompanyID>\n`;
+      xml += `    <TaxRegistrationNumber>${empresa?.nif_produtor || 'N/A'}</TaxRegistrationNumber>\n`;
+      xml += `    <CompanyName>${empresa?.nome_empresa || 'N/A'}</CompanyName>\n`;
+      xml += `    <CompanyAddress>\n`;
+      xml += `      <AddressDetail>${empresa?.endereco_empresa || empresa?.morada || 'N/A'}</AddressDetail>\n`;
+      xml += `      <City>${empresa?.cidade || 'Luanda'}</City>\n`;
+      xml += `      <Country>AO</Country>\n`;
+      xml += `    </CompanyAddress>\n`;
+      xml += `    <FiscalYear>${selectedYear}</FiscalYear>\n`;
+      xml += `    <StartDate>${selectedYear}-01-01</StartDate>\n`;
+      xml += `    <EndDate>${selectedYear}-12-31</EndDate>\n`;
+      xml += `    <DateCreated>${now.split('T')[0]}</DateCreated>\n`;
+      xml += `    <CurrencyCode>AOA</CurrencyCode>\n`;
+      xml += `    <TaxEntity>Global</TaxEntity>\n`;
+      xml += `    <ProductCompanyTaxID>${empresa?.nif_produtor || 'N/A'}</ProductCompanyTaxID>\n`;
+      xml += `    <SoftwareCertificateNumber>${empresa?.certificate_number || '0'}</SoftwareCertificateNumber>\n`;
+      xml += `    <ProductID>Faktura/Faktura Angola</ProductID>\n`;
+      xml += `    <ProductVersion>1.0</ProductVersion>\n`;
+      xml += `  </Header>\n`;
+
+      // MasterFiles - Customers
+      xml += `  <MasterFiles>\n`;
+      clientes.forEach(c => {
+        xml += `    <Customer>\n`;
+        xml += `      <CustomerID>${c.id}</CustomerID>\n`;
+        xml += `      <CustomerTaxID>${c.nif || '999999999'}</CustomerTaxID>\n`;
+        xml += `      <CompanyName>${c.nome}</CompanyName>\n`;
+        xml += `      <BillingAddress>\n`;
+        xml += `        <AddressDetail>${c.endereco}</AddressDetail>\n`;
+        xml += `        <City>Luanda</City>\n`;
+        xml += `        <Country>AO</Country>\n`;
+        xml += `      </BillingAddress>\n`;
+        xml += `      <Telephone>${c.telefone || ''}</Telephone>\n`;
+        xml += `      <Email>${c.email || ''}</Email>\n`;
+        xml += `    </Customer>\n`;
+      });
+
+      // Products
+      produtos.forEach(p => {
+        xml += `    <Product>\n`;
+        xml += `      <ProductType>${p.tipo === 'servico' ? 'S' : 'P'}</ProductType>\n`;
+        xml += `      <ProductCode>${p.codigo}</ProductCode>\n`;
+        xml += `      <ProductDescription>${p.nome}</ProductDescription>\n`;
+        xml += `      <ProductNumberCode>${p.codigo}</ProductNumberCode>\n`;
+        xml += `    </Product>\n`;
+      });
+
+      // Tax Table
+      xml += `    <TaxTable>\n`;
+      xml += `      <TaxTableEntry>\n`;
+      xml += `        <TaxType>IVA</TaxType>\n`;
+      xml += `        <TaxCountryRegion>AO</TaxCountryRegion>\n`;
+      xml += `        <TaxCode>NOR</TaxCode>\n`;
+      xml += `        <Description>IVA Taxa Normal</Description>\n`;
+      xml += `        <TaxPercentage>14.00</TaxPercentage>\n`;
+      xml += `      </TaxTableEntry>\n`;
+      xml += `      <TaxTableEntry>\n`;
+      xml += `        <TaxType>IVA</TaxType>\n`;
+      xml += `        <TaxCountryRegion>AO</TaxCountryRegion>\n`;
+      xml += `        <TaxCode>ISE</TaxCode>\n`;
+      xml += `        <Description>IVA Isento</Description>\n`;
+      xml += `        <TaxPercentage>0.00</TaxPercentage>\n`;
+      xml += `      </TaxTableEntry>\n`;
+      xml += `    </TaxTable>\n`;
+      xml += `  </MasterFiles>\n`;
+
+      // SourceDocuments - SalesInvoices
+      xml += `  <SourceDocuments>\n`;
+      xml += `    <SalesInvoices>\n`;
+      xml += `      <NumberOfEntries>${faturasDoAno.length}</NumberOfEntries>\n`;
+      xml += `      <TotalDebit>0.00</TotalDebit>\n`;
+      xml += `      <TotalCredit>${realStats.faturacaoAnual.toFixed(2)}</TotalCredit>\n`;
+
+      faturasDoAno.forEach(f => {
+        const tipoMap: Record<string, string> = { 'fatura': 'FT', 'fatura-recibo': 'FR', 'recibo': 'RC', 'nota-credito': 'NC', 'proforma': 'PRO' };
+        const invoiceType = tipoMap[f.tipo] || 'FT';
+        const statusMap: Record<string, string> = { 'rascunho': 'N', 'emitida': 'N', 'paga': 'F', 'anulada': 'A', 'vencida': 'N' };
+        xml += `      <Invoice>\n`;
+        xml += `        <InvoiceNo>${f.numero}</InvoiceNo>\n`;
+        xml += `        <InvoiceStatus>\n`;
+        xml += `          <InvoiceStatus>${statusMap[f.estado] || 'N'}</InvoiceStatus>\n`;
+        xml += `          <InvoiceStatusDate>${f.updated_at || f.data_emissao}</InvoiceStatusDate>\n`;
+        xml += `        </InvoiceStatus>\n`;
+        xml += `        <Hash>${f.assinatura_digital || '0'}</Hash>\n`;
+        xml += `        <InvoiceDate>${f.data_emissao}</InvoiceDate>\n`;
+        xml += `        <InvoiceType>${invoiceType}</InvoiceType>\n`;
+        xml += `        <CustomerID>${f.cliente_id}</CustomerID>\n`;
+        xml += `        <DocumentTotals>\n`;
+        xml += `          <TaxPayable>${Number(f.total_iva || 0).toFixed(2)}</TaxPayable>\n`;
+        xml += `          <NetTotal>${Number(f.subtotal || 0).toFixed(2)}</NetTotal>\n`;
+        xml += `          <GrossTotal>${Number(f.total || 0).toFixed(2)}</GrossTotal>\n`;
+        xml += `          <Currency>\n`;
+        xml += `            <CurrencyCode>AOA</CurrencyCode>\n`;
+        xml += `            <CurrencyAmount>${Number(f.total || 0).toFixed(2)}</CurrencyAmount>\n`;
+        xml += `          </Currency>\n`;
+        xml += `        </DocumentTotals>\n`;
+        xml += `      </Invoice>\n`;
+      });
+
+      xml += `    </SalesInvoices>\n`;
+      xml += `  </SourceDocuments>\n`;
+      xml += `</AuditFile>`;
+
+      const blob = new Blob([xml], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SAF-T_AO_${selectedYear}.xml`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Ficheiro SAF-T exportado com sucesso!');
+    } catch {
+      toast.error('Erro ao exportar SAF-T');
+    }
+  };
+
+  const isLoading = loadingFaturas || loadingStats;
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -117,110 +500,88 @@ export default function Relatorios() {
                   Análise fiscal e financeira
                   <Badge variant="secondary" className="text-xs">
                     <Sparkles className="w-3 h-3 mr-1" />
-                    {currentYear}
+                    {selectedYear}
                   </Badge>
                 </p>
               </div>
             </div>
           </div>
           <div className="flex gap-3">
-            <Select defaultValue="2024">
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-[140px] h-11 border-primary/20">
                 <Calendar className="w-4 h-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2024">2024</SelectItem>
-                <SelectItem value="2023">2023</SelectItem>
-                <SelectItem value="2022">2022</SelectItem>
+                {availableYears.map(y => (
+                  <SelectItem key={y} value={y}>{y}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="border-primary/20 hover:bg-primary/5 group"
-            >
-              <Download className="w-4 h-4 mr-2 group-hover:animate-bounce" />
-              Exportar
-            </Button>
           </div>
         </div>
       </div>
 
-      {/* Enhanced Quick Stats */}
+      {/* Real Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-primary animate-fade-in" style={{ animationDelay: '0ms' }}>
+        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-primary">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground font-medium">Faturação Anual</p>
                 <p className="text-2xl font-bold font-display text-foreground">
-                  {formatCurrency(mockDashboardStats.faturacaoAnual)}
-                </p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3 text-green-600" />
-                  +12.5% vs 2023
+                  {formatCurrency(realStats.faturacaoAnual)}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-red-500 animate-fade-in" style={{ animationDelay: '100ms' }}>
+        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-destructive">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground font-medium">IVA Anual</p>
                 <p className="text-2xl font-bold font-display text-foreground">
-                  {formatCurrency(mockDashboardStats.ivaAnual)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  14% da faturação
+                  {formatCurrency(realStats.ivaAnual)}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-950 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Receipt className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
+                <Receipt className="w-6 h-6 text-destructive" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-green-500 animate-fade-in" style={{ animationDelay: '200ms' }}>
+        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-green-500">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground font-medium">Clientes Activos</p>
                 <p className="text-2xl font-bold font-display text-foreground">
-                  {mockDashboardStats.totalClientes}
-                </p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <ArrowUpRight className="w-3 h-3 text-green-600" />
-                  8 novos este mês
+                  {realStats.totalClientes}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-950 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-950 flex items-center justify-center">
                 <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-orange-500 animate-fade-in" style={{ animationDelay: '300ms' }}>
+        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-orange-500">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground font-medium">Faturas Emitidas</p>
                 <p className="text-2xl font-bold font-display text-foreground">
-                  {mockDashboardStats.faturasEmitidas}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Últimos 12 meses
+                  {realStats.faturasEmitidas}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
                 <Package className="w-6 h-6 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
@@ -228,24 +589,22 @@ export default function Relatorios() {
         </Card>
       </div>
 
-      {/* Enhanced Charts Row 1 */}
+      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <Card className="card-shadow lg:col-span-2 border-primary/10 animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <Card className="card-shadow lg:col-span-2 border-primary/10">
           <CardHeader className="pb-4 border-b border-primary/10">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-display flex items-center gap-2">
                 <div className="w-1 h-6 bg-primary rounded-full" />
                 Evolução da Faturação
               </CardTitle>
-              <Badge variant="outline" className="text-xs">
-                Mensal
-              </Badge>
+              <Badge variant="outline" className="text-xs">Mensal</Badge>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockFaturacaoMensal}>
+                <AreaChart data={faturacaoMensal}>
                   <defs>
                     <linearGradient id="colorFaturacao" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
@@ -253,33 +612,17 @@ export default function Relatorios() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border opacity-50" />
-                  <XAxis 
-                    dataKey="mes" 
-                    className="text-xs fill-muted-foreground"
-                    tick={{ fontSize: 11 }}
-                  />
-                  <YAxis 
-                    className="text-xs fill-muted-foreground"
-                    tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
-                    tick={{ fontSize: 11 }}
-                  />
+                  <XAxis dataKey="mes" className="text-xs fill-muted-foreground" tick={{ fontSize: 11 }} />
+                  <YAxis className="text-xs fill-muted-foreground" tickFormatter={(v) => v > 0 ? `${(v / 1000).toFixed(0)}K` : '0'} tick={{ fontSize: 11 }} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="valor"
-                    name="Faturação"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorFaturacao)"
-                  />
+                  <Area type="monotone" dataKey="valor" name="Faturação" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorFaturacao)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-shadow border-primary/10 animate-fade-in" style={{ animationDelay: '500ms' }}>
+        <Card className="card-shadow border-primary/10">
           <CardHeader className="pb-4 border-b border-primary/10">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <div className="w-1 h-6 bg-primary rounded-full" />
@@ -288,54 +631,51 @@ export default function Relatorios() {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={estadoFaturas}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={110}
-                    paddingAngle={3}
-                    dataKey="value"
-                    label={CustomPieLabel}
-                    labelLine={false}
-                  >
-                    {estadoFaturas.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.color}
-                        className="hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36}
-                    iconType="circle"
-                    formatter={(value) => <span className="text-xs font-medium">{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              {estadoFaturas.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={estadoFaturas}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={110}
+                      paddingAngle={3}
+                      dataKey="value"
+                      label={CustomPieLabel}
+                      labelLine={false}
+                    >
+                      {estadoFaturas.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" formatter={(value) => <span className="text-xs font-medium">{value}</span>} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                  Sem dados de faturas para {selectedYear}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Enhanced Charts Row 2 */}
+      {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card className="card-shadow border-primary/10 animate-fade-in" style={{ animationDelay: '600ms' }}>
+        <Card className="card-shadow border-primary/10">
           <CardHeader className="pb-4 border-b border-primary/10">
             <CardTitle className="text-lg font-display flex items-center gap-2">
-              <div className="w-1 h-6 bg-red-500 rounded-full" />
+              <div className="w-1 h-6 bg-destructive rounded-full" />
               IVA Mensal
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockFaturacaoMensal}>
+                <BarChart data={faturacaoMensal}>
                   <defs>
                     <linearGradient id="colorIVA" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.9} />
@@ -343,76 +683,53 @@ export default function Relatorios() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border opacity-50" />
-                  <XAxis 
-                    dataKey="mes" 
-                    className="text-xs fill-muted-foreground"
-                    tick={{ fontSize: 11 }}
-                  />
-                  <YAxis 
-                    className="text-xs fill-muted-foreground"
-                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
-                    tick={{ fontSize: 11 }}
-                  />
+                  <XAxis dataKey="mes" className="text-xs fill-muted-foreground" tick={{ fontSize: 11 }} />
+                  <YAxis className="text-xs fill-muted-foreground" tickFormatter={(v) => v > 0 ? `${(v / 1000).toFixed(0)}K` : '0'} tick={{ fontSize: 11 }} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar 
-                    dataKey="iva" 
-                    name="IVA"
-                    fill="url(#colorIVA)"
-                    radius={[6, 6, 0, 0]}
-                  />
+                  <Bar dataKey="iva" name="IVA" fill="url(#colorIVA)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-shadow border-primary/10 animate-fade-in" style={{ animationDelay: '700ms' }}>
+        <Card className="card-shadow border-primary/10">
           <CardHeader className="pb-4 border-b border-primary/10">
             <CardTitle className="text-lg font-display flex items-center gap-2">
               <div className="w-1 h-6 bg-primary rounded-full" />
-              Produtos Mais Vendidos
+              Top Clientes por Faturação
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topProdutos} layout="vertical">
-                  <defs>
-                    <linearGradient id="colorProdutos" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border opacity-50" />
-                  <XAxis 
-                    type="number"
-                    className="text-xs fill-muted-foreground"
-                    tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
-                    tick={{ fontSize: 11 }}
-                  />
-                  <YAxis 
-                    type="category"
-                    dataKey="nome"
-                    className="text-xs fill-muted-foreground"
-                    width={160}
-                    tick={{ fontSize: 10 }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar 
-                    dataKey="vendas" 
-                    name="Vendas"
-                    fill="url(#colorProdutos)"
-                    radius={[0, 6, 6, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              {topProdutos.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topProdutos} layout="vertical">
+                    <defs>
+                      <linearGradient id="colorProdutos" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border opacity-50" />
+                    <XAxis type="number" className="text-xs fill-muted-foreground" tickFormatter={(v) => v > 0 ? `${(v / 1000).toFixed(0)}K` : '0'} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="nome" className="text-xs fill-muted-foreground" width={140} tick={{ fontSize: 10 }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="vendas" name="Faturação" fill="url(#colorProdutos)" radius={[0, 6, 6, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                  Sem dados para {selectedYear}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Enhanced Export Options */}
-      <Card className="card-shadow border-primary/10 animate-fade-in" style={{ animationDelay: '800ms' }}>
+      {/* Export Options */}
+      <Card className="card-shadow border-primary/10">
         <CardHeader className="pb-4 border-b border-primary/10">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-display flex items-center gap-2">
@@ -430,19 +747,21 @@ export default function Relatorios() {
             <Button 
               variant="outline" 
               className="h-auto py-6 flex flex-col gap-3 group hover:border-green-500/50 hover:bg-green-50 dark:hover:bg-green-950/20 transition-all"
+              onClick={exportMapaIVA}
             >
               <div className="w-14 h-14 rounded-xl bg-green-100 dark:bg-green-950 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <FileSpreadsheet className="w-7 h-7 text-green-600 dark:text-green-400" />
               </div>
               <div className="text-center">
                 <span className="font-semibold block text-sm">Mapa de IVA</span>
-                <span className="text-xs text-muted-foreground">Excel / PDF</span>
+                <span className="text-xs text-muted-foreground">PDF</span>
               </div>
             </Button>
 
             <Button 
               variant="outline" 
               className="h-auto py-6 flex flex-col gap-3 group hover:border-primary/50 hover:bg-primary/5 transition-all"
+              onClick={exportFaturacaoMensal}
             >
               <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <FileText className="w-7 h-7 text-primary" />
@@ -456,6 +775,7 @@ export default function Relatorios() {
             <Button 
               variant="outline" 
               className="h-auto py-6 flex flex-col gap-3 group hover:border-orange-500/50 hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-all"
+              onClick={exportRelatorioAnual}
             >
               <div className="w-14 h-14 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Calendar className="w-7 h-7 text-orange-600 dark:text-orange-400" />
@@ -468,7 +788,8 @@ export default function Relatorios() {
 
             <Button 
               variant="outline" 
-              className="h-auto py-6 flex flex-col gap-3 group hover:border-red-500/50 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
+              className="h-auto py-6 flex flex-col gap-3 group hover:border-destructive/50 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
+              onClick={exportSAFT}
             >
               <div className="w-14 h-14 rounded-xl bg-red-100 dark:bg-red-950 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Receipt className="w-7 h-7 text-red-600 dark:text-red-400" />
