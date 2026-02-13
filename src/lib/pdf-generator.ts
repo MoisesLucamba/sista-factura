@@ -48,37 +48,58 @@ export async function generateInvoicePDF(fatura: Fatura, companyInfo?: CompanyIn
   const companyWebsite = companyInfo?.website;
   const companyActivity = companyInfo?.actividade_comercial;
   const companyAlvara = companyInfo?.alvara_comercial;
+  const companyLogo = companyInfo?.logo_url;
 
   // Header background
   doc.setFillColor(...COLORS.primary);
   doc.rect(0, 0, pageWidth, 50, 'F');
 
+  // Try to load company logo
+  let logoLoaded = false;
+  if (companyLogo) {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject();
+        img.src = companyLogo;
+      });
+      doc.addImage(img, 'PNG', margin, 5, 15, 15);
+      logoLoaded = true;
+    } catch (e) {
+      console.warn('Could not load company logo for PDF:', e);
+    }
+  }
+
   // Company name
+  const nameX = logoLoaded ? margin + 18 : margin;
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text(companyName.toUpperCase(), margin, 20);
+  doc.text(companyName.toUpperCase(), nameX, 20);
 
   // Company details under name
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   let headerY = 26;
+  const detailX = logoLoaded ? nameX : margin;
   if (companyNif) {
-    doc.text(`NIF: ${companyNif}`, margin, headerY);
+    doc.text(`NIF: ${companyNif}`, detailX, headerY);
     headerY += 4;
   }
   if (companyAddress) {
     const addr = [companyAddress, companyCity, companyProvince].filter(Boolean).join(', ');
-    doc.text(addr, margin, headerY);
+    doc.text(addr, detailX, headerY);
     headerY += 4;
   }
   const contactParts = [companyPhone, companyEmail].filter(Boolean);
   if (contactParts.length > 0) {
-    doc.text(contactParts.join(' | '), margin, headerY);
+    doc.text(contactParts.join(' | '), detailX, headerY);
     headerY += 4;
   }
   if (companyAlvara) {
-    doc.text(`Alvará: ${companyAlvara}`, margin, headerY);
+    doc.text(`Alvará: ${companyAlvara}`, detailX, headerY);
   }
 
   // Invoice type badge
