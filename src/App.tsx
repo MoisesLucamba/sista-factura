@@ -18,6 +18,8 @@ import Empresa from "./pages/Empresa";
 import Login from "./pages/Login";
 import Registar from "./pages/Registar";
 import LandingPage from "./pages/LandingPage";
+import RecuperarSenha from "./pages/RecuperarSenha";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="/inicio" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registar" element={<Registar />} />
+            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             
             {/* Protected routes */}
             <Route

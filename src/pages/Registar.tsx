@@ -95,7 +95,7 @@ export default function Registar() {
 
         <div className="relative z-10 flex flex-col justify-between p-12 text-accent-foreground w-full">
           <div>
-            <img src={logoFaktura} alt="Faktura" className="h-20 object-contain brightness-0 invert" />
+            <img src={logoFaktura} alt="Faktura" className="h-24 w-auto object-contain" />
           </div>
           
           <div className="space-y-8">
@@ -132,7 +132,7 @@ export default function Registar() {
       <div className="flex-1 flex items-center justify-center p-6 bg-background">
         <div className="w-full max-w-md space-y-8">
           <div className="flex items-center justify-center lg:hidden">
-            <img src={logoFaktura} alt="Faktura Angola" className="h-20 object-contain" />
+            <img src={logoFaktura} alt="Faktura Angola" className="h-24 w-auto object-contain" />
           </div>
 
           <div className="space-y-2">
