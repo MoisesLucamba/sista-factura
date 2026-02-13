@@ -14,7 +14,15 @@ import {
   Sparkles,
   Clock,
   Play,
+  HelpCircle,
+  ChevronDown,
 } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import logoFaktura from '@/assets/logo-faktura.png';
 import heroBusiness from '@/assets/hero-business.jpg';
 import dashboardPreview from '@/assets/dashboard-preview.png';
@@ -94,6 +102,7 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Funcionalidades</a>
               <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Preços</a>
+              <a href="#faq" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
               <a href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Testemunhos</a>
             </div>
             <div className="flex items-center gap-3">
@@ -304,14 +313,25 @@ export default function LandingPage() {
             <p className="text-lg text-muted-foreground">Sem surpresas. Comece grátis e cresça connosco.</p>
           </div>
 
+          {/* Billing toggle info */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold text-foreground">Poupe 10% no plano trimestral!</span>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Básico */}
             <div className="bg-card rounded-2xl p-8 border-2 border-border/50">
-              <h3 className="text-xl font-bold mb-2">Starter</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-black">Grátis</span>
+              <h3 className="text-xl font-bold mb-2">Básico</h3>
+              <div className="mb-2">
+                <span className="text-4xl font-black">7.500</span>
+                <span className="text-muted-foreground ml-1">Kz/mês</span>
               </div>
+              <p className="text-sm text-muted-foreground mb-6">ou <span className="font-bold">20.250 Kz/trimestre</span> <span className="text-primary font-bold">(poupe 10%)</span></p>
               <ul className="space-y-3 mb-8">
-                {['Até 50 faturas/mês', 'Gestão de clientes', 'Dashboard básico', 'Suporte por email'].map((item, i) => (
+                {['Até 100 faturas/mês', 'Faturas, Recibos e Proformas', 'Gestão de clientes', 'Dashboard básico', 'Envio por email', 'Suporte por email'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
                     {item}
@@ -319,21 +339,23 @@ export default function LandingPage() {
                 ))}
               </ul>
               <Link to="/registar">
-                <Button variant="outline" className="w-full h-12 font-bold border-2">Começar Grátis</Button>
+                <Button variant="outline" className="w-full h-12 font-bold border-2">Começar Agora</Button>
               </Link>
             </div>
 
+            {/* Completo */}
             <div className="bg-card rounded-2xl p-8 border-2 border-primary shadow-xl shadow-primary/10 relative">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-black px-4 py-1.5 rounded-full shadow-lg">
                 MAIS POPULAR
               </div>
-              <h3 className="text-xl font-bold mb-2">Profissional</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-black">25.000</span>
+              <h3 className="text-xl font-bold mb-2">Completo</h3>
+              <div className="mb-2">
+                <span className="text-4xl font-black">10.000</span>
                 <span className="text-muted-foreground ml-1">Kz/mês</span>
               </div>
+              <p className="text-sm text-muted-foreground mb-6">ou <span className="font-bold">27.000 Kz/trimestre</span> <span className="text-primary font-bold">(poupe 10%)</span></p>
               <ul className="space-y-3 mb-8">
-                {['Faturas ilimitadas', 'Multi-canal (WhatsApp, SMS, Email)', 'Relatórios avançados', 'Conformidade AGT total', 'Suporte prioritário'].map((item, i) => (
+                {['Faturas ilimitadas', 'Todos os tipos de documentos', 'Multi-canal (WhatsApp, SMS, Email)', 'Relatórios avançados', 'Conformidade AGT total', 'Suporte prioritário', 'Voz incluída'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
                     {item}
@@ -341,17 +363,19 @@ export default function LandingPage() {
                 ))}
               </ul>
               <Link to="/registar">
-                <Button className="w-full h-12 font-bold shadow-lg shadow-primary/25">Escolher Pro</Button>
+                <Button className="w-full h-12 font-bold shadow-lg shadow-primary/25">Escolher Completo</Button>
               </Link>
             </div>
 
+            {/* Empresa */}
             <div className="bg-card rounded-2xl p-8 border-2 border-border/50">
               <h3 className="text-xl font-bold mb-2">Empresa</h3>
-              <div className="mb-6">
+              <div className="mb-2">
                 <span className="text-4xl font-black">Sob medida</span>
               </div>
+              <p className="text-sm text-muted-foreground mb-6">Contacte-nos para um plano personalizado</p>
               <ul className="space-y-3 mb-8">
-                {['Tudo do Profissional', 'Multi-empresa', 'API dedicada', 'Gestor de conta dedicado', 'SLA personalizado'].map((item, i) => (
+                {['Tudo do Completo', 'Multi-empresa', 'API dedicada', 'Gestor de conta dedicado', 'SLA personalizado'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm">
                     <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
                     {item}
@@ -361,6 +385,107 @@ export default function LandingPage() {
               <Button variant="outline" className="w-full h-12 font-bold border-2">Contactar Vendas</Button>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 bg-muted/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-4">
+              <HelpCircle className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold">FAQ</span>
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-4">
+              Perguntas <span className="text-primary">Frequentes</span>
+            </h2>
+            <p className="text-lg text-muted-foreground">Tudo que precisa saber sobre faturação em Angola.</p>
+          </div>
+
+          <Accordion type="single" collapsible className="space-y-4">
+            <AccordionItem value="item-1" className="bg-card rounded-2xl border border-border/50 px-6">
+              <AccordionTrigger className="text-left font-bold hover:no-underline py-5">
+                Quais tipos de documentos posso emitir na Faktura?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-5 space-y-2">
+                <p>Pode emitir os seguintes documentos:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li><strong>Fatura (FT)</strong> – Documento fiscal oficial reconhecido pelo fisco.</li>
+                  <li><strong>Recibo (RC)</strong> – Comprovante de pagamento, útil para transações internas e pagamentos parciais.</li>
+                  <li><strong>Proforma (PRO)</strong> – Documento não fiscal que antecipa os valores e condições de venda antes da emissão da fatura oficial.</li>
+                  <li><strong>Fatura-Recibo (FR)</strong> – Documento híbrido que funciona como fatura fiscal e comprovante de pagamento ao mesmo tempo.</li>
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-2" className="bg-card rounded-2xl border border-border/50 px-6">
+              <AccordionTrigger className="text-left font-bold hover:no-underline py-5">
+                O que é faturação electrónica em Angola?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-5">
+                A faturação electrónica é o processo de emissão, envio e armazenamento de faturas em formato digital, conforme as normas da AGT (Administração Geral Tributária). Permite maior eficiência, segurança e conformidade fiscal.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-3" className="bg-card rounded-2xl border border-border/50 px-6">
+              <AccordionTrigger className="text-left font-bold hover:no-underline py-5">
+                Preciso de um software específico para emitir faturas legais?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-5">
+                Sim. A Faktura permite emitir faturas, recibos, proformas e faturas-recibo válidos para o fisco, sem precisar imprimir ou preencher manualmente. Todos os documentos incluem assinatura digital, QR code e numeração sequencial conforme exigido pela AGT.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-4" className="bg-card rounded-2xl border border-border/50 px-6">
+              <AccordionTrigger className="text-left font-bold hover:no-underline py-5">
+                Posso enviar documentos directamente para o cliente pelo WhatsApp?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-5">
+                Sim! A Faktura envia automaticamente faturas, recibos, proformas e faturas-recibo via WhatsApp, SMS ou email. Basta configurar o canal preferido nas definições.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-5" className="bg-card rounded-2xl border border-border/50 px-6">
+              <AccordionTrigger className="text-left font-bold hover:no-underline py-5">
+                Quais planos estão disponíveis e qual o preço?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-5 space-y-2">
+                <p>Oferecemos dois planos principais com opção mensal ou trimestral:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li><strong>Básico:</strong> 7.500 Kz/mês ou 20.250 Kz/trimestre (poupe 10%)</li>
+                  <li><strong>Completo (voz incluída):</strong> 10.000 Kz/mês ou 27.000 Kz/trimestre (poupe 10%)</li>
+                  <li><strong>Empresa:</strong> Preço sob medida para grandes organizações</li>
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-6" className="bg-card rounded-2xl border border-border/50 px-6">
+              <AccordionTrigger className="text-left font-bold hover:no-underline py-5">
+                É obrigatório armazenar faturas electrónicas?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-5">
+                Sim. Todos os documentos emitidos (faturas, recibos, proformas e faturas-recibo) devem ser armazenados digitalmente por pelo menos 5 anos, conforme a legislação fiscal angolana.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-7" className="bg-card rounded-2xl border border-border/50 px-6">
+              <AccordionTrigger className="text-left font-bold hover:no-underline py-5">
+                Posso usar a Faktura em qualquer tipo de negócio?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-5">
+                Sim. A nossa plataforma é adaptável para micro, pequenas e médias empresas de qualquer sector de actividade em Angola.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-8" className="bg-card rounded-2xl border border-border/50 px-6">
+              <AccordionTrigger className="text-left font-bold hover:no-underline py-5">
+                Existe suporte técnico caso eu tenha problemas?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground pb-5">
+                Sim! A nossa equipa está disponível para resolver qualquer dúvida ou problema técnico relacionado à emissão e envio de documentos. O plano Completo inclui suporte prioritário.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </section>
 
