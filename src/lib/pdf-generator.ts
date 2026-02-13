@@ -103,12 +103,25 @@ export async function generateInvoicePDF(fatura: Fatura, companyInfo?: CompanyIn
   }
 
   // Invoice type badge
+  const isProforma = fatura.tipo === 'proforma';
+
   const tipoTexto = {
     'fatura': 'FATURA',
     'fatura-recibo': 'FATURA-RECIBO',
     'recibo': 'RECIBO',
     'nota-credito': 'NOTA DE CRÉDITO',
-  }[fatura.tipo];
+    'proforma': 'FATURA PROFORMA',
+  }[fatura.tipo] || 'FATURA';
+
+  // Proforma disclaimer banner
+  if (isProforma) {
+    doc.setFillColor(255, 200, 50);
+    doc.rect(0, 50, pageWidth, 10, 'F');
+    doc.setTextColor(80, 50, 0);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DOCUMENTO PROFORMA – NÃO VÁLIDO COMO DOCUMENTO FISCAL', pageWidth / 2, 56.5, { align: 'center' });
+  }
 
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
@@ -118,7 +131,7 @@ export async function generateInvoicePDF(fatura: Fatura, companyInfo?: CompanyIn
   doc.setFont('helvetica', 'normal');
   doc.text(fatura.numero, pageWidth - margin, 30, { align: 'right' });
 
-  y = 60;
+  y = isProforma ? 70 : 60;
 
   // Invoice details section
   doc.setTextColor(...COLORS.text);

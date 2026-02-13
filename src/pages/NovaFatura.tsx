@@ -22,7 +22,8 @@ import {
 } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { useClientes } from '@/hooks/useClientes';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useClientes, useCreateCliente } from '@/hooks/useClientes';
 import { useProdutos } from '@/hooks/useProdutos';
 import { useCreateFatura, type FaturaInput } from '@/hooks/useFaturas';
 import { useAutoSendInvoice } from '@/hooks/useAutoSendInvoice';
@@ -32,17 +33,19 @@ import {
   Plus, 
   Trash2,
   FileText,
-  Save,
   Send,
   Calculator,
   Building2,
   User,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
-type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito';
+type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'proforma';
+type TipoCliente = 'consumidor_final' | 'empresa';
 
 interface ItemLocal {
   id: string;
@@ -59,12 +62,15 @@ interface ItemLocal {
 
 export default function NovaFatura() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: clientes = [], isLoading: loadingClientes } = useClientes();
   const { data: produtos = [], isLoading: loadingProdutos } = useProdutos();
   const createFatura = useCreateFatura();
+  const createCliente = useCreateCliente();
   const { autoSend, isAutoSendEnabled } = useAutoSendInvoice();
 
   const [tipo, setTipo] = useState<TipoDocumento>('fatura');
+  const [tipoCliente, setTipoCliente] = useState<TipoCliente>('consumidor_final');
   const [clienteId, setClienteId] = useState<string>('');
   const [observacoes, setObservacoes] = useState('');
   const [metodoPagamento, setMetodoPagamento] = useState('');
@@ -73,7 +79,20 @@ export default function NovaFatura() {
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
 
+  // B2C inline fields
+  const [cfNome, setCfNome] = useState('');
+  const [cfNif, setCfNif] = useState('');
+  const [cfEndereco, setCfEndereco] = useState('');
+
+  // B2B inline fields
+  const [b2bNome, setB2bNome] = useState('');
+  const [b2bNif, setB2bNif] = useState('');
+  const [b2bEndereco, setB2bEndereco] = useState('');
+  const [useExistingClient, setUseExistingClient] = useState(true);
+
   const clienteSelecionado = clientes.find(c => c.id === clienteId);
+
+  const isProforma = tipo === 'proforma';
 
   const addItem = () => {
     setItens([...itens, {
@@ -97,7 +116,6 @@ export default function NovaFatura() {
     const newItens = [...itens];
     const item = { ...newItens[index], [field]: value };
 
-    // If product changed, update price and IVA
     if (field === 'produto_id') {
       const produto = produtos.find(p => p.id === value);
       if (produto) {
@@ -107,7 +125,6 @@ export default function NovaFatura() {
       }
     }
 
-    // Recalculate totals
     const quantidade = item.quantidade || 0;
     const precoUnitario = item.preco_unitario || 0;
     const desconto = item.desconto || 0;
@@ -130,11 +147,8 @@ export default function NovaFatura() {
     return { subtotal, totalIva, total };
   }, [itens]);
 
-  const handleSave = async (emitir: boolean = false) => {
-    if (!clienteId) {
-      toast.error('Selecione um cliente');
-      return;
-    }
+  const handleSave = async () => {
+    // Validate items
     if (itens.length === 0) {
       toast.error('Adicione pelo menos um item');
       return;
@@ -144,12 +158,79 @@ export default function NovaFatura() {
       return;
     }
 
+    let finalClienteId = clienteId;
+
+    if (tipoCliente === 'empresa') {
+      if (useExistingClient) {
+        if (!clienteId) {
+          toast.error('Selecione um cliente empresa');
+          return;
+        }
+      } else {
+        // Validate B2B required fields
+        if (!b2bNome.trim()) {
+          toast.error('Nome da empresa é obrigatório');
+          return;
+        }
+        if (!b2bNif.trim()) {
+          toast.error('NIF é obrigatório para empresas');
+          return;
+        }
+        // Create new B2B client
+        try {
+          const newClient = await createCliente.mutateAsync({
+            nome: b2bNome.trim(),
+            nif: b2bNif.trim(),
+            endereco: b2bEndereco.trim() || 'N/A',
+            tipo: 'empresa',
+            whatsapp_consent: false,
+            whatsapp_enabled: false,
+          });
+          finalClienteId = newClient.id;
+        } catch {
+          toast.error('Erro ao criar cliente empresa');
+          return;
+        }
+      }
+    } else {
+      // Consumidor Final - create or find
+      const nome = cfNome.trim() || 'Consumidor Final';
+      const nif = cfNif.trim() || '999999999';
+      const endereco = cfEndereco.trim() || 'N/A';
+
+      // Check if there's already a "Consumidor Final" client
+      const existingCf = clientes.find(
+        c => c.nome === 'Consumidor Final' && c.nif === '999999999' && !cfNome.trim() && !cfNif.trim()
+      );
+
+      if (existingCf) {
+        finalClienteId = existingCf.id;
+      } else {
+        try {
+          const newClient = await createCliente.mutateAsync({
+            nome,
+            nif,
+            endereco,
+            tipo: 'particular',
+            whatsapp_consent: false,
+            whatsapp_enabled: false,
+          });
+          finalClienteId = newClient.id;
+        } catch {
+          toast.error('Erro ao criar cliente');
+          return;
+        }
+      }
+    }
+
     const faturaInput: FaturaInput = {
-      tipo,
-      cliente_id: clienteId,
+      tipo: isProforma ? 'proforma' as any : tipo,
+      cliente_id: finalClienteId,
       data_emissao: new Date().toISOString().split('T')[0],
       data_vencimento: dataVencimento,
-      observacoes: observacoes || undefined,
+      observacoes: isProforma
+        ? `DOCUMENTO PROFORMA – NÃO VÁLIDO COMO DOCUMENTO FISCAL${observacoes ? '\n' + observacoes : ''}`
+        : observacoes || undefined,
       metodo_pagamento: metodoPagamento || undefined,
       itens: itens.map(item => ({
         produto_id: item.produto_id,
@@ -166,19 +247,19 @@ export default function NovaFatura() {
     try {
       const result = await createFatura.mutateAsync(faturaInput);
       
-      toast.success('Fatura criada com sucesso!', {
-        description: `Fatura ${result.numero} foi emitida.`,
+      const docLabel = isProforma ? 'Proforma' : 'Fatura';
+      toast.success(`${docLabel} criada com sucesso!`, {
+        description: `${docLabel} ${result.numero} foi emitida.`,
       });
       
-      // Auto-send via WhatsApp if enabled
-      if (isAutoSendEnabled && result?.id) {
+      if (!isProforma && isAutoSendEnabled && result?.id) {
         autoSend(result.id);
       }
       
       navigate('/faturas');
     } catch (error) {
       console.error('Error creating invoice:', error);
-      toast.error('Erro ao criar fatura');
+      toast.error('Erro ao criar documento');
     }
   };
 
@@ -187,6 +268,7 @@ export default function NovaFatura() {
     'fatura-recibo': 'Fatura-Recibo',
     'recibo': 'Recibo',
     'nota-credito': 'Nota de Crédito',
+    'proforma': 'Fatura Proforma',
   };
 
   const isLoading = loadingClientes || loadingProdutos;
@@ -201,6 +283,9 @@ export default function NovaFatura() {
     );
   }
 
+  const buttonLabel = isProforma ? 'Emitir Proforma' : 'Emitir Fatura';
+  const canSubmit = !createFatura.isPending && itens.length > 0;
+
   return (
     <MainLayout>
       {/* Page Header */}
@@ -213,33 +298,46 @@ export default function NovaFatura() {
           </Button>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold font-display text-foreground">
-              Nova Fatura
+              {isProforma ? 'Nova Proforma' : 'Nova Fatura'}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Criar novo documento fiscal
+              {isProforma ? 'Criar documento proforma (não fiscal)' : 'Criar novo documento fiscal'}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           <Button 
             className="gradient-primary border-0" 
-            onClick={() => handleSave(true)}
-            disabled={createFatura.isPending}
+            onClick={handleSave}
+            disabled={!canSubmit}
           >
             {createFatura.isPending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Send className="w-4 h-4 mr-2" />
             )}
-            Emitir Fatura
+            {buttonLabel}
           </Button>
         </div>
       </div>
 
+      {/* Proforma Warning */}
+      {isProforma && (
+        <div className="mb-6 p-4 rounded-lg border border-primary/30 bg-primary/10 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold text-foreground">Documento Proforma</p>
+            <p className="text-sm text-muted-foreground">
+              Este documento NÃO é válido como documento fiscal. Utiliza numeração independente (PRO) e pode ser convertido em fatura oficial posteriormente.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Form */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Document Type & Number */}
+          {/* Document Type */}
           <Card className="card-shadow">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg font-display flex items-center gap-2">
@@ -250,7 +348,7 @@ export default function NovaFatura() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Tipo de Documento</Label>
+                  <Label>Tipo de Documento *</Label>
                   <Select value={tipo} onValueChange={(v: TipoDocumento) => setTipo(v)}>
                     <SelectTrigger>
                       <SelectValue />
@@ -265,7 +363,7 @@ export default function NovaFatura() {
                 <div className="space-y-2">
                   <Label>Número</Label>
                   <Input 
-                    value="Gerado automaticamente"
+                    value={isProforma ? 'PRO/... (gerado automaticamente)' : 'Gerado automaticamente'}
                     disabled
                     className="font-mono bg-muted"
                   />
@@ -293,7 +391,7 @@ export default function NovaFatura() {
             </CardContent>
           </Card>
 
-          {/* Client Selection */}
+          {/* Client Type Selection */}
           <Card className="card-shadow">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg font-display flex items-center gap-2">
@@ -302,58 +400,169 @@ export default function NovaFatura() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Selecionar Cliente *</Label>
-                <Select value={clienteId} onValueChange={setClienteId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Escolha um cliente..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientes.length === 0 ? (
-                      <div className="p-2 text-center text-muted-foreground text-sm">
-                        Nenhum cliente cadastrado.
-                        <Link to="/clientes" className="block text-primary mt-1">
-                          Criar cliente
-                        </Link>
-                      </div>
-                    ) : (
-                      clientes.map((cliente) => (
-                        <SelectItem key={cliente.id} value={cliente.id}>
-                          <div className="flex items-center gap-2">
-                            {cliente.tipo === 'empresa' ? (
-                              <Building2 className="w-4 h-4 text-muted-foreground" />
-                            ) : (
-                              <User className="w-4 h-4 text-muted-foreground" />
-                            )}
-                            <span>{cliente.nome}</span>
-                            <span className="text-muted-foreground text-xs">
-                              NIF: {cliente.nif}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+              {/* Tipo de Cliente Radio */}
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Tipo de Cliente *</Label>
+                <RadioGroup
+                  value={tipoCliente}
+                  onValueChange={(v: TipoCliente) => {
+                    setTipoCliente(v);
+                    setClienteId('');
+                  }}
+                  className="flex gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="consumidor_final" id="consumidor_final" />
+                    <Label htmlFor="consumidor_final" className="flex items-center gap-2 cursor-pointer">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      Consumidor Final
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="empresa" id="empresa" />
+                    <Label htmlFor="empresa" className="flex items-center gap-2 cursor-pointer">
+                      <Building2 className="w-4 h-4 text-muted-foreground" />
+                      Empresa
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
 
-              {clienteSelecionado && (
-                <div className="bg-muted/50 rounded-lg p-4 space-y-2 animate-fade-in">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">
-                      {clienteSelecionado.tipo === 'empresa' ? 'Empresa' : 'Particular'}
-                    </Badge>
-                    <span className="font-mono text-sm text-muted-foreground">
-                      NIF: {clienteSelecionado.nif}
-                    </span>
+              <Separator />
+
+              {/* Consumidor Final (B2C) */}
+              {tipoCliente === 'consumidor_final' && (
+                <div className="space-y-4 animate-fade-in">
+                  <p className="text-sm text-muted-foreground">
+                    Todos os campos são opcionais. Se não preencher, será usado "Consumidor Final".
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Nome (opcional)</Label>
+                      <Input
+                        placeholder="Consumidor Final"
+                        value={cfNome}
+                        onChange={(e) => setCfNome(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>NIF (opcional)</Label>
+                      <Input
+                        placeholder="Deixar em branco"
+                        value={cfNif}
+                        onChange={(e) => setCfNif(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <p className="font-medium">{clienteSelecionado.nome}</p>
-                  <p className="text-sm text-muted-foreground">{clienteSelecionado.endereco}</p>
-                  {clienteSelecionado.email && (
-                    <p className="text-sm text-muted-foreground">{clienteSelecionado.email}</p>
-                  )}
-                  {clienteSelecionado.telefone && (
-                    <p className="text-sm text-muted-foreground">Tel: {clienteSelecionado.telefone}</p>
+                  <div className="space-y-2">
+                    <Label>Endereço (opcional)</Label>
+                    <Input
+                      placeholder="Endereço do cliente"
+                      value={cfEndereco}
+                      onChange={(e) => setCfEndereco(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Empresa (B2B) */}
+              {tipoCliente === 'empresa' && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex gap-4">
+                    <Button
+                      variant={useExistingClient ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setUseExistingClient(true)}
+                    >
+                      Cliente existente
+                    </Button>
+                    <Button
+                      variant={!useExistingClient ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setUseExistingClient(false)}
+                    >
+                      Novo cliente
+                    </Button>
+                  </div>
+
+                  {useExistingClient ? (
+                    <div className="space-y-2">
+                      <Label>Selecionar Empresa *</Label>
+                      <Select value={clienteId} onValueChange={setClienteId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Escolha uma empresa..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientes.filter(c => c.tipo === 'empresa').length === 0 ? (
+                            <div className="p-2 text-center text-muted-foreground text-sm">
+                              Nenhuma empresa cadastrada.
+                              <Link to="/clientes" className="block text-primary mt-1">
+                                Criar cliente
+                              </Link>
+                            </div>
+                          ) : (
+                            clientes.filter(c => c.tipo === 'empresa').map((cliente) => (
+                              <SelectItem key={cliente.id} value={cliente.id}>
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="w-4 h-4 text-muted-foreground" />
+                                  <span>{cliente.nome}</span>
+                                  <span className="text-muted-foreground text-xs">
+                                    NIF: {cliente.nif}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+
+                      {clienteSelecionado && (
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-2 animate-fade-in">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary">Empresa</Badge>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              NIF: {clienteSelecionado.nif}
+                            </span>
+                          </div>
+                          <p className="font-medium">{clienteSelecionado.nome}</p>
+                          <p className="text-sm text-muted-foreground">{clienteSelecionado.endereco}</p>
+                          {clienteSelecionado.email && (
+                            <p className="text-sm text-muted-foreground">{clienteSelecionado.email}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Nome da Empresa *</Label>
+                          <Input
+                            placeholder="Nome da empresa"
+                            value={b2bNome}
+                            onChange={(e) => setB2bNome(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>NIF *</Label>
+                          <Input
+                            placeholder="NIF da empresa"
+                            value={b2bNif}
+                            onChange={(e) => setB2bNif(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Endereço</Label>
+                        <Input
+                          placeholder="Endereço da empresa"
+                          value={b2bEndereco}
+                          onChange={(e) => setB2bEndereco(e.target.value)}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -366,7 +575,7 @@ export default function NovaFatura() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-display flex items-center gap-2">
                   <Calculator className="w-5 h-5 text-primary" />
-                  Itens da Fatura
+                  Itens {isProforma ? 'da Proforma' : 'da Fatura'}
                 </CardTitle>
                 <Button size="sm" onClick={addItem}>
                   <Plus className="w-4 h-4 mr-1" />
@@ -549,16 +758,18 @@ export default function NovaFatura() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tipo</span>
-                  <Badge variant="secondary">{tipoLabels[tipo]}</Badge>
+                  <Badge variant={isProforma ? 'outline' : 'secondary'}>
+                    {tipoLabels[tipo]}
+                  </Badge>
                 </div>
-                {clienteSelecionado && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cliente</span>
-                    <span className="text-right truncate max-w-[150px]">
-                      {clienteSelecionado.nome}
-                    </span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Cliente</span>
+                  <span className="text-right truncate max-w-[150px]">
+                    {tipoCliente === 'consumidor_final'
+                      ? (cfNome || 'Consumidor Final')
+                      : (useExistingClient ? clienteSelecionado?.nome || '—' : b2bNome || '—')}
+                  </span>
+                </div>
               </div>
 
               <Separator />
@@ -566,15 +777,15 @@ export default function NovaFatura() {
               <div className="space-y-2">
                 <Button 
                   className="w-full gradient-primary border-0" 
-                  onClick={() => handleSave(true)}
-                  disabled={createFatura.isPending || itens.length === 0 || !clienteId}
+                  onClick={handleSave}
+                  disabled={!canSubmit}
                 >
                   {createFatura.isPending ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4 mr-2" />
                   )}
-                  Emitir Fatura
+                  {buttonLabel}
                 </Button>
               </div>
             </CardContent>

@@ -25,7 +25,7 @@ export interface Fatura {
   user_id: string;
   numero: string;
   serie: string;
-  tipo: 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito';
+  tipo: 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'proforma';
   estado: 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
   cliente_id: string;
   cliente?: Cliente;
@@ -125,16 +125,25 @@ export function useCreateFatura() {
   return useMutation({
     mutationFn: async (input: FaturaInput) => {
       // Generate invoice number
+      const serieMap: Record<string, string> = {
+        'fatura': 'FT',
+        'fatura-recibo': 'FR',
+        'recibo': 'RC',
+        'nota-credito': 'NC',
+        'proforma': 'PRO',
+      };
+      const serie = serieMap[input.tipo] || 'FT';
+
       const { data: numeroData, error: numeroError } = await supabase
         .rpc('generate_invoice_number', {
           _user_id: user!.id,
-          _serie: input.tipo === 'fatura' ? 'FT' : input.tipo === 'fatura-recibo' ? 'FR' : input.tipo === 'recibo' ? 'RC' : 'NC'
+          _serie: serie,
         });
 
       if (numeroError) throw numeroError;
 
       const numero = numeroData as string;
-      const serie = numero.split('/')[0];
+      const invoiceSerie = numero.split('/')[0];
 
       // Calculate totals
       const subtotal = input.itens.reduce((sum, item) => sum + item.subtotal, 0);
@@ -155,7 +164,7 @@ export function useCreateFatura() {
         .insert({
           user_id: user!.id,
           numero,
-          serie,
+          serie: invoiceSerie,
           tipo: input.tipo,
           estado: 'emitida',
           cliente_id: input.cliente_id,
