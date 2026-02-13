@@ -201,14 +201,14 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b shadow-sm">
+    <header className="sticky top-0 z-40 h-16 bg-primary/95 backdrop-blur supports-[backdrop-filter]:bg-primary/90 border-b border-primary/80 shadow-sm">
       <div className="flex items-center justify-between h-full px-4 lg:px-6">
         {/* Search */}
         <div className="flex-1 max-w-xl">
           <div className="relative group">
             <Search className={cn(
               "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
-              searchFocused ? "text-primary" : "text-muted-foreground"
+              searchFocused ? "text-primary-foreground" : "text-primary-foreground/60"
             )} />
             <Input
               id="global-search"
@@ -219,10 +219,10 @@ export function Header() {
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
               className={cn(
-                "pl-10 pr-20 h-10 bg-muted/50 border-2 transition-all",
+                "pl-10 pr-20 h-10 bg-primary-foreground/10 border-2 transition-all text-primary-foreground placeholder:text-primary-foreground/50",
                 searchFocused 
-                  ? "border-primary/50 bg-background shadow-md" 
-                  : "border-transparent hover:bg-muted/70"
+                  ? "border-primary-foreground/30 bg-primary-foreground/20 shadow-md" 
+                  : "border-transparent hover:bg-primary-foreground/15"
               )}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -230,13 +230,13 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 hover:bg-muted"
+                  className="h-6 w-6 p-0 hover:bg-primary-foreground/20 text-primary-foreground"
                   onClick={() => setSearchValue('')}
                 >
                   <X className="w-3.5 h-3.5" />
                 </Button>
               )}
-              <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-muted rounded border">
+              <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary-foreground/10 text-primary-foreground/70 rounded border border-primary-foreground/20">
                 <Command className="w-3 h-3" />
                 K
               </kbd>
@@ -247,15 +247,15 @@ export function Header() {
         {/* Right side */}
         <div className="flex items-center gap-2 ml-4">
           {/* Company indicator */}
-          <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
-            <div className="p-1.5 rounded-md bg-primary/10">
-              <Building2 className="w-4 h-4 text-primary" />
+          <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-primary-foreground/10 rounded-lg border border-primary-foreground/20">
+            <div className="p-1.5 rounded-md bg-primary-foreground/15">
+              <Building2 className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground leading-tight">
+              <span className="text-sm font-semibold text-primary-foreground leading-tight">
                 Minha Empresa, Lda
               </span>
-              <span className="text-xs text-muted-foreground leading-tight">
+              <span className="text-xs text-primary-foreground/60 leading-tight">
                 NIF: 5000000000
               </span>
             </div>
@@ -267,7 +267,7 @@ export function Header() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="relative hover:bg-muted/80 transition-colors"
+                className="relative hover:bg-primary-foreground/20 text-primary-foreground transition-colors"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -389,14 +389,14 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="flex items-center gap-2 h-10 px-2 hover:bg-muted/80 transition-colors"
+                className="flex items-center gap-2 h-10 px-2 hover:bg-primary-foreground/20 transition-colors"
               >
                 <Avatar className="w-8 h-8 border-2 border-primary/20">
                   <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-sm font-bold">
                     {profile ? getInitials(profile.nome) : 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
+                <ChevronDown className="w-4 h-4 text-primary-foreground/60 hidden sm:block" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 p-2">

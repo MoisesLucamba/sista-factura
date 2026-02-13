@@ -13,9 +13,12 @@ import {
   ChevronRight,
   Sparkles,
   Clock,
-  TrendingUp,
+  Play,
 } from 'lucide-react';
 import logoFaktura from '@/assets/logo-faktura.png';
+import heroBusiness from '@/assets/hero-business.jpg';
+import dashboardPreview from '@/assets/dashboard-preview.jpg';
+import teamCollab from '@/assets/team-collab.jpg';
 
 const features = [
   {
@@ -107,61 +110,90 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-44 lg:pb-32">
-        {/* Background decoration */}
+      {/* Hero Section with Image */}
+      <section className="relative pt-24 pb-0 lg:pt-32 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
           <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[100px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[150px]" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-8">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-foreground">Nova versão 2.0 disponível</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </div>
-
-          <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black tracking-tight mb-6 leading-[0.9]">
-            Faturação que
-            <br />
-            <span className="relative inline-block">
-              <span className="relative z-10 text-primary">impulsiona</span>
-              <span className="absolute bottom-2 left-0 right-0 h-4 lg:h-6 bg-primary/20 -skew-x-3 rounded-sm" />
-            </span>
-            <br />
-            o seu negócio
-          </h1>
-
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            A plataforma de faturação mais moderna e poderosa de Angola. 
-            Emita faturas, gerencie clientes e mantenha-se em conformidade com a AGT — tudo num só lugar.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Link to="/registar">
-              <Button size="lg" className="h-14 px-8 text-lg font-black shadow-2xl shadow-primary/30 hover:shadow-primary/40 hover:scale-105 transition-all group">
-                Começar Grátis
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <a href="#features">
-              <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-bold border-2">
-                Ver Funcionalidades
-              </Button>
-            </a>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-            {stats.map((stat, i) => (
-              <div key={i} className="text-center p-4">
-                <div className="text-3xl lg:text-4xl font-black text-foreground mb-1">{stat.value}</div>
-                <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="text-left">
+              <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-8">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-sm font-bold text-foreground">A plataforma #1 de Angola</span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
-            ))}
+
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 leading-[0.95]">
+                Faturação que
+                <br />
+                <span className="relative inline-block">
+                  <span className="relative z-10 text-primary">impulsiona</span>
+                  <span className="absolute bottom-1 left-0 right-0 h-3 lg:h-5 bg-primary/20 -skew-x-3 rounded-sm" />
+                </span>
+                <br />
+                o seu negócio
+              </h1>
+
+              <p className="text-lg text-muted-foreground max-w-lg mb-8 leading-relaxed">
+                Emita faturas profissionais, gerencie clientes e mantenha-se em conformidade com a AGT — tudo num só lugar.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-start gap-4 mb-10">
+                <Link to="/registar">
+                  <Button size="lg" className="h-14 px-8 text-lg font-black shadow-2xl shadow-primary/30 hover:shadow-primary/40 hover:scale-105 transition-all group">
+                    Começar Grátis
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <a href="#features">
+                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-bold border-2 gap-2">
+                    <Play className="w-5 h-5" />
+                    Ver Demo
+                  </Button>
+                </a>
+              </div>
+
+              {/* Stats inline */}
+              <div className="flex gap-8">
+                {stats.slice(0, 3).map((stat, i) => (
+                  <div key={i}>
+                    <div className="text-2xl font-black text-foreground">{stat.value}</div>
+                    <div className="text-xs text-muted-foreground font-medium">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Hero Image */}
+            <div className="relative hidden lg:block">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/20 border border-primary/10">
+                <img src={heroBusiness} alt="Faktura em ação" className="w-full h-auto object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent" />
+              </div>
+              {/* Floating card */}
+              <div className="absolute -bottom-6 -left-6 bg-card rounded-xl p-4 shadow-xl border border-border/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Conformidade AGT</p>
+                    <p className="text-xs text-muted-foreground">100% certificado</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dashboard Preview Section */}
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50">
+            <img src={dashboardPreview} alt="Dashboard Faktura" className="w-full h-auto" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
           </div>
         </div>
       </section>
@@ -169,18 +201,23 @@ export default function LandingPage() {
       {/* Features Section */}
       <section id="features" className="py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-4">
-              <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm font-bold">Funcionalidades</span>
+          <div className="grid lg:grid-cols-2 gap-16 items-center mb-16">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-4">
+                <Zap className="w-4 h-4 text-primary" />
+                <span className="text-sm font-bold">Funcionalidades</span>
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-4">
+                Tudo que precisa para
+                <span className="text-primary"> faturar</span>
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Ferramentas poderosas desenhadas especificamente para o mercado angolano.
+              </p>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-4">
-              Tudo que precisa para
-              <span className="text-primary"> faturar</span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Ferramentas poderosas desenhadas especificamente para o mercado angolano.
-            </p>
+            <div className="rounded-2xl overflow-hidden shadow-lg">
+              <img src={teamCollab} alt="Equipa a colaborar" className="w-full h-72 object-cover" />
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -268,7 +305,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free */}
             <div className="bg-card rounded-2xl p-8 border-2 border-border/50">
               <h3 className="text-xl font-bold mb-2">Starter</h3>
               <div className="mb-6">
@@ -287,7 +323,6 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Pro */}
             <div className="bg-card rounded-2xl p-8 border-2 border-primary shadow-xl shadow-primary/10 relative">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-black px-4 py-1.5 rounded-full shadow-lg">
                 MAIS POPULAR
@@ -310,7 +345,6 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Enterprise */}
             <div className="bg-card rounded-2xl p-8 border-2 border-border/50">
               <h3 className="text-xl font-bold mb-2">Empresa</h3>
               <div className="mb-6">
