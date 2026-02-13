@@ -57,7 +57,7 @@ export default function Login() {
 
         <div className="relative z-10 flex flex-col justify-between p-12 text-accent-foreground w-full">
           <div>
-            <img src={logoFaktura} alt="Faktura" className="h-20 object-contain brightness-0 invert" />
+            <img src={logoFaktura} alt="Faktura" className="h-24 w-auto object-contain" />
           </div>
           
           <div className="space-y-8">
@@ -98,7 +98,7 @@ export default function Login() {
         <div className="w-full max-w-md space-y-8">
           {/* Mobile logo */}
           <div className="flex items-center justify-center lg:hidden">
-            <img src={logoFaktura} alt="Faktura Angola" className="h-20 object-contain" />
+            <img src={logoFaktura} alt="Faktura Angola" className="h-24 w-auto object-contain" />
           </div>
 
           <div className="space-y-2">
@@ -133,6 +133,9 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-sm font-semibold">Palavra-passe</Label>
+                <Link to="/recuperar-senha" className="text-xs text-primary font-semibold hover:underline">
+                  Esqueceu a senha?
+                </Link>
               </div>
               <Input
                 id="password"
