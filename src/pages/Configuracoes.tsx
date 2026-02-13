@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useAgtConfig, useCreateOrUpdateAgtConfig } from '@/hooks/useAgtConfig';
 import { SendHistoryList } from '@/components/faturas/SendHistoryList';
+import { generateRSAKeyPair } from '@/lib/rsa-keygen';
 import {
   Settings,
   Building2,
@@ -49,8 +50,13 @@ import {
   Server,
   ChevronRight,
   AlertCircle,
+  Key,
+  Scale,
+  BookOpen,
+  Gavel,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function ConfiguracoesProfessional() {
   const { data: config, isLoading } = useAgtConfig();
@@ -75,6 +81,7 @@ export default function ConfiguracoesProfessional() {
   const [hasChanges, setHasChanges] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('empresa');
+  const [generatingKey, setGeneratingKey] = useState(false);
 
   // Load config into form
   useEffect(() => {
@@ -142,6 +149,35 @@ export default function ConfiguracoesProfessional() {
     navigator.clipboard.writeText(publicKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleGenerateRSAKey = async () => {
+    setGeneratingKey(true);
+    try {
+      const { publicKeyPem, privateKeyPem } = await generateRSAKeyPair();
+      setPublicKey(publicKeyPem);
+      
+      // Auto-fill test references if empty
+      if (!certificateNumber) setCertificateNumber('AGT-2025-' + Math.random().toString(36).substring(2, 7).toUpperCase());
+      if (!modelo8Reference) setModelo8Reference('M8-2025-' + Math.random().toString(36).substring(2, 7).toUpperCase());
+      if (!memoriaDescritiva) setMemoriaDescritiva('MD-2025-' + Math.random().toString(36).substring(2, 7).toUpperCase());
+      if (!declaracaoConformidade) setDeclaracaoConformidade('DC-2025-' + Math.random().toString(36).substring(2, 7).toUpperCase());
+      
+      // Download private key
+      const blob = new Blob([privateKeyPem], { type: 'application/x-pem-file' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'faktura-private-key.pem';
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast.success('Chaves RSA geradas com sucesso! A chave privada foi descarregada automaticamente. Guarde-a em local seguro.');
+    } catch (error) {
+      toast.error('Erro ao gerar chaves RSA: ' + (error as Error).message);
+    } finally {
+      setGeneratingKey(false);
+    }
   };
 
   const getCertificateStatus = () => {
@@ -372,34 +408,34 @@ export default function ConfiguracoesProfessional() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="inline-flex h-12 items-center justify-start rounded-xl bg-muted p-1 text-muted-foreground w-full lg:w-auto">
+        <TabsList className="inline-flex h-auto items-center justify-start rounded-xl bg-muted p-1 text-muted-foreground w-full lg:w-auto overflow-x-auto no-scrollbar flex-wrap sm:flex-nowrap gap-0.5">
           <TabsTrigger 
             value="empresa" 
-            className="inline-flex items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm touch-manipulation"
           >
-            <Building2 className="w-4 h-4" />
-            Dados Empresariais
+            <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Dados</span> Empresa
           </TabsTrigger>
           <TabsTrigger 
             value="agt"
-            className="inline-flex items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm touch-manipulation"
           >
-            <Shield className="w-4 h-4" />
-            Certificação AGT
+            <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            AGT
           </TabsTrigger>
           <TabsTrigger 
             value="envios"
-            className="inline-flex items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm touch-manipulation"
           >
-            <MessageCircle className="w-4 h-4" />
-            Comunicações
+            <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Envios
           </TabsTrigger>
           <TabsTrigger 
             value="documentos"
-            className="inline-flex items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm touch-manipulation"
           >
-            <FileText className="w-4 h-4" />
-            Documentação Legal
+            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Legal
           </TabsTrigger>
         </TabsList>
 
@@ -656,51 +692,72 @@ export default function ConfiguracoesProfessional() {
 
                 {/* Public Key Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                       <div className="w-1 h-4 bg-primary rounded-full" />
                       Chave Criptográfica
                     </h3>
-                    {publicKey && (
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowPublicKey(!showPublicKey)}
-                          className="h-9 gap-2"
-                        >
-                          {showPublicKey ? (
-                            <>
-                              <EyeOff className="w-4 h-4" />
-                              Ocultar
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="w-4 h-4" />
-                              Visualizar
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleCopyPublicKey}
-                          className="h-9 gap-2"
-                        >
-                          {copied ? (
-                            <>
-                              <Check className="w-4 h-4 text-emerald-600" />
-                              Copiada
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-4 h-4" />
-                              Copiar
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={handleGenerateRSAKey}
+                        disabled={generatingKey}
+                        className="h-9 gap-2"
+                      >
+                        {generatingKey ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            A gerar...
+                          </>
+                        ) : (
+                          <>
+                            <Key className="w-4 h-4" />
+                            Gerar Chaves RSA
+                          </>
+                        )}
+                      </Button>
+                      {publicKey && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowPublicKey(!showPublicKey)}
+                            className="h-9 gap-2"
+                          >
+                            {showPublicKey ? (
+                              <>
+                                <EyeOff className="w-4 h-4" />
+                                Ocultar
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="w-4 h-4" />
+                                Visualizar
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopyPublicKey}
+                            className="h-9 gap-2"
+                          >
+                            {copied ? (
+                              <>
+                                <Check className="w-4 h-4 text-emerald-600" />
+                                Copiada
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-4 h-4" />
+                                Copiar
+                              </>
+                            )}
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="space-y-2.5">
@@ -988,21 +1045,23 @@ export default function ConfiguracoesProfessional() {
                   title: 'Decreto Presidencial n.º 71/25',
                   subtitle: 'Regulamento de Faturação Eletrónica',
                   description: 'Estabelece as regras e procedimentos para emissão de faturas eletrónicas em Angola, incluindo requisitos técnicos, obrigações fiscais e prazos de conformidade.',
-                  icon: Shield,
+                  icon: Gavel,
                   color: 'text-blue-600',
                   bgColor: 'bg-blue-50',
                   borderColor: 'border-blue-200',
                   date: '2025',
+                  url: 'https://www.agt.minfin.gov.ao',
                 },
                 {
                   title: 'Decreto Executivo n.º 312/18',
                   subtitle: 'Requisitos Técnicos de Software de Faturação',
-                  description: 'Define as especificações técnicas obrigatórias para programas de faturação, incluindo assinatura digital, hash de validação e integração com sistemas da AGT.',
+                  description: 'Define as especificações técnicas obrigatórias para programas de faturação, incluindo assinatura digital RSA-SHA256, hash de validação e integração com sistemas da AGT.',
                   icon: FileCheck,
                   color: 'text-emerald-600',
                   bgColor: 'bg-emerald-50',
                   borderColor: 'border-emerald-200',
                   date: '2018',
+                  url: 'https://www.agt.minfin.gov.ao',
                 },
                 {
                   title: 'Norma SAF-T (AO)',
@@ -1013,53 +1072,80 @@ export default function ConfiguracoesProfessional() {
                   bgColor: 'bg-purple-50',
                   borderColor: 'border-purple-200',
                   date: 'Atual',
+                  url: 'https://www.agt.minfin.gov.ao',
+                },
+                {
+                  title: 'Código do Imposto sobre o Valor Acrescentado (CIVA)',
+                  subtitle: 'Lei n.º 7/19 de 24 de Abril',
+                  description: 'Regulamenta a aplicação do IVA em Angola com taxas de 14% (normal), 7% (reduzida), 5% (intermédia), 2% (mínima) e 0% (isento), incluindo obrigações de faturação.',
+                  icon: Scale,
+                  color: 'text-amber-600',
+                  bgColor: 'bg-amber-50',
+                  borderColor: 'border-amber-200',
+                  date: '2019',
+                  url: 'https://www.agt.minfin.gov.ao',
+                },
+                {
+                  title: 'Código Geral Tributário (CGT)',
+                  subtitle: 'Lei n.º 21/14 de 22 de Outubro',
+                  description: 'Estabelece os princípios gerais do sistema tributário angolano, obrigações dos contribuintes, prazos de conservação de documentos fiscais (mínimo 5 anos) e procedimentos de fiscalização.',
+                  icon: BookOpen,
+                  color: 'text-indigo-600',
+                  bgColor: 'bg-indigo-50',
+                  borderColor: 'border-indigo-200',
+                  date: '2014',
+                  url: 'https://www.agt.minfin.gov.ao',
+                },
+                {
+                  title: 'Regime Jurídico das Facturas e Documentos Equivalentes',
+                  subtitle: 'Decreto Presidencial n.º 292/18',
+                  description: 'Define os requisitos legais para emissão de faturas, faturas-recibo, recibos, notas de crédito e proformas, incluindo numeração sequencial obrigatória e dados mínimos exigidos.',
+                  icon: Shield,
+                  color: 'text-rose-600',
+                  bgColor: 'bg-rose-50',
+                  borderColor: 'border-rose-200',
+                  date: '2018',
+                  url: 'https://www.agt.minfin.gov.ao',
                 },
               ].map((doc, index) => (
                 <div 
                   key={index}
                   className={cn(
-                    "group p-6 rounded-xl border-2 transition-all cursor-pointer",
-                    "hover:shadow-xl hover:scale-[1.01]",
+                    "group p-4 sm:p-6 rounded-xl border-2 transition-all",
+                    "hover:shadow-xl hover:scale-[1.005]",
                     doc.borderColor
                   )}
                 >
-                  <div className="flex items-start gap-5">
-                    <div className={cn('p-4 rounded-xl shrink-0', doc.bgColor)}>
-                      <doc.icon className={cn('w-7 h-7', doc.color)} />
+                  <div className="flex items-start gap-3 sm:gap-5">
+                    <div className={cn('p-3 sm:p-4 rounded-xl shrink-0', doc.bgColor)}>
+                      <doc.icon className={cn('w-5 h-5 sm:w-7 sm:h-7', doc.color)} />
                     </div>
-                    <div className="flex-1 space-y-3">
+                    <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
                       <div>
-                        <div className="flex items-start justify-between gap-4 mb-1">
-                          <h3 className="font-bold text-lg group-hover:text-primary transition-colors">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h3 className="font-bold text-sm sm:text-lg group-hover:text-primary transition-colors">
                             {doc.title}
                           </h3>
                           <Badge variant="outline" className="shrink-0 font-mono text-xs">
                             {doc.date}
                           </Badge>
                         </div>
-                        <p className="text-sm font-medium text-primary mb-2">
+                        <p className="text-xs sm:text-sm font-medium text-primary mb-1 sm:mb-2">
                           {doc.subtitle}
                         </p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                           {doc.description}
                         </p>
                       </div>
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex flex-wrap gap-2 pt-1">
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                          className="gap-2 hover:bg-primary hover:text-primary-foreground transition-colors text-xs sm:text-sm"
+                          onClick={() => window.open(doc.url, '_blank')}
                         >
-                          <Download className="w-4 h-4" />
-                          Descarregar PDF
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="gap-2"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          Ver Online
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          Consultar na AGT
                         </Button>
                       </div>
                     </div>
@@ -1071,37 +1157,26 @@ export default function ConfiguracoesProfessional() {
 
               {/* Compliance Status */}
               <Alert className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50">
-                <div className="flex gap-4">
-                  <div className="shrink-0 p-3 rounded-xl bg-emerald-100">
-                    <CheckCircle className="w-6 h-6 text-emerald-700" />
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="shrink-0 p-2.5 sm:p-3 rounded-xl bg-emerald-100">
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-700" />
                   </div>
-                  <div className="space-y-3">
-                    <AlertDescription className="text-emerald-900 font-semibold text-base m-0">
+                  <div className="space-y-2 sm:space-y-3">
+                    <AlertDescription className="text-emerald-900 font-semibold text-sm sm:text-base m-0">
                       Sistema Certificado e em Conformidade
                     </AlertDescription>
-                    <p className="text-sm text-emerald-800 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-emerald-800 leading-relaxed">
                       Este software está desenvolvido em total conformidade com toda a legislação fiscal 
                       angolana vigente. Inclui suporte completo para exportação SAF-T (AO), assinatura 
-                      digital de documentos, e integração com os sistemas da AGT. A funcionalidade de 
-                      assinatura digital será ativada automaticamente após a configuração do certificado AGT.
+                      digital de documentos, e integração com os sistemas da AGT.
                     </p>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      <Badge variant="secondary" className="bg-white border-emerald-300 text-emerald-900">
-                        <CheckCircle className="w-3 h-3 mr-1.5" />
-                        SAF-T (AO) Ready
-                      </Badge>
-                      <Badge variant="secondary" className="bg-white border-emerald-300 text-emerald-900">
-                        <CheckCircle className="w-3 h-3 mr-1.5" />
-                        Assinatura Digital
-                      </Badge>
-                      <Badge variant="secondary" className="bg-white border-emerald-300 text-emerald-900">
-                        <CheckCircle className="w-3 h-3 mr-1.5" />
-                        Hash Validation
-                      </Badge>
-                      <Badge variant="secondary" className="bg-white border-emerald-300 text-emerald-900">
-                        <CheckCircle className="w-3 h-3 mr-1.5" />
-                        Integração AGT
-                      </Badge>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1">
+                      {['SAF-T (AO)', 'Assinatura Digital', 'Hash RSA-SHA256', 'Integração AGT', 'CIVA Compliant'].map((badge) => (
+                        <Badge key={badge} variant="secondary" className="bg-white border-emerald-300 text-emerald-900 text-[10px] sm:text-xs">
+                          <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                          {badge}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -18,6 +18,7 @@ const tabs = [
 
 export function MobileTabBar() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border/60 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]">
@@ -28,11 +29,17 @@ export function MobileTabBar() {
           const Icon = tab.icon;
 
           return (
-            <Link
+            <button
               key={tab.href}
-              to={tab.href}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate(tab.href);
+              }}
               className={cn(
                 'flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 rounded-lg transition-all',
+                'touch-manipulation select-none',
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground'
@@ -50,7 +57,7 @@ export function MobileTabBar() {
               )}>
                 {tab.label}
               </span>
-            </Link>
+            </button>
           );
         })}
       </div>
