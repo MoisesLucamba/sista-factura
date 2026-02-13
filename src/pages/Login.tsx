@@ -18,7 +18,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,12 +168,19 @@ export default function Login() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
-            Não tem conta?{' '}
-            <Link to="/registar" className="text-primary font-bold hover:underline">
-              Criar conta grátis
-            </Link>
-          </p>
+          <div className="text-center space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Não tem conta?{' '}
+              <Link to="/registar" className="text-primary font-bold hover:underline">
+                Criar conta grátis
+              </Link>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              <Link to="/" className="text-primary font-medium hover:underline">
+                ← Voltar à página inicial
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

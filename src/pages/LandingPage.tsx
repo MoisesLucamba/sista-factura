@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import logoFaktura from '@/assets/logo-faktura.png';
 import heroBusiness from '@/assets/hero-business.jpg';
-import dashboardPreview from '@/assets/dashboard-preview.jpg';
+import dashboardPreview from '@/assets/dashboard-preview.png';
 import teamCollab from '@/assets/team-collab.jpg';
 
 const features = [
@@ -393,8 +393,8 @@ export default function LandingPage() {
             <div>
               <h4 className="font-bold mb-4 text-sm uppercase tracking-wider text-accent-foreground/60">Legal</h4>
               <ul className="space-y-2 text-sm text-accent-foreground/50">
-                <li><a href="#" className="hover:text-primary transition-colors">Termos de Uso</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Privacidade</a></li>
+                <li><Link to="/termos" className="hover:text-primary transition-colors">Termos de Uso</Link></li>
+                <li><Link to="/privacidade" className="hover:text-primary transition-colors">Privacidade</Link></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Segurança</a></li>
               </ul>
             </div>
