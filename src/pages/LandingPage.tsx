@@ -265,8 +265,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Clients / Companies */}
-      <section id="clients" className="py-24 bg-muted/30">
+      {/* Clients / Companies - Infinite Carousel */}
+      <section id="clients" className="py-24 bg-muted/30 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-4">
@@ -274,17 +274,22 @@ export default function LandingPage() {
             </h2>
             <p className="text-lg text-muted-foreground">Junte-se às empresas que confiam na nossa plataforma.</p>
           </div>
+        </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-10 lg:gap-16">
-            {clientLogos.map((client, i) => (
+        {/* Infinite scrolling carousel */}
+        <div className="relative w-full">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-muted/30 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-muted/30 to-transparent z-10 pointer-events-none" />
+          <div className="flex animate-[scroll_25s_linear_infinite] w-max gap-8 hover:[animation-play-state:paused]">
+            {[...clientLogos, ...clientLogos, ...clientLogos, ...clientLogos].map((client, i) => (
               <div
                 key={i}
-                className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300 flex items-center justify-center h-28 w-52"
+                className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm flex items-center justify-center h-24 w-48 flex-shrink-0"
               >
                 <img
                   src={client.logo}
                   alt={client.name}
-                  className="max-h-16 max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                  className="max-h-14 max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
                 />
               </div>
             ))}

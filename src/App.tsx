@@ -5,25 +5,34 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import Clientes from "./pages/Clientes";
-import Produtos from "./pages/Produtos";
-import Faturas from "./pages/Faturas";
-import NovaFatura from "./pages/NovaFatura";
-import Relatorios from "./pages/Relatorios";
-import Configuracoes from "./pages/Configuracoes";
-import Fornecedores from "./pages/Fornecedores";
-import Documentos from "./pages/Documentos";
-import Empresa from "./pages/Empresa";
-import Login from "./pages/Login";
-import Registar from "./pages/Registar";
-import LandingPage from "./pages/LandingPage";
-import RecuperarSenha from "./pages/RecuperarSenha";
-import RedefinirSenha from "./pages/RedefinirSenha";
-import TermosDeUso from "./pages/TermosDeUso";
-import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
-import NotFound from "./pages/NotFound";
-import Perfil from "./pages/Perfil";
+import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Clientes = lazy(() => import("./pages/Clientes"));
+const Produtos = lazy(() => import("./pages/Produtos"));
+const Faturas = lazy(() => import("./pages/Faturas"));
+const NovaFatura = lazy(() => import("./pages/NovaFatura"));
+const Relatorios = lazy(() => import("./pages/Relatorios"));
+const Configuracoes = lazy(() => import("./pages/Configuracoes"));
+const Fornecedores = lazy(() => import("./pages/Fornecedores"));
+const Documentos = lazy(() => import("./pages/Documentos"));
+const Empresa = lazy(() => import("./pages/Empresa"));
+const Login = lazy(() => import("./pages/Login"));
+const Registar = lazy(() => import("./pages/Registar"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const RecuperarSenha = lazy(() => import("./pages/RecuperarSenha"));
+const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
+const TermosDeUso = lazy(() => import("./pages/TermosDeUso"));
+const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Perfil = lazy(() => import("./pages/Perfil"));
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -33,6 +42,7 @@ const App = () => (
         <Toaster />
         <Sonner position="top-right" richColors />
         <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
@@ -136,6 +146,7 @@ const App = () => (
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
