@@ -101,8 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!mounted) return;
+      if (error) {
+        console.warn('Session restore error:', error.message);
+      }
       setSession(session);
       setUser(session?.user ?? null);
 
@@ -110,6 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(session.user.id);
       }
 
+      setLoading(false);
+    }).catch((err) => {
+      if (!mounted) return;
+      console.warn('Session init failed:', err);
       setLoading(false);
     });
 
