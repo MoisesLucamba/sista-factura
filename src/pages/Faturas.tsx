@@ -138,31 +138,23 @@ export default function Faturas() {
     return new Date(dateString).toLocaleDateString('pt-AO');
   };
 
-  const handleDownloadPDF = async (fatura: Fatura) => {
+  const handleDownloadPDF = async (e: React.MouseEvent | null, fatura: Fatura) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (isDownloading) return;
     setIsDownloading(fatura.id);
     try {
-      const { data: fullFatura, error } = await import('@/integrations/supabase/client').then(
-        async ({ supabase }) => {
-          const { data: faturaData, error: faturaError } = await supabase
-            .from('faturas')
-            .select(`*, cliente:clientes(*)`)
-            .eq('id', fatura.id)
-            .single();
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const [faturaRes, itensRes] = await Promise.all([
+        supabase.from('faturas').select('*, cliente:clientes(*)').eq('id', fatura.id).single(),
+        supabase.from('itens_fatura').select('*, produto:produtos(*)').eq('fatura_id', fatura.id),
+      ]);
 
-          if (faturaError) throw faturaError;
+      if (faturaRes.error) throw faturaRes.error;
+      if (itensRes.error) throw itensRes.error;
 
-          const { data: itens, error: itensError } = await supabase
-            .from('itens_fatura')
-            .select(`*, produto:produtos(*)`)
-            .eq('fatura_id', fatura.id);
-
-          if (itensError) throw itensError;
-
-          return { data: { ...faturaData, itens }, error: null };
-        }
-      );
-
-      if (error) throw error;
+      const fullFatura = { ...faturaRes.data, itens: itensRes.data };
 
       const companyInfo: CompanyInfo = agtConfig ? {
         nome_empresa: agtConfig.nome_empresa || undefined,
@@ -179,7 +171,20 @@ export default function Faturas() {
       } : undefined;
 
       const blob = await generateInvoicePDF(fullFatura as Fatura, companyInfo);
-      downloadInvoicePDF(blob, `${fatura.numero.replace(/\//g, '-')}.pdf`);
+      
+      // Mobile-safe download using object URL
+      const url = URL.createObjectURL(blob);
+      const filename = `${fatura.numero.replace(/\//g, '-')}.pdf`;
+      
+      // Try opening in new tab on mobile (more reliable than link.click())
+      const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobileDevice) {
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      } else {
+        downloadInvoicePDF(blob, filename);
+      }
+      
       toast.success('PDF gerado com sucesso!');
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -536,7 +541,8 @@ export default function Faturas() {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-8 w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
@@ -547,7 +553,7 @@ export default function Faturas() {
                                 Ver Detalhes
                               </DropdownMenuItem>
                               <DropdownMenuItem 
-                                onClick={() => handleDownloadPDF(fatura)}
+                                onSelect={(e) => { e.preventDefault(); handleDownloadPDF(null, fatura); }}
                                 disabled={isDownloading === fatura.id}
                               >
                                 {isDownloading === fatura.id ? (
@@ -722,7 +728,7 @@ export default function Faturas() {
                   Fechar
                 </Button>
                 <Button 
-                  onClick={() => handleDownloadPDF(selectedFatura)}
+                  onClick={(e) => handleDownloadPDF(e, selectedFatura)}
                   className="gradient-primary"
                   disabled={isDownloading === selectedFatura.id}
                 >
