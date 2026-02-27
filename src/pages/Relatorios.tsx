@@ -9,13 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -24,10 +24,9 @@ import {
   Bar,
   Legend,
 } from 'recharts';
-import { formatCurrency, getMonthName } from '@/lib/format';
-import { 
-  Download, 
-  FileSpreadsheet, 
+import { formatCurrency } from '@/lib/format';
+import {
+  FileSpreadsheet,
   FileText,
   Calendar,
   TrendingUp,
@@ -35,10 +34,9 @@ import {
   Users,
   Package,
   BarChart3,
-  ArrowUpRight,
-  Sparkles,
   FileDown,
   Loader2,
+  ChevronRight,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useFaturas, useDashboardStats } from '@/hooks/useFaturas';
@@ -48,13 +46,14 @@ import { useAgtConfig } from '@/hooks/useAgtConfig';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 
+/* ─── Tooltip ─── */
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-card border-2 border-primary/20 rounded-xl shadow-xl p-4">
-        <p className="font-semibold text-sm mb-2">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
+      <div className="bg-popover border border-border rounded-xl shadow-xl p-4 min-w-[160px]">
+        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2 font-medium">{label}</p>
+        {payload.map((entry: any, i: number) => (
+          <p key={i} className="text-sm font-bold" style={{ color: entry.color }}>
             {entry.name}: {formatCurrency(entry.value)}
           </p>
         ))}
@@ -64,26 +63,71 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+/* ─── Pie label ─── */
 const CustomPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  if (percent < 0.06) return null;
   const RADIAN = Math.PI / 180;
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
   return (
-    <text 
-      x={x} 
-      y={y} 
-      fill="white" 
-      textAnchor={x > cx ? 'start' : 'end'} 
-      dominantBaseline="central"
-      className="font-bold text-xs"
-    >
+    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-xs font-bold">
       {`${(percent * 100).toFixed(0)}%`}
     </text>
   );
 };
 
+/* ─── KPI Card ─── */
+const KpiCard = ({
+  label, value, sub, icon, colorClass, bgClass, borderClass,
+}: {
+  label: string; value: string; sub?: string;
+  icon: React.ReactNode; colorClass: string; bgClass: string; borderClass: string;
+}) => (
+  <Card className={`relative overflow-hidden border-l-4 ${borderClass} hover:shadow-lg transition-shadow duration-200`}>
+    <CardContent className="p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1 min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
+          <p className="text-2xl font-extrabold tracking-tight text-foreground truncate">{value}</p>
+          {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+        </div>
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${bgClass} ${colorClass}`}>
+          {icon}
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+/* ─── Export Button ─── */
+const ExportBtn = ({
+  title, subtitle, format, icon, onClick, colorClass, bgClass,
+}: {
+  title: string; subtitle: string; format: string; icon: React.ReactNode;
+  onClick: () => void; colorClass: string; bgClass: string;
+}) => (
+  <button
+    onClick={onClick}
+    className="w-full text-left rounded-2xl border border-border bg-card hover:bg-accent hover:border-primary/30 transition-all duration-200 p-5 group"
+  >
+    <div className="flex items-center gap-4">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${bgClass} ${colorClass} group-hover:scale-105 transition-transform duration-200`}>
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-sm text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>
+      </div>
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
+        <Badge variant="secondary" className="text-xs font-bold tracking-wider">{format}</Badge>
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+      </div>
+    </div>
+  </button>
+);
+
+/* ═══════════════════════ MAIN PAGE ═══════════════════════ */
 export default function Relatorios() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear.toString());
@@ -94,714 +138,428 @@ export default function Relatorios() {
   const { data: produtos = [] } = useProdutos();
   const { data: agtConfig } = useAgtConfig();
 
-  // Filter faturas by selected year
-  const faturasDoAno = useMemo(() => {
-    return faturas.filter(f => f.data_emissao?.startsWith(selectedYear));
-  }, [faturas, selectedYear]);
+  const faturasDoAno = useMemo(
+    () => faturas.filter(f => f.data_emissao?.startsWith(selectedYear)),
+    [faturas, selectedYear]
+  );
 
-  // Build monthly billing data from real faturas
   const faturacaoMensal = useMemo(() => {
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     return months.map((mes, i) => {
-      const monthStr = String(i + 1).padStart(2, '0');
-      const faturasDoMes = faturasDoAno.filter(f => {
-        const m = f.data_emissao?.split('-')[1];
-        return m === monthStr && f.estado !== 'anulada';
-      });
-      const valor = faturasDoMes.reduce((sum, f) => sum + Number(f.total || 0), 0);
-      const iva = faturasDoMes.reduce((sum, f) => sum + Number(f.total_iva || 0), 0);
-      return { mes, valor, iva };
+      const m = String(i + 1).padStart(2, '0');
+      const fMes = faturasDoAno.filter(f => f.data_emissao?.split('-')[1] === m && f.estado !== 'anulada');
+      return {
+        mes,
+        valor: fMes.reduce((s, f) => s + Number(f.total || 0), 0),
+        iva: fMes.reduce((s, f) => s + Number(f.total_iva || 0), 0),
+      };
     });
   }, [faturasDoAno]);
 
-  // Build invoice status pie chart from real data
   const estadoFaturas = useMemo(() => {
-    const pagas = faturasDoAno.filter(f => f.estado === 'paga').length;
-    const emitidas = faturasDoAno.filter(f => f.estado === 'emitida').length;
-    const vencidas = faturasDoAno.filter(f => f.estado === 'vencida' || (f.estado === 'emitida' && new Date(f.data_vencimento) < new Date())).length;
-    const rascunhos = faturasDoAno.filter(f => f.estado === 'rascunho').length;
-    const anuladas = faturasDoAno.filter(f => f.estado === 'anulada').length;
     return [
-      { name: 'Pagas', value: pagas, color: 'hsl(var(--success, 142 71% 45%))' },
-      { name: 'Emitidas', value: emitidas, color: 'hsl(var(--primary))' },
-      { name: 'Vencidas', value: vencidas, color: 'hsl(var(--destructive))' },
-      { name: 'Rascunhos', value: rascunhos, color: 'hsl(var(--muted-foreground))' },
-      { name: 'Anuladas', value: anuladas, color: 'hsl(var(--chart-4, 280 65% 60%))' },
+      { name: 'Pagas',    value: faturasDoAno.filter(f => f.estado === 'paga').length,    color: '#22c55e' },
+      { name: 'Emitidas', value: faturasDoAno.filter(f => f.estado === 'emitida').length, color: '#3b82f6' },
+      { name: 'Vencidas', value: faturasDoAno.filter(f => f.estado === 'vencida' || (f.estado === 'emitida' && new Date(f.data_vencimento) < new Date())).length, color: '#ef4444' },
+      { name: 'Rascunho', value: faturasDoAno.filter(f => f.estado === 'rascunho').length, color: '#6b7280' },
+      { name: 'Anuladas', value: faturasDoAno.filter(f => f.estado === 'anulada').length,  color: '#a855f7' },
     ].filter(e => e.value > 0);
   }, [faturasDoAno]);
 
-  // Build top products from real invoice items
-  const topProdutos = useMemo(() => {
-    const productTotals: Record<string, { nome: string; vendas: number }> = {};
+  const topClientes = useMemo(() => {
+    const totals: Record<string, { nome: string; vendas: number }> = {};
     faturasDoAno.forEach(f => {
       if (f.estado === 'anulada') return;
-      // We don't have items loaded on list query, so aggregate by total per product from faturas
-      // Instead, use the produtos list and match to faturas indirectly
+      const nome = (f.cliente as any)?.nome || 'Desconhecido';
+      if (!totals[nome]) totals[nome] = { nome, vendas: 0 };
+      totals[nome].vendas += Number(f.total || 0);
     });
-    // Since faturas list doesn't include items, we aggregate total per client as proxy
-    // Better approach: query itens_fatura. For now, show client-based breakdown
-    const clientTotals: Record<string, { nome: string; vendas: number }> = {};
-    faturasDoAno.forEach(f => {
-      if (f.estado === 'anulada') return;
-      const clientName = (f.cliente as any)?.nome || 'Desconhecido';
-      if (!clientTotals[clientName]) {
-        clientTotals[clientName] = { nome: clientName, vendas: 0 };
-      }
-      clientTotals[clientName].vendas += Number(f.total || 0);
-    });
-    return Object.values(clientTotals)
-      .sort((a, b) => b.vendas - a.vendas)
-      .slice(0, 5);
+    return Object.values(totals).sort((a, b) => b.vendas - a.vendas).slice(0, 5);
   }, [faturasDoAno]);
 
-  // Real stats
   const realStats = useMemo(() => {
-    const faturacaoAnual = faturasDoAno
-      .filter(f => f.estado !== 'anulada')
-      .reduce((sum, f) => sum + Number(f.total || 0), 0);
-    const ivaAnual = faturasDoAno
-      .filter(f => f.estado !== 'anulada')
-      .reduce((sum, f) => sum + Number(f.total_iva || 0), 0);
-    const faturasEmitidas = faturasDoAno.filter(f => f.estado !== 'anulada' && f.estado !== 'rascunho').length;
-    return { faturacaoAnual, ivaAnual, totalClientes: clientes.length, faturasEmitidas };
+    const active = faturasDoAno.filter(f => f.estado !== 'anulada');
+    return {
+      faturacaoAnual:  active.reduce((s, f) => s + Number(f.total || 0), 0),
+      ivaAnual:        active.reduce((s, f) => s + Number(f.total_iva || 0), 0),
+      totalClientes:   clientes.length,
+      faturasEmitidas: faturasDoAno.filter(f => f.estado !== 'anulada' && f.estado !== 'rascunho').length,
+    };
   }, [faturasDoAno, clientes]);
 
-  // Available years from data
   const availableYears = useMemo(() => {
-    const years = new Set<string>();
-    years.add(currentYear.toString());
-    faturas.forEach(f => {
-      const y = f.data_emissao?.split('-')[0];
-      if (y) years.add(y);
-    });
+    const years = new Set<string>([currentYear.toString()]);
+    faturas.forEach(f => { const y = f.data_emissao?.split('-')[0]; if (y) years.add(y); });
     return Array.from(years).sort().reverse();
   }, [faturas, currentYear]);
 
-  // --- EXPORT FUNCTIONS ---
-
+  /* ── Exports ── */
   const exportMapaIVA = () => {
     try {
       const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text('Mapa de IVA', 14, 22);
-      doc.setFontSize(10);
-      doc.text(`Ano: ${selectedYear}`, 14, 30);
+      doc.setFontSize(18); doc.text('Mapa de IVA', 14, 22);
+      doc.setFontSize(10); doc.text(`Ano: ${selectedYear}`, 14, 30);
       if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
       if (agtConfig?.nif_produtor) doc.text(`NIF: ${agtConfig.nif_produtor}`, 14, 42);
-      doc.text(`Data de geração: ${new Date().toLocaleDateString('pt-AO')}`, 14, 48);
-
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-AO')}`, 14, 48);
       let y = 58;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Mês', 14, y);
-      doc.text('Base Tributável (Kz)', 60, y);
-      doc.text('IVA (Kz)', 120, y);
-      doc.text('Total (Kz)', 160, y);
-      y += 2;
-      doc.line(14, y, 196, y);
-      y += 6;
-
-      doc.setFont('helvetica', 'normal');
-      let totalBase = 0, totalIva = 0, totalGeral = 0;
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.text('Mês', 14, y); doc.text('Base (Kz)', 60, y); doc.text('IVA (Kz)', 115, y); doc.text('Total (Kz)', 160, y);
+      y += 2; doc.line(14, y, 196, y); y += 6; doc.setFont('helvetica', 'normal');
+      let tb = 0, ti = 0, tt = 0;
       faturacaoMensal.forEach(m => {
         const base = m.valor - m.iva;
-        doc.text(m.mes, 14, y);
-        doc.text(formatCurrency(base), 60, y);
-        doc.text(formatCurrency(m.iva), 120, y);
-        doc.text(formatCurrency(m.valor), 160, y);
-        totalBase += base;
-        totalIva += m.iva;
-        totalGeral += m.valor;
-        y += 7;
+        doc.text(m.mes, 14, y); doc.text(formatCurrency(base), 60, y); doc.text(formatCurrency(m.iva), 115, y); doc.text(formatCurrency(m.valor), 160, y);
+        tb += base; ti += m.iva; tt += m.valor; y += 7;
       });
-
-      y += 2;
-      doc.line(14, y, 196, y);
-      y += 6;
-      doc.setFont('helvetica', 'bold');
-      doc.text('TOTAL', 14, y);
-      doc.text(formatCurrency(totalBase), 60, y);
-      doc.text(formatCurrency(totalIva), 120, y);
-      doc.text(formatCurrency(totalGeral), 160, y);
-
+      y += 2; doc.line(14, y, 196, y); y += 6; doc.setFont('helvetica', 'bold');
+      doc.text('TOTAL', 14, y); doc.text(formatCurrency(tb), 60, y); doc.text(formatCurrency(ti), 115, y); doc.text(formatCurrency(tt), 160, y);
       doc.save(`Mapa_IVA_${selectedYear}.pdf`);
-      toast.success('Mapa de IVA exportado com sucesso!');
-    } catch {
-      toast.error('Erro ao exportar Mapa de IVA');
-    }
+      toast.success('Mapa de IVA exportado!');
+    } catch { toast.error('Erro ao exportar'); }
   };
 
   const exportFaturacaoMensal = () => {
     try {
       const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text('Relatório de Faturação Mensal', 14, 22);
-      doc.setFontSize(10);
-      doc.text(`Ano: ${selectedYear}`, 14, 30);
+      doc.setFontSize(18); doc.text('Faturação Mensal', 14, 22);
+      doc.setFontSize(10); doc.text(`Ano: ${selectedYear}`, 14, 30);
       if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
-      if (agtConfig?.nif_produtor) doc.text(`NIF: ${agtConfig.nif_produtor}`, 14, 42);
-      doc.text(`Data de geração: ${new Date().toLocaleDateString('pt-AO')}`, 14, 48);
-
-      let y = 58;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Mês', 14, y);
-      doc.text('Nº Faturas', 50, y);
-      doc.text('Subtotal (Kz)', 80, y);
-      doc.text('IVA (Kz)', 120, y);
-      doc.text('Total (Kz)', 155, y);
-      y += 2;
-      doc.line(14, y, 196, y);
-      y += 6;
-
-      doc.setFont('helvetica', 'normal');
-      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      months.forEach((mes, i) => {
-        const monthStr = String(i + 1).padStart(2, '0');
-        const fMes = faturasDoAno.filter(f => f.data_emissao?.split('-')[1] === monthStr && f.estado !== 'anulada');
-        const count = fMes.length;
-        const subtotal = fMes.reduce((s, f) => s + Number(f.subtotal || 0), 0);
-        const iva = fMes.reduce((s, f) => s + Number(f.total_iva || 0), 0);
-        const total = fMes.reduce((s, f) => s + Number(f.total || 0), 0);
-        doc.text(mes, 14, y);
-        doc.text(count.toString(), 50, y);
-        doc.text(formatCurrency(subtotal), 80, y);
-        doc.text(formatCurrency(iva), 120, y);
-        doc.text(formatCurrency(total), 155, y);
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-AO')}`, 14, 42);
+      let y = 52;
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.text('Mês', 14, y); doc.text('Nº Fat.', 50, y); doc.text('Subtotal', 75, y); doc.text('IVA', 115, y); doc.text('Total', 155, y);
+      y += 2; doc.line(14, y, 196, y); y += 6; doc.setFont('helvetica', 'normal');
+      ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].forEach((mes, i) => {
+        const ms = String(i + 1).padStart(2, '0');
+        const fMes = faturasDoAno.filter(f => f.data_emissao?.split('-')[1] === ms && f.estado !== 'anulada');
+        doc.text(mes, 14, y); doc.text(fMes.length.toString(), 50, y);
+        doc.text(formatCurrency(fMes.reduce((s, f) => s + Number(f.subtotal || 0), 0)), 75, y);
+        doc.text(formatCurrency(fMes.reduce((s, f) => s + Number(f.total_iva || 0), 0)), 115, y);
+        doc.text(formatCurrency(fMes.reduce((s, f) => s + Number(f.total || 0), 0)), 155, y);
         y += 7;
       });
-
       doc.save(`Faturacao_Mensal_${selectedYear}.pdf`);
       toast.success('Relatório de faturação exportado!');
-    } catch {
-      toast.error('Erro ao exportar relatório');
-    }
+    } catch { toast.error('Erro ao exportar'); }
   };
 
   const exportRelatorioAnual = () => {
     try {
       const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text('Relatório Anual', 14, 22);
-      doc.setFontSize(10);
-      doc.text(`Ano: ${selectedYear}`, 14, 30);
+      doc.setFontSize(18); doc.text('Relatório Anual', 14, 22);
+      doc.setFontSize(10); doc.text(`Ano: ${selectedYear}`, 14, 30);
       if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
-      if (agtConfig?.nif_produtor) doc.text(`NIF: ${agtConfig.nif_produtor}`, 14, 42);
-      doc.text(`Data de geração: ${new Date().toLocaleDateString('pt-AO')}`, 14, 48);
-
-      let y = 60;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Resumo Anual', 14, y);
-      y += 8;
-
-      doc.setFontSize(10);
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-AO')}`, 14, 42);
+      let y = 54;
+      doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.text('Resumo Anual', 14, y); y += 8;
+      doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+      doc.text(`Faturas emitidas: ${realStats.faturasEmitidas}`, 14, y); y += 6;
+      doc.text(`Clientes: ${realStats.totalClientes}`, 14, y); y += 6;
+      doc.text(`Faturação total: ${formatCurrency(realStats.faturacaoAnual)}`, 14, y); y += 6;
+      doc.text(`IVA total: ${formatCurrency(realStats.ivaAnual)}`, 14, y); y += 12;
+      doc.setFont('helvetica', 'bold'); doc.text('Por Estado', 14, y); y += 8;
       doc.setFont('helvetica', 'normal');
-      doc.text(`Total de Faturas: ${realStats.faturasEmitidas}`, 14, y); y += 6;
-      doc.text(`Total de Clientes: ${realStats.totalClientes}`, 14, y); y += 6;
-      doc.text(`Faturação Total: ${formatCurrency(realStats.faturacaoAnual)}`, 14, y); y += 6;
-      doc.text(`IVA Total: ${formatCurrency(realStats.ivaAnual)}`, 14, y); y += 12;
-
-      // Invoice breakdown by status
-      doc.setFont('helvetica', 'bold');
-      doc.text('Distribuição por Estado', 14, y); y += 8;
-      doc.setFont('helvetica', 'normal');
-      estadoFaturas.forEach(e => {
-        doc.text(`${e.name}: ${e.value} fatura(s)`, 14, y);
-        y += 6;
-      });
+      estadoFaturas.forEach(e => { doc.text(`${e.name}: ${e.value}`, 14, y); y += 6; });
       y += 6;
-
-      // Invoice breakdown by type
-      doc.setFont('helvetica', 'bold');
-      doc.text('Distribuição por Tipo de Documento', 14, y); y += 8;
-      doc.setFont('helvetica', 'normal');
-      const tipos: Record<string, string> = { 'fatura': 'Fatura', 'fatura-recibo': 'Fatura-Recibo', 'recibo': 'Recibo', 'nota-credito': 'Nota de Crédito', 'proforma': 'Proforma' };
-      Object.entries(tipos).forEach(([key, label]) => {
-        const count = faturasDoAno.filter(f => f.tipo === key).length;
-        if (count > 0) {
-          doc.text(`${label}: ${count}`, 14, y);
-          y += 6;
-        }
-      });
-      y += 6;
-
-      // Top clients
-      if (topProdutos.length > 0) {
-        doc.setFont('helvetica', 'bold');
-        doc.text('Top Clientes por Faturação', 14, y); y += 8;
+      if (topClientes.length > 0) {
+        doc.setFont('helvetica', 'bold'); doc.text('Top Clientes', 14, y); y += 8;
         doc.setFont('helvetica', 'normal');
-        topProdutos.forEach(p => {
-          doc.text(`${p.nome}: ${formatCurrency(p.vendas)}`, 14, y);
-          y += 6;
-        });
+        topClientes.forEach(c => { doc.text(`${c.nome}: ${formatCurrency(c.vendas)}`, 14, y); y += 6; });
       }
-
       doc.save(`Relatorio_Anual_${selectedYear}.pdf`);
       toast.success('Relatório anual exportado!');
-    } catch {
-      toast.error('Erro ao exportar relatório');
-    }
+    } catch { toast.error('Erro ao exportar'); }
   };
 
   const exportSAFT = () => {
     try {
       const empresa = agtConfig;
       const now = new Date().toISOString();
-
-      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-      xml += `<AuditFile xmlns="urn:OECD:StandardAuditFile-Tax:AO_1.01_01">\n`;
-      xml += `  <Header>\n`;
-      xml += `    <AuditFileVersion>1.01_01</AuditFileVersion>\n`;
-      xml += `    <CompanyID>${empresa?.nif_produtor || 'N/A'}</CompanyID>\n`;
-      xml += `    <TaxRegistrationNumber>${empresa?.nif_produtor || 'N/A'}</TaxRegistrationNumber>\n`;
-      xml += `    <CompanyName>${empresa?.nome_empresa || 'N/A'}</CompanyName>\n`;
-      xml += `    <CompanyAddress>\n`;
-      xml += `      <AddressDetail>${empresa?.endereco_empresa || empresa?.morada || 'N/A'}</AddressDetail>\n`;
-      xml += `      <City>${empresa?.cidade || 'Luanda'}</City>\n`;
-      xml += `      <Country>AO</Country>\n`;
-      xml += `    </CompanyAddress>\n`;
-      xml += `    <FiscalYear>${selectedYear}</FiscalYear>\n`;
-      xml += `    <StartDate>${selectedYear}-01-01</StartDate>\n`;
-      xml += `    <EndDate>${selectedYear}-12-31</EndDate>\n`;
-      xml += `    <DateCreated>${now.split('T')[0]}</DateCreated>\n`;
-      xml += `    <CurrencyCode>AOA</CurrencyCode>\n`;
-      xml += `    <TaxEntity>Global</TaxEntity>\n`;
-      xml += `    <ProductCompanyTaxID>${empresa?.nif_produtor || 'N/A'}</ProductCompanyTaxID>\n`;
-      xml += `    <SoftwareCertificateNumber>${empresa?.certificate_number || '0'}</SoftwareCertificateNumber>\n`;
-      xml += `    <ProductID>Faktura/Faktura Angola</ProductID>\n`;
-      xml += `    <ProductVersion>1.0</ProductVersion>\n`;
-      xml += `  </Header>\n`;
-
-      // MasterFiles - Customers
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<AuditFile xmlns="urn:OECD:StandardAuditFile-Tax:AO_1.01_01">\n`;
+      xml += `  <Header>\n    <AuditFileVersion>1.01_01</AuditFileVersion>\n    <CompanyID>${empresa?.nif_produtor||'N/A'}</CompanyID>\n    <TaxRegistrationNumber>${empresa?.nif_produtor||'N/A'}</TaxRegistrationNumber>\n    <CompanyName>${empresa?.nome_empresa||'N/A'}</CompanyName>\n    <CompanyAddress><AddressDetail>${empresa?.endereco_empresa||empresa?.morada||'N/A'}</AddressDetail><City>${empresa?.cidade||'Luanda'}</City><Country>AO</Country></CompanyAddress>\n    <FiscalYear>${selectedYear}</FiscalYear>\n    <StartDate>${selectedYear}-01-01</StartDate>\n    <EndDate>${selectedYear}-12-31</EndDate>\n    <DateCreated>${now.split('T')[0]}</DateCreated>\n    <CurrencyCode>AOA</CurrencyCode>\n    <TaxEntity>Global</TaxEntity>\n    <ProductCompanyTaxID>${empresa?.nif_produtor||'N/A'}</ProductCompanyTaxID>\n    <SoftwareCertificateNumber>${empresa?.certificate_number||'0'}</SoftwareCertificateNumber>\n    <ProductID>Faktura/Faktura Angola</ProductID>\n    <ProductVersion>1.0</ProductVersion>\n  </Header>\n`;
       xml += `  <MasterFiles>\n`;
-      clientes.forEach(c => {
-        xml += `    <Customer>\n`;
-        xml += `      <CustomerID>${c.id}</CustomerID>\n`;
-        xml += `      <CustomerTaxID>${c.nif || '999999999'}</CustomerTaxID>\n`;
-        xml += `      <CompanyName>${c.nome}</CompanyName>\n`;
-        xml += `      <BillingAddress>\n`;
-        xml += `        <AddressDetail>${c.endereco}</AddressDetail>\n`;
-        xml += `        <City>Luanda</City>\n`;
-        xml += `        <Country>AO</Country>\n`;
-        xml += `      </BillingAddress>\n`;
-        xml += `      <Telephone>${c.telefone || ''}</Telephone>\n`;
-        xml += `      <Email>${c.email || ''}</Email>\n`;
-        xml += `    </Customer>\n`;
-      });
-
-      // Products
-      produtos.forEach(p => {
-        xml += `    <Product>\n`;
-        xml += `      <ProductType>${p.tipo === 'servico' ? 'S' : 'P'}</ProductType>\n`;
-        xml += `      <ProductCode>${p.codigo}</ProductCode>\n`;
-        xml += `      <ProductDescription>${p.nome}</ProductDescription>\n`;
-        xml += `      <ProductNumberCode>${p.codigo}</ProductNumberCode>\n`;
-        xml += `    </Product>\n`;
-      });
-
-      // Tax Table
-      xml += `    <TaxTable>\n`;
-      xml += `      <TaxTableEntry>\n`;
-      xml += `        <TaxType>IVA</TaxType>\n`;
-      xml += `        <TaxCountryRegion>AO</TaxCountryRegion>\n`;
-      xml += `        <TaxCode>NOR</TaxCode>\n`;
-      xml += `        <Description>IVA Taxa Normal</Description>\n`;
-      xml += `        <TaxPercentage>14.00</TaxPercentage>\n`;
-      xml += `      </TaxTableEntry>\n`;
-      xml += `      <TaxTableEntry>\n`;
-      xml += `        <TaxType>IVA</TaxType>\n`;
-      xml += `        <TaxCountryRegion>AO</TaxCountryRegion>\n`;
-      xml += `        <TaxCode>ISE</TaxCode>\n`;
-      xml += `        <Description>IVA Isento</Description>\n`;
-      xml += `        <TaxPercentage>0.00</TaxPercentage>\n`;
-      xml += `      </TaxTableEntry>\n`;
-      xml += `    </TaxTable>\n`;
-      xml += `  </MasterFiles>\n`;
-
-      // SourceDocuments - SalesInvoices
-      xml += `  <SourceDocuments>\n`;
-      xml += `    <SalesInvoices>\n`;
-      xml += `      <NumberOfEntries>${faturasDoAno.length}</NumberOfEntries>\n`;
-      xml += `      <TotalDebit>0.00</TotalDebit>\n`;
-      xml += `      <TotalCredit>${realStats.faturacaoAnual.toFixed(2)}</TotalCredit>\n`;
-
-      faturasDoAno.forEach(f => {
-        const tipoMap: Record<string, string> = { 'fatura': 'FT', 'fatura-recibo': 'FR', 'recibo': 'RC', 'nota-credito': 'NC', 'proforma': 'PRO' };
-        const invoiceType = tipoMap[f.tipo] || 'FT';
-        const statusMap: Record<string, string> = { 'rascunho': 'N', 'emitida': 'N', 'paga': 'F', 'anulada': 'A', 'vencida': 'N' };
-        xml += `      <Invoice>\n`;
-        xml += `        <InvoiceNo>${f.numero}</InvoiceNo>\n`;
-        xml += `        <InvoiceStatus>\n`;
-        xml += `          <InvoiceStatus>${statusMap[f.estado] || 'N'}</InvoiceStatus>\n`;
-        xml += `          <InvoiceStatusDate>${f.updated_at || f.data_emissao}</InvoiceStatusDate>\n`;
-        xml += `        </InvoiceStatus>\n`;
-        xml += `        <Hash>${f.assinatura_digital || '0'}</Hash>\n`;
-        xml += `        <InvoiceDate>${f.data_emissao}</InvoiceDate>\n`;
-        xml += `        <InvoiceType>${invoiceType}</InvoiceType>\n`;
-        xml += `        <CustomerID>${f.cliente_id}</CustomerID>\n`;
-        xml += `        <DocumentTotals>\n`;
-        xml += `          <TaxPayable>${Number(f.total_iva || 0).toFixed(2)}</TaxPayable>\n`;
-        xml += `          <NetTotal>${Number(f.subtotal || 0).toFixed(2)}</NetTotal>\n`;
-        xml += `          <GrossTotal>${Number(f.total || 0).toFixed(2)}</GrossTotal>\n`;
-        xml += `          <Currency>\n`;
-        xml += `            <CurrencyCode>AOA</CurrencyCode>\n`;
-        xml += `            <CurrencyAmount>${Number(f.total || 0).toFixed(2)}</CurrencyAmount>\n`;
-        xml += `          </Currency>\n`;
-        xml += `        </DocumentTotals>\n`;
-        xml += `      </Invoice>\n`;
-      });
-
-      xml += `    </SalesInvoices>\n`;
-      xml += `  </SourceDocuments>\n`;
-      xml += `</AuditFile>`;
-
+      clientes.forEach(c => { xml += `    <Customer><CustomerID>${c.id}</CustomerID><CustomerTaxID>${c.nif||'999999999'}</CustomerTaxID><CompanyName>${c.nome}</CompanyName><BillingAddress><AddressDetail>${c.endereco}</AddressDetail><City>Luanda</City><Country>AO</Country></BillingAddress><Telephone>${c.telefone||''}</Telephone><Email>${c.email||''}</Email></Customer>\n`; });
+      produtos.forEach(p => { xml += `    <Product><ProductType>${p.tipo==='servico'?'S':'P'}</ProductType><ProductCode>${p.codigo}</ProductCode><ProductDescription>${p.nome}</ProductDescription><ProductNumberCode>${p.codigo}</ProductNumberCode></Product>\n`; });
+      xml += `    <TaxTable><TaxTableEntry><TaxType>IVA</TaxType><TaxCountryRegion>AO</TaxCountryRegion><TaxCode>NOR</TaxCode><Description>IVA Taxa Normal</Description><TaxPercentage>14.00</TaxPercentage></TaxTableEntry><TaxTableEntry><TaxType>IVA</TaxType><TaxCountryRegion>AO</TaxCountryRegion><TaxCode>ISE</TaxCode><Description>IVA Isento</Description><TaxPercentage>0.00</TaxPercentage></TaxTableEntry></TaxTable>\n  </MasterFiles>\n`;
+      xml += `  <SourceDocuments>\n    <SalesInvoices>\n      <NumberOfEntries>${faturasDoAno.length}</NumberOfEntries>\n      <TotalDebit>0.00</TotalDebit>\n      <TotalCredit>${realStats.faturacaoAnual.toFixed(2)}</TotalCredit>\n`;
+      const tipoMap: Record<string,string> = {'fatura':'FT','fatura-recibo':'FR','recibo':'RC','nota-credito':'NC','proforma':'PRO'};
+      const statusMap: Record<string,string> = {'rascunho':'N','emitida':'N','paga':'F','anulada':'A','vencida':'N'};
+      faturasDoAno.forEach(f => { xml += `      <Invoice><InvoiceNo>${f.numero}</InvoiceNo><InvoiceStatus><InvoiceStatus>${statusMap[f.estado]||'N'}</InvoiceStatus><InvoiceStatusDate>${f.updated_at||f.data_emissao}</InvoiceStatusDate></InvoiceStatus><Hash>${f.assinatura_digital||'0'}</Hash><InvoiceDate>${f.data_emissao}</InvoiceDate><InvoiceType>${tipoMap[f.tipo]||'FT'}</InvoiceType><CustomerID>${f.cliente_id}</CustomerID><DocumentTotals><TaxPayable>${Number(f.total_iva||0).toFixed(2)}</TaxPayable><NetTotal>${Number(f.subtotal||0).toFixed(2)}</NetTotal><GrossTotal>${Number(f.total||0).toFixed(2)}</GrossTotal><Currency><CurrencyCode>AOA</CurrencyCode><CurrencyAmount>${Number(f.total||0).toFixed(2)}</CurrencyAmount></Currency></DocumentTotals></Invoice>\n`; });
+      xml += `    </SalesInvoices>\n  </SourceDocuments>\n</AuditFile>`;
       const blob = new Blob([xml], { type: 'application/xml' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `SAF-T_AO_${selectedYear}.xml`;
-      a.click();
+      a.href = url; a.download = `SAF-T_AO_${selectedYear}.xml`; a.click();
       URL.revokeObjectURL(url);
-      toast.success('Ficheiro SAF-T exportado com sucesso!');
-    } catch {
-      toast.error('Erro ao exportar SAF-T');
-    }
+      toast.success('SAF-T exportado!');
+    } catch { toast.error('Erro ao exportar SAF-T'); }
   };
 
-  const isLoading = loadingFaturas || loadingStats;
-
-  if (isLoading) {
+  /* ── Loading ── */
+  if (loadingFaturas || loadingStats) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center justify-center h-64 gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">A carregar dados...</p>
         </div>
       </MainLayout>
     );
   }
 
+  /* ── Render ── */
   return (
     <MainLayout>
-      {/* Hero Header with Gradient */}
-      <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 border border-primary/10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-bold font-display bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Relatórios
-                </h1>
-                <p className="text-muted-foreground mt-0.5 flex items-center gap-2">
-                  Análise fiscal e financeira
-                  <Badge variant="secondary" className="text-xs">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    {selectedYear}
-                  </Badge>
-                </p>
-              </div>
+      <div className="space-y-6">
+
+        {/* ─── HEADER ─── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shrink-0">
+              <BarChart3 className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Relatórios</h1>
+              <p className="text-sm text-muted-foreground">Análise fiscal e financeira · {selectedYear}</p>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[140px] h-11 border-primary/20">
-                <Calendar className="w-4 h-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {availableYears.map(y => (
-                  <SelectItem key={y} value={y}>{y}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-36 h-10">
+              <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableYears.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
-      </div>
 
-      {/* Real Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-primary">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground font-medium">Faturação Anual</p>
-                <p className="text-2xl font-bold font-display text-foreground">
-                  {formatCurrency(realStats.faturacaoAnual)}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* ─── KPIs ─── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <KpiCard
+            label="Faturação Anual"
+            value={formatCurrency(realStats.faturacaoAnual)}
+            sub={`${realStats.faturasEmitidas} documentos`}
+            icon={<TrendingUp className="w-5 h-5" />}
+            colorClass="text-primary"
+            bgClass="bg-primary/10"
+            borderClass="border-l-primary"
+          />
+          <KpiCard
+            label="IVA Acumulado"
+            value={formatCurrency(realStats.ivaAnual)}
+            sub="14% taxa normal"
+            icon={<Receipt className="w-5 h-5" />}
+            colorClass="text-destructive"
+            bgClass="bg-destructive/10"
+            borderClass="border-l-destructive"
+          />
+          <KpiCard
+            label="Clientes Activos"
+            value={realStats.totalClientes.toString()}
+            sub="base total"
+            icon={<Users className="w-5 h-5" />}
+            colorClass="text-green-600 dark:text-green-400"
+            bgClass="bg-green-100 dark:bg-green-950"
+            borderClass="border-l-green-500"
+          />
+          <KpiCard
+            label="Faturas Emitidas"
+            value={realStats.faturasEmitidas.toString()}
+            sub={`em ${selectedYear}`}
+            icon={<Package className="w-5 h-5" />}
+            colorClass="text-amber-600 dark:text-amber-400"
+            bgClass="bg-amber-100 dark:bg-amber-950"
+            borderClass="border-l-amber-500"
+          />
+        </div>
 
-        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-destructive">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground font-medium">IVA Anual</p>
-                <p className="text-2xl font-bold font-display text-foreground">
-                  {formatCurrency(realStats.ivaAnual)}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
-                <Receipt className="w-6 h-6 text-destructive" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* ─── CHARTS ROW 1 ─── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-green-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground font-medium">Clientes Activos</p>
-                <p className="text-2xl font-bold font-display text-foreground">
-                  {realStats.totalClientes}
-                </p>
+          {/* Area chart */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-3 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary inline-block" />
+                  Evolução da Faturação
+                </CardTitle>
+                <Badge variant="secondary" className="text-xs">Mensal</Badge>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-950 flex items-center justify-center">
-                <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-shadow group hover:shadow-lg transition-all border-l-4 border-l-orange-500">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground font-medium">Faturas Emitidas</p>
-                <p className="text-2xl font-bold font-display text-foreground">
-                  {realStats.faturasEmitidas}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center">
-                <Package className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <Card className="card-shadow lg:col-span-2 border-primary/10">
-          <CardHeader className="pb-4 border-b border-primary/10">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-display flex items-center gap-2">
-                <div className="w-1 h-6 bg-primary rounded-full" />
-                Evolução da Faturação
-              </CardTitle>
-              <Badge variant="outline" className="text-xs">Mensal</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={faturacaoMensal}>
+            </CardHeader>
+            <CardContent className="pt-5 pb-2">
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={faturacaoMensal} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="colorFaturacao" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                    <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.3} />
                       <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border opacity-50" />
-                  <XAxis dataKey="mes" className="text-xs fill-muted-foreground" tick={{ fontSize: 11 }} />
-                  <YAxis className="text-xs fill-muted-foreground" tickFormatter={(v) => v > 0 ? `${(v / 1000).toFixed(0)}K` : '0'} tick={{ fontSize: 11 }} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={v => v > 0 ? `${(v/1000).toFixed(0)}K` : '0'} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="valor" name="Faturação" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorFaturacao)" />
+                  <Area type="monotone" dataKey="valor" name="Faturação" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="url(#areaFill)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
                 </AreaChart>
               </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="card-shadow border-primary/10">
-          <CardHeader className="pb-4 border-b border-primary/10">
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <div className="w-1 h-6 bg-primary rounded-full" />
-              Estado das Faturas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="h-[320px]">
+          {/* Pie chart */}
+          <Card>
+            <CardHeader className="pb-3 border-b">
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                Estado das Faturas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-5 pb-2">
               {estadoFaturas.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
-                    <Pie
-                      data={estadoFaturas}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={70}
-                      outerRadius={110}
-                      paddingAngle={3}
-                      dataKey="value"
-                      label={CustomPieLabel}
-                      labelLine={false}
-                    >
-                      {estadoFaturas.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
+                    <Pie data={estadoFaturas} cx="50%" cy="45%" innerRadius={65} outerRadius={100} paddingAngle={3} dataKey="value" label={CustomPieLabel} labelLine={false}>
+                      {estadoFaturas.map((e, i) => <Cell key={i} fill={e.color} />)}
                     </Pie>
-                    <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" formatter={(value) => <span className="text-xs font-medium">{value}</span>} />
+                    <Tooltip formatter={(v: any) => [`${v} fatura(s)`]} />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" formatter={v => <span className="text-xs text-muted-foreground">{v}</span>} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                  Sem dados de faturas para {selectedYear}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card className="card-shadow border-primary/10">
-          <CardHeader className="pb-4 border-b border-primary/10">
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <div className="w-1 h-6 bg-destructive rounded-full" />
-              IVA Mensal
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={faturacaoMensal}>
-                  <defs>
-                    <linearGradient id="colorIVA" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.9} />
-                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.6} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border opacity-50" />
-                  <XAxis dataKey="mes" className="text-xs fill-muted-foreground" tick={{ fontSize: 11 }} />
-                  <YAxis className="text-xs fill-muted-foreground" tickFormatter={(v) => v > 0 ? `${(v / 1000).toFixed(0)}K` : '0'} tick={{ fontSize: 11 }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="iva" name="IVA" fill="url(#colorIVA)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-shadow border-primary/10">
-          <CardHeader className="pb-4 border-b border-primary/10">
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <div className="w-1 h-6 bg-primary rounded-full" />
-              Top Clientes por Faturação
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="h-[320px]">
-              {topProdutos.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topProdutos} layout="vertical">
-                    <defs>
-                      <linearGradient id="colorProdutos" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border opacity-50" />
-                    <XAxis type="number" className="text-xs fill-muted-foreground" tickFormatter={(v) => v > 0 ? `${(v / 1000).toFixed(0)}K` : '0'} tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="nome" className="text-xs fill-muted-foreground" width={140} tick={{ fontSize: 10 }} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="vendas" name="Faturação" fill="url(#colorProdutos)" radius={[0, 6, 6, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                <div className="flex items-center justify-center h-[300px] text-sm text-muted-foreground">
                   Sem dados para {selectedYear}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ─── CHARTS ROW 2 ─── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+          {/* IVA bar */}
+          <Card>
+            <CardHeader className="pb-3 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-destructive inline-block" />
+                  IVA Mensal
+                </CardTitle>
+                <Badge variant="outline" className="text-xs">14%</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-5 pb-2">
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={faturacaoMensal} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="ivaFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="hsl(var(--destructive))" stopOpacity={0.9} />
+                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0.4} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="mes" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tickFormatter={v => v > 0 ? `${(v/1000).toFixed(0)}K` : '0'} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="iva" name="IVA" fill="url(#ivaFill)" radius={[6, 6, 0, 0]} maxBarSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Top clients */}
+          <Card>
+            <CardHeader className="pb-3 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                  Top Clientes
+                </CardTitle>
+                <Badge variant="secondary" className="text-xs">Por faturação</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-5 pb-2">
+              {topClientes.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={topClientes} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="clientFill" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.9} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis type="number" tickFormatter={v => v > 0 ? `${(v/1000).toFixed(0)}K` : '0'} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="nome" width={120} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="vendas" name="Faturação" fill="url(#clientFill)" radius={[0, 6, 6, 0]} maxBarSize={22} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[280px] text-sm text-muted-foreground">
+                  Sem dados para {selectedYear}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ─── EXPORT ─── */}
+        <Card>
+          <CardHeader className="pb-3 border-b">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <FileDown className="w-4 h-4 text-primary" />
+                Exportar Relatórios
+              </CardTitle>
+              <Badge variant="secondary" className="text-xs">PDF · XML</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              <ExportBtn
+                title="Mapa de IVA"
+                subtitle="Resumo fiscal mensal"
+                format="PDF"
+                icon={<FileSpreadsheet className="w-5 h-5" />}
+                onClick={exportMapaIVA}
+                colorClass="text-green-600 dark:text-green-400"
+                bgClass="bg-green-100 dark:bg-green-950"
+              />
+              <ExportBtn
+                title="Faturação Mensal"
+                subtitle="Detalhe mês a mês"
+                format="PDF"
+                icon={<FileText className="w-5 h-5" />}
+                onClick={exportFaturacaoMensal}
+                colorClass="text-primary"
+                bgClass="bg-primary/10"
+              />
+              <ExportBtn
+                title="Relatório Anual"
+                subtitle={`Sumário de ${selectedYear}`}
+                format="PDF"
+                icon={<Calendar className="w-5 h-5" />}
+                onClick={exportRelatorioAnual}
+                colorClass="text-amber-600 dark:text-amber-400"
+                bgClass="bg-amber-100 dark:bg-amber-950"
+              />
+              <ExportBtn
+                title="SAF-T Angola"
+                subtitle="Ficheiro de auditoria fiscal"
+                format="XML"
+                icon={<Receipt className="w-5 h-5" />}
+                onClick={exportSAFT}
+                colorClass="text-destructive"
+                bgClass="bg-destructive/10"
+              />
             </div>
           </CardContent>
         </Card>
+
       </div>
-
-      {/* Export Options */}
-      <Card className="card-shadow border-primary/10">
-        <CardHeader className="pb-4 border-b border-primary/10">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <div className="w-1 h-6 bg-primary rounded-full" />
-              Exportar Relatórios
-            </CardTitle>
-            <Badge variant="secondary" className="text-xs">
-              <FileDown className="w-3 h-3 mr-1" />
-              Múltiplos formatos
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-auto py-6 flex flex-col gap-3 group hover:border-green-500/50 hover:bg-green-50 dark:hover:bg-green-950/20 transition-all"
-              onClick={exportMapaIVA}
-            >
-              <div className="w-14 h-14 rounded-xl bg-green-100 dark:bg-green-950 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <FileSpreadsheet className="w-7 h-7 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="text-center">
-                <span className="font-semibold block text-sm">Mapa de IVA</span>
-                <span className="text-xs text-muted-foreground">PDF</span>
-              </div>
-            </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-auto py-6 flex flex-col gap-3 group hover:border-primary/50 hover:bg-primary/5 transition-all"
-              onClick={exportFaturacaoMensal}
-            >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <FileText className="w-7 h-7 text-primary" />
-              </div>
-              <div className="text-center">
-                <span className="font-semibold block text-sm">Faturação Mensal</span>
-                <span className="text-xs text-muted-foreground">PDF</span>
-              </div>
-            </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-auto py-6 flex flex-col gap-3 group hover:border-orange-500/50 hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-all"
-              onClick={exportRelatorioAnual}
-            >
-              <div className="w-14 h-14 rounded-xl bg-orange-100 dark:bg-orange-950 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Calendar className="w-7 h-7 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="text-center">
-                <span className="font-semibold block text-sm">Relatório Anual</span>
-                <span className="text-xs text-muted-foreground">PDF</span>
-              </div>
-            </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-auto py-6 flex flex-col gap-3 group hover:border-destructive/50 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
-              onClick={exportSAFT}
-            >
-              <div className="w-14 h-14 rounded-xl bg-red-100 dark:bg-red-950 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Receipt className="w-7 h-7 text-red-600 dark:text-red-400" />
-              </div>
-              <div className="text-center">
-                <span className="font-semibold block text-sm">SAF-T Angola</span>
-                <span className="text-xs text-muted-foreground">XML</span>
-              </div>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </MainLayout>
   );
 }
