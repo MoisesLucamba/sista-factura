@@ -17,44 +17,60 @@ export default function Registar() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (password !== confirmPassword) { setError('As palavras-passe não coincidem.'); return; }
-    if (password.length < 6) { setError('A palavra-passe deve ter pelo menos 6 caracteres.'); return; }
+
+    if (password !== confirmPassword) {
+      setError('As palavras-passe não coincidem.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('A palavra-passe deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
     setLoading(true);
+
     const { error } = await signUp(email, password, nome);
+
     if (error) {
-      setError(error.message.includes('already registered') ? 'Este email já está registado.' : error.message);
+      if (error.message.includes('already registered')) {
+        setError('Este email já está registado.');
+      } else {
+        setError(error.message);
+      }
       setLoading(false);
       return;
     }
+
     setSuccess(true);
     setLoading(false);
   };
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4">
-        <Card className="w-full max-w-md shadow-xl border border-gray-100 rounded-2xl">
-          <CardHeader className="space-y-1 text-center pt-8">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md shadow-2xl border-2 border-primary/20">
+          <CardHeader className="space-y-1 text-center">
             <div className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/30">
               <CheckCircle2 className="w-8 h-8 text-primary-foreground" />
             </div>
-            <CardTitle className="text-2xl font-bold">Conta Criada!</CardTitle>
+            <CardTitle className="text-2xl">Conta Criada!</CardTitle>
             <CardDescription>
               Enviámos um email de confirmação para <strong>{email}</strong>
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center text-sm text-muted-foreground px-8">
+          <CardContent className="text-center text-sm text-muted-foreground">
             <p>Verifique a sua caixa de entrada e clique no link de confirmação para ativar a sua conta.</p>
           </CardContent>
-          <CardFooter className="pb-8 px-8">
-            <Button onClick={() => navigate('/login')} className="w-full h-11 font-semibold rounded-xl shadow-md shadow-primary/20">
+          <CardFooter>
+            <Button onClick={() => navigate('/login')} className="w-full h-12 font-bold shadow-lg shadow-primary/25">
               Ir para Login
             </Button>
           </CardFooter>
@@ -71,14 +87,17 @@ export default function Registar() {
           <div className="absolute top-20 right-20 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
           <div className="absolute bottom-20 left-10 w-96 h-96 bg-primary/15 rounded-full blur-3xl" />
         </div>
+
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: `linear-gradient(hsl(45 100% 51% / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(45 100% 51% / 0.5) 1px, transparent 1px)`,
           backgroundSize: '60px 60px'
         }} />
+
         <div className="relative z-10 flex flex-col justify-between p-12 text-accent-foreground w-full">
           <div>
             <img src={logoFaktura} alt="Faktura" className="h-24 w-auto object-contain" />
           </div>
+          
           <div className="space-y-8">
             <div>
               <h1 className="text-5xl font-bold leading-tight mb-4">
@@ -89,9 +108,12 @@ export default function Registar() {
                 Junte-se a centenas de empresas angolanas que já confiam no Faktura.
               </p>
             </div>
+
             <div className="bg-accent-foreground/5 backdrop-blur-sm rounded-2xl p-6 border border-accent-foreground/10">
               <div className="flex items-center gap-1 mb-3">
-                {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-primary text-primary" />)}
+                {[1,2,3,4,5].map(i => (
+                  <Star key={i} className="w-5 h-5 fill-primary text-primary" />
+                ))}
               </div>
               <p className="text-accent-foreground/80 italic mb-3">
                 "O Faktura transformou completamente a nossa gestão de faturas. Simples, rápido e em conformidade."
@@ -99,91 +121,93 @@ export default function Registar() {
               <p className="text-sm text-accent-foreground/50 font-medium">— João Silva, CEO da TechAngola</p>
             </div>
           </div>
-          <p className="text-sm text-accent-foreground/40">© {new Date().getFullYear()} Faktura Angola</p>
+
+          <p className="text-sm text-accent-foreground/40">
+            © {new Date().getFullYear()} Faktura Angola
+          </p>
         </div>
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-white">
-        <div className="w-full max-w-md">
-          <div className="flex items-center justify-center lg:hidden mb-8">
+      <div className="flex-1 flex items-center justify-center p-6 bg-background">
+        <div className="w-full max-w-md space-y-8">
+          <div className="flex items-center justify-center lg:hidden">
             <img src={logoFaktura} alt="Faktura Angola" className="h-24 w-auto object-contain" />
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">Criar conta</h2>
-            <p className="text-muted-foreground mt-1">Registe-se gratuitamente e comece agora</p>
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold tracking-tight">Criar conta</h2>
+            <p className="text-muted-foreground">
+              Registe-se gratuitamente e comece agora
+            </p>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8 space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
+            
+            <div className="space-y-2">
+              <Label htmlFor="nome" className="text-sm font-semibold">Nome Completo</Label>
+              <Input
+                id="nome" type="text" placeholder="António Manuel"
+                value={nome} onChange={(e) => setNome(e.target.value)}
+                required disabled={loading}
+                className="h-12 text-base border-2 focus-visible:ring-primary/30 focus-visible:border-primary"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
+              <Input
+                id="email" type="email" placeholder="seu@email.ao"
+                value={email} onChange={(e) => setEmail(e.target.value)}
+                required disabled={loading}
+                className="h-12 text-base border-2 focus-visible:ring-primary/30 focus-visible:border-primary"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="nome" className="text-sm font-semibold">Nome Completo</Label>
+                <Label htmlFor="password" className="text-sm font-semibold">Palavra-passe</Label>
                 <Input
-                  id="nome" type="text" placeholder="António Manuel"
-                  value={nome} onChange={e => setNome(e.target.value)}
+                  id="password" type="password" placeholder="••••••••"
+                  value={password} onChange={(e) => setPassword(e.target.value)}
                   required disabled={loading}
-                  className="h-11 text-sm border border-gray-200 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary bg-gray-50/50 transition-colors"
+                  className="h-12 text-base border-2 focus-visible:ring-primary/30 focus-visible:border-primary"
                 />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold">Email</Label>
+                <Label htmlFor="confirmPassword" className="text-sm font-semibold">Confirmar</Label>
                 <Input
-                  id="email" type="email" placeholder="seu@email.ao"
-                  value={email} onChange={e => setEmail(e.target.value)}
+                  id="confirmPassword" type="password" placeholder="••••••••"
+                  value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                   required disabled={loading}
-                  className="h-11 text-sm border border-gray-200 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary bg-gray-50/50 transition-colors"
+                  className="h-12 text-base border-2 focus-visible:ring-primary/30 focus-visible:border-primary"
                 />
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-semibold">Palavra-passe</Label>
-                  <Input
-                    id="password" type="password" placeholder="••••••••"
-                    value={password} onChange={e => setPassword(e.target.value)}
-                    required disabled={loading}
-                    className="h-11 text-sm border border-gray-200 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary bg-gray-50/50 transition-colors"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-semibold">Confirmar</Label>
-                  <Input
-                    id="confirmPassword" type="password" placeholder="••••••••"
-                    value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                    required disabled={loading}
-                    className="h-11 text-sm border border-gray-200 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary bg-gray-50/50 transition-colors"
-                  />
-                </div>
-              </div>
+            <p className="text-xs text-muted-foreground">
+              O primeiro utilizador a registar-se terá permissões de administrador.
+            </p>
 
-              <p className="text-xs text-muted-foreground">
-                O primeiro utilizador a registar-se terá permissões de administrador.
-              </p>
+            <Button 
+              type="submit" className="w-full h-12 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all group"
+              disabled={loading}
+            >
+              {loading ? (
+                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />A criar conta...</>
+              ) : (
+                <>Criar Conta Grátis<ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" /></>
+              )}
+            </Button>
+          </form>
 
-              <Button
-                type="submit"
-                className="w-full h-11 text-sm font-semibold rounded-xl shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all group"
-                disabled={loading}
-              >
-                {loading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> A criar conta...</>
-                ) : (
-                  <>Criar Conta Grátis <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" /></>
-                )}
-              </Button>
-            </form>
-          </div>
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground">
             Já tem conta?{' '}
             <Link to="/login" className="text-primary font-bold hover:underline">Entrar</Link>
           </p>
