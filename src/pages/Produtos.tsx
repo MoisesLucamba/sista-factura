@@ -155,7 +155,7 @@ export default function Produtos() {
       codigo: p.codigo, nome: p.nome, descricao: p.descricao || '',
       tipo: p.tipo, preco_unitario: p.preco_unitario.toString(),
       unidade: p.unidade, iva_incluido: p.iva_incluido,
-      categoria_iva: (p.categoria_iva as CategoriaIva) ?? 'geral',
+      categoria_iva: ((p as any).categoria_iva as CategoriaIva) ?? 'geral',
       stock: p.stock?.toString() || '', stock_minimo: p.stock_minimo?.toString() || '',
     });
     setDialogOpen(true);
@@ -168,7 +168,6 @@ export default function Produtos() {
       descricao: form.descricao || undefined, tipo: form.tipo,
       preco_unitario: parseFloat(form.preco_unitario) || 0,
       unidade: form.unidade, iva_incluido: form.iva_incluido,
-      categoria_iva: form.categoria_iva,
       taxa_iva: taxa * 100,
       stock: form.tipo === 'produto' ? parseInt(form.stock) || undefined : undefined,
       stock_minimo: form.tipo === 'produto' ? parseInt(form.stock_minimo) || undefined : undefined,
@@ -609,7 +608,7 @@ export default function Produtos() {
                 ) : filtered.map((produto, i) => {
                   const isLow = produto.tipo === 'produto' && produto.stock !== undefined &&
                     produto.stock_minimo !== undefined && produto.stock <= produto.stock_minimo;
-                  const cat = (produto.categoria_iva as CategoriaIva) ?? 'geral';
+                  const cat = ((produto as any).categoria_iva as CategoriaIva) ?? 'geral';
                   const cc  = IVA_CONFIG[cat];
 
                   return (

@@ -10,6 +10,7 @@ import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const DashboardComprador = lazy(() => import("./pages/DashboardComprador"));
 const Clientes = lazy(() => import("./pages/Clientes"));
 const Produtos = lazy(() => import("./pages/Produtos"));
 const Faturas = lazy(() => import("./pages/Faturas"));
@@ -61,6 +62,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/comprador"
+              element={
+                <ProtectedRoute allowedRoles={['comprador']}>
+                  <DashboardComprador />
                 </ProtectedRoute>
               }
             />

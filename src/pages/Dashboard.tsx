@@ -107,7 +107,7 @@ export default function Dashboard() {
     );
   }
 
-  const statItems = [
+  const statItems: Array<{ title: string; value: string; subtitle?: string; icon: any; variant: 'default' | 'primary' | 'success' | 'warning' | 'danger'; trend?: string; trendUp?: boolean }> = [
     {
       title: 'Faturação Mensal',
       value: formatCurrency(stats?.faturacaoMensal || 0),
