@@ -893,6 +893,108 @@ export default function LandingPage() {
         .ticker-inner { display: flex; width: max-content; animation: ticker 20s linear infinite; }
 
         .page-transition { animation: fade-scale .4s cubic-bezier(.4,0,.2,1) both; }
+
+        /* ══ HERO ══════════════════════════════════════════════ */
+        .hero-wrap {
+          position: relative;
+          min-height: 100vh;
+          display: grid;
+          grid-template-rows: 1fr;
+        }
+        /* A foto ocupa toda a grelha */
+        .hero-photo {
+          position: absolute; inset: 0;
+          overflow: hidden;
+        }
+        .hero-photo img {
+          width: 100%; height: 100%;
+          object-fit: cover;
+          object-position: center 30%;
+          will-change: transform;
+        }
+        /* Overlay em camadas: escurece topo e base, guarda centro */
+        .hero-photo::after {
+          content: '';
+          position: absolute; inset: 0;
+          background:
+            linear-gradient(180deg,
+              rgba(0,0,0,.70) 0%,
+              rgba(0,0,0,.18) 35%,
+              rgba(0,0,0,.35) 65%,
+              rgba(0,0,0,.85) 90%,
+              hsl(var(--background)) 100%
+            ),
+            linear-gradient(90deg, rgba(0,0,0,.55) 0%, transparent 55%);
+        }
+        .hero-content {
+          position: relative; z-index: 10;
+          display: flex; flex-direction: column; justify-content: flex-end;
+          padding-top: 7rem; padding-bottom: 5rem;
+          min-height: 100vh;
+        }
+        .glass-pill {
+          background: rgba(255,255,255,.10);
+          border: 1px solid rgba(255,255,255,.20);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+        }
+        .glass-stat {
+          background: rgba(255,255,255,.07);
+          border: 1px solid rgba(255,255,255,.14);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          transition: all .3s ease;
+        }
+        .glass-stat:hover { background: rgba(255,255,255,.13); transform: translateY(-3px); }
+        .float-badge {
+          background: rgba(255,255,255,.94);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
+        }
+        .dark .float-badge { background: rgba(18,18,26,.96); }
+
+        @keyframes mouse-scroll { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+        .mouse-scroll-dot { animation: mouse-scroll 2s ease-in-out infinite; }
+
+        /* ══ DASHBOARD SHOWCASE ══════════════════════════════════ */
+        @keyframes rise-in {
+          from { opacity:0; transform: translateY(60px) scale(.96); }
+          to   { opacity:1; transform: translateY(0)   scale(1);    }
+        }
+        .dash-rise { animation: rise-in 1s cubic-bezier(.22,1,.36,1) .15s both; }
+
+        .dash-frame {
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow:
+            0 0 0 1px hsl(var(--primary)/.18),
+            0 30px 90px hsl(var(--primary)/.20),
+            0 10px 40px rgba(0,0,0,.18);
+          transition: box-shadow .5s ease, transform .5s ease;
+        }
+        .dash-frame:hover {
+          box-shadow:
+            0 0 0 1px hsl(var(--primary)/.35),
+            0 40px 110px hsl(var(--primary)/.30),
+            0 15px 50px rgba(0,0,0,.22);
+          transform: translateY(-6px);
+        }
+        .browser-bar {
+          background: hsl(var(--muted)/.9);
+          border-bottom: 1px solid hsl(var(--border)/.6);
+          backdrop-filter: blur(12px);
+        }
+        .url-bar {
+          background: hsl(var(--background)/.7);
+          border: 1px solid hsl(var(--border)/.5);
+        }
+        .tag-pill {
+          background: hsl(var(--primary)/.09);
+          border: 1px solid hsl(var(--primary)/.22);
+          transition: all .25s ease;
+        }
+        .tag-pill:hover { background: hsl(var(--primary)/.18); transform: translateY(-2px); }
       `}</style>
 
       {/* ── NAV ── */}
@@ -929,107 +1031,271 @@ export default function LandingPage() {
         </div>
       ) : (
         <>
-          {/* ── HERO ── */}
-          <section className="relative pt-24 pb-0 lg:pt-32 overflow-hidden min-h-[80vh] flex items-center">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute w-[700px] h-[700px] bg-primary/8 rounded-full blur-[130px] transition-all duration-[3000ms] ease-out" style={{ top:'5%', left:`${20+mousePos.x*8}%`, transform:'translate(-50%,-50%)' }} />
-              <div className="absolute w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] transition-all duration-[4000ms] ease-out" style={{ bottom:'10%', right:`${15+(1-mousePos.x)*8}%` }} />
-              <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage:'linear-gradient(hsl(var(--foreground)) 1px,transparent 1px),linear-gradient(90deg,hsl(var(--foreground)) 1px,transparent 1px)', backgroundSize:'80px 80px' }} />
-            </div>
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-              <div className="grid lg:grid-cols-2 gap-12 items-center">
-                <div>
-                  <div className="heroB inline-flex items-center gap-2 bg-primary/10 border border-primary/25 rounded-full px-5 py-2 mb-8 cursor-default hover:bg-primary/15 transition-colors">
-                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                    <span className="text-sm font-bold">A plataforma #1 de Angola</span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  <div className="mb-6 leading-[0.92]">
-                    <h1 className="text-5xl sm:text-6xl lg:text-[5.2rem] font-black tracking-tight">
-                      <span className="hero1 block">Faturacao que</span>
-                      <span className="hero2 block"><span className="shimmer-text">impulsiona</span> <span className="text-foreground">✦</span></span>
-                      <span className="hero3 block">o seu negocio</span>
-                    </h1>
-                  </div>
-                  <p className="heroS text-lg text-muted-foreground max-w-lg mb-8 leading-relaxed">
-                    Emita faturas profissionais, gerencie clientes e mantenha-se em conformidade com a AGT — tudo num so lugar.
-                  </p>
-                  <div className="heroC flex flex-col sm:flex-row items-start gap-4 mb-10">
-                    <Link to="/registar">
-                      <Button size="lg" className="h-14 px-8 text-lg font-black shadow-2xl shadow-primary/30 btn-glow hover:scale-105 transition-all group gap-2">
-                        Comecar Gratis <ArrowRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
-                      </Button>
-                    </Link>
-                    <a href="#features">
-                      <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-bold border-2 gap-2 hover:bg-primary/5 hover:border-primary/50 hover:scale-105 transition-all group">
-                        <Play className="w-5 h-5 group-hover:scale-110 transition-transform" /> Ver Demo
-                      </Button>
-                    </a>
-                  </div>
-                  <div className="heroSt flex gap-10">
-                    {stats.slice(0,3).map((s,i) => (
-                      <div key={i} className="cursor-default hover:-translate-y-1 transition-transform">
-                        <div className="text-2xl font-black tabular-nums"><AnimatedCounter value={s.value} /></div>
-                        <div className="text-xs text-muted-foreground font-semibold mt-0.5">{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          {/* ══ HERO — foto a 100vh com texto sobreposto ══ */}
+          <section className="hero-wrap">
 
-                <div className="relative hidden lg:block heroI">
-                  <div className="af relative">
-                    <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/20 border border-primary/15 ag">
-                      <img src={heroBusiness} alt="Faktura em accao" className="w-full h-auto object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+            {/* ── Foto a 100% altura ── */}
+            <div className="hero-photo">
+              <img src={heroBusiness} alt="Empresarios angolanos a trabalhar" />
+            </div>
+
+            {/* ── Orb de cor interactivo ── */}
+            <div className="absolute z-[5] pointer-events-none rounded-full"
+              style={{
+                width: 700, height: 700,
+                background: 'hsl(var(--primary)/.25)',
+                filter: 'blur(140px)',
+                top: '5%',
+                left: `${mousePos.x * 14 - 5}%`,
+                transition: 'left 4s cubic-bezier(.4,0,.2,1)',
+              }}
+            />
+
+            {/* ── Grid decorativo ── */}
+            <div className="absolute inset-0 z-[4] pointer-events-none opacity-[0.035]"
+              style={{
+                backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)',
+                backgroundSize: '90px 90px',
+              }}
+            />
+
+            {/* ── Conteúdo do hero ── */}
+            <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+
+              {/* Badge */}
+              <div className="heroB mb-7">
+                <div className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-default">
+                  <Sparkles className="w-4 h-4 text-white animate-pulse" />
+                  <span className="text-sm font-bold text-white tracking-wide">A plataforma #1 de faturação em Angola</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
+                </div>
+              </div>
+
+              {/* Título */}
+              <div className="max-w-3xl mb-7">
+                <h1 className="font-black tracking-tight text-white"
+                  style={{ fontSize: 'clamp(2.8rem, 7.5vw, 7rem)', lineHeight: 0.88, letterSpacing: '-0.02em' }}>
+                  <span className="hero1 block drop-shadow-lg">Faturação que</span>
+                  <span className="hero2 block">
+                    <span style={{
+                      background: 'linear-gradient(90deg, hsl(var(--primary)) 0%, #fff 45%, hsl(var(--primary)) 90%)',
+                      backgroundSize: '200% auto',
+                      WebkitBackgroundClip: 'text', backgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      animation: 'shimmer 3s linear infinite',
+                      filter: 'drop-shadow(0 0 24px hsl(var(--primary)/.5))',
+                    }}>impulsiona</span>
+                    <span className="text-white drop-shadow-lg"> ✦</span>
+                  </span>
+                  <span className="hero3 block text-white drop-shadow-lg">o seu negócio</span>
+                </h1>
+              </div>
+
+              {/* Subtítulo */}
+              <p className="heroS text-white/75 max-w-2xl mb-10 leading-relaxed font-medium"
+                style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
+                Emita faturas profissionais, gerencie clientes e mantenha-se em conformidade com a AGT —
+                tudo num só lugar, em segundos. Grátis para começar.
+              </p>
+
+              {/* CTAs */}
+              <div className="heroC flex flex-col sm:flex-row items-start gap-4 mb-12">
+                <Link to="/registar">
+                  <Button size="lg" className="h-14 px-10 text-lg font-black shadow-2xl shadow-primary/50 btn-glow hover:scale-[1.04] transition-all group gap-2.5">
+                    Começar Grátis
+                    <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
+                  </Button>
+                </Link>
+                <a href="#plataforma">
+                  <Button size="lg" variant="outline"
+                    className="h-14 px-8 text-lg font-bold border-2 border-white/35 text-white bg-white/10 hover:bg-white/18 hover:border-white/60 hover:scale-[1.04] transition-all group gap-2.5 backdrop-blur-md">
+                    <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    Ver a Plataforma
+                  </Button>
+                </a>
+              </div>
+
+              {/* Stats vidro fosco */}
+              <div className="heroSt flex flex-wrap gap-3">
+                {[
+                  { icon: Users,     v: '500+',   l: 'Empresas activas'  },
+                  { icon: FileText,  v: '50.000+', l: 'Faturas emitidas' },
+                  { icon: TrendingUp,v: '99%',    l: 'Uptime garantido'  },
+                  { icon: Clock,     v: '24/7',   l: 'Suporte incluído'  },
+                ].map(({ icon: I, v, l }, i) => (
+                  <div key={i} className="glass-stat rounded-2xl px-4 py-3 flex items-center gap-3 cursor-default">
+                    <div className="w-8 h-8 rounded-lg bg-white/12 flex items-center justify-center flex-shrink-0">
+                      <I className="w-4 h-4 text-white" />
                     </div>
-                    <div className="af3 absolute -bottom-6 -left-8 bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-border/60">
-                      <div className="flex items-center gap-3">
-                        <div className="relative pulse-ring w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <CheckCircle className="w-5 h-5 text-primary" />
-                        </div>
-                        <div><p className="text-sm font-bold">Conformidade AGT</p><p className="text-xs text-muted-foreground">100% certificado</p></div>
-                      </div>
-                    </div>
-                    <div className="af2 absolute -top-4 -right-6 bg-card/95 backdrop-blur-sm rounded-xl p-3 shadow-2xl border border-border/60">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center"><FileText className="w-4 h-4 text-primary" /></div>
-                        <div><p className="text-xs font-bold">FT 2025/1283</p><p className="text-xs text-primary font-semibold">✓ Enviada</p></div>
-                      </div>
+                    <div>
+                      <p className="text-base font-black text-white leading-none tabular-nums">{v}</p>
+                      <p className="text-[11px] text-white/55 font-semibold mt-0.5 leading-tight whitespace-nowrap">{l}</p>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 relative">
-              <FadeIn direction="up" delay={200}>
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50 group">
-                  <img src={dashboardPreview} alt="Dashboard Faktura" className="w-full h-auto group-hover:scale-[1.01] transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-                </div>
-              </FadeIn>
+            {/* ── Floating badges (desktop) ── */}
+            <div className="af2 absolute right-10 top-[28%] z-20 float-badge rounded-2xl px-4 py-3 hidden xl:flex items-center gap-3 border border-white/15">
+              <div className="relative pulse-ring w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-foreground">Conformidade AGT</p>
+                <p className="text-xs text-muted-foreground">100% certificado</p>
+              </div>
+            </div>
+
+            <div className="af3 absolute right-56 top-[46%] z-20 float-badge rounded-xl px-3 py-2.5 hidden xl:flex items-center gap-3 border border-white/15">
+              <div className="w-8 h-8 rounded-lg bg-primary/12 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground">FT 2025/1284</p>
+                <p className="text-[11px] text-primary font-semibold">✓ Enviada via WhatsApp</p>
+              </div>
+            </div>
+
+            <div className="af absolute right-14 bottom-[30%] z-20 float-badge rounded-xl px-3 py-2.5 hidden xl:flex items-center gap-3 border border-white/15">
+              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                <BadgeDollarSign className="w-4 h-4 text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground">+50 Kz creditados</p>
+                <p className="text-[11px] text-muted-foreground">ID M20XV · agora mesmo</p>
+              </div>
+            </div>
+
+            {/* ── Scroll indicator ── */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
+              <div className="w-6 h-10 rounded-full border-2 border-white/25 flex items-start justify-center pt-1.5">
+                <div className="w-1.5 h-2.5 rounded-full bg-white/60 mouse-scroll-dot" />
+              </div>
             </div>
           </section>
 
-          {/* ── STATS ── */}
-          <section className="py-20">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-                {stats.map((s,i) => {
-                  const I = s.icon;
-                  return (
-                    <FadeIn key={i} delay={i*100} direction="up">
-                      <div className="bg-card border border-border/50 rounded-2xl p-6 text-center hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all cursor-default group">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
-                          <I className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="text-3xl font-black tabular-nums mb-1"><AnimatedCounter value={s.value} /></div>
-                        <div className="text-xs text-muted-foreground font-semibold">{s.label}</div>
+          {/* ══ PLATAFORMA SHOWCASE — secção própria e imponente ══ */}
+          <section id="plataforma" className="relative py-28 overflow-hidden">
+
+            {/* Decoração de fundo */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[600px] bg-primary/4 rounded-full blur-[160px]" />
+              <div className="absolute inset-0 opacity-[0.018]"
+                style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1.5px, transparent 1.5px)', backgroundSize: '56px 56px' }}
+              />
+            </div>
+
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+              {/* Cabeçalho */}
+              <FadeIn direction="up">
+                <div className="text-center mb-14">
+                  <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
+                    <Zap className="w-4 h-4 text-primary animate-pulse" />
+                    <span className="text-sm font-bold">Plataforma completa</span>
+                  </div>
+                  <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5 leading-tight">
+                    Tudo o que precisa,<br />
+                    <span className="shimmer-text">num só ecrã</span>
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Dashboard intuitivo com métricas em tempo real, gestão de faturas, clientes e muito mais —
+                    desenhado especificamente para o mercado angolano.
+                  </p>
+                </div>
+              </FadeIn>
+
+              {/* Tags */}
+              <FadeIn direction="up" delay={80}>
+                <div className="flex flex-wrap justify-center gap-2.5 mb-14">
+                  {['Faturas em segundos','Conformidade AGT','Multi-canal','Relatórios avançados','Gestão de clientes','Automatização','API REST','WhatsApp nativo','Multicaixa','ID Comprador'].map((tag) => (
+                    <span key={tag} className="tag-pill text-sm font-semibold px-4 py-2 rounded-full cursor-default">{tag}</span>
+                  ))}
+                </div>
+              </FadeIn>
+
+              {/* ── IMAGEM DO DASHBOARD — destaque máximo ── */}
+              <div className="dash-rise">
+                <div className="dash-frame group cursor-default">
+
+                  {/* Barra de browser */}
+                  <div className="browser-bar px-5 py-3 flex items-center gap-4">
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <div className="w-3 h-3 rounded-full bg-red-400" />
+                      <div className="w-3 h-3 rounded-full bg-amber-400" />
+                      <div className="w-3 h-3 rounded-full bg-green-400" />
+                    </div>
+                    <div className="flex-1 url-bar rounded-full px-4 py-1.5 flex items-center gap-2.5 max-w-md mx-auto">
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0" />
+                      <span className="text-xs text-muted-foreground font-mono tracking-wide">app.faktura.ao/dashboard</span>
+                      <Lock className="w-3 h-3 text-green-500 ml-auto flex-shrink-0" />
+                    </div>
+                    <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-[10px] font-black text-primary">FT</span>
                       </div>
-                    </FadeIn>
-                  );
-                })}
+                      <span className="text-xs font-semibold text-muted-foreground hidden md:block">Faktura Pro</span>
+                    </div>
+                  </div>
+
+                  {/* Screenshot */}
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={dashboardPreview}
+                      alt="Dashboard Faktura — plataforma completa de faturação angolana"
+                      className="w-full h-auto block group-hover:scale-[1.012] transition-transform duration-700 ease-out"
+                    />
+                    {/* Gradiente suave na base */}
+                    <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-background/30 to-transparent pointer-events-none" />
+                    {/* Linha superior de brilho */}
+                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 cards abaixo da imagem */}
+              <div className="grid md:grid-cols-3 gap-5 mt-14">
+                {[
+                  { icon: Zap,      t: 'Configure em 2 minutos',  d: 'Sem instalações, sem burocracia. Abra a conta e emita a primeira fatura ainda hoje — totalmente grátis.' },
+                  { icon: Shield,   t: '100% Legal e Certificado', d: 'Cada documento cumpre os requisitos da AGT. Assinatura digital e QR code incluídos automaticamente.' },
+                  { icon: BarChart3,t: 'Crescimento visível',      d: 'Veja a evolução da sua faturação em tempo real com gráficos interactivos e alertas automáticos.' },
+                ].map(({ icon: I, t, d }, i) => (
+                  <FadeIn key={i} delay={i * 100} direction="up">
+                    <div className="bg-card border border-border/50 rounded-2xl p-6 flex items-start gap-4 hover:border-primary/35 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/6 transition-all duration-300 group">
+                      <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                        <I className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold mb-1.5">{t}</h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
+                      </div>
+                    </div>
+                  </FadeIn>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ── STATS BAND ── */}
+          <section className="py-10 border-b border-border/30">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {stats.map((s,i) => { const I = s.icon; return (
+                  <FadeIn key={i} delay={i*80} direction="up">
+                    <div className="flex items-center gap-3 bg-card border border-border/40 rounded-2xl px-5 py-4 hover:border-primary/30 hover:-translate-y-0.5 transition-all group cursor-default">
+                      <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                        <I className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <div className="text-xl font-black tabular-nums leading-none"><AnimatedCounter value={s.value} /></div>
+                        <div className="text-xs text-muted-foreground font-semibold mt-0.5 leading-tight">{s.label}</div>
+                      </div>
+                    </div>
+                  </FadeIn>
+                ); })}
               </div>
             </div>
           </section>

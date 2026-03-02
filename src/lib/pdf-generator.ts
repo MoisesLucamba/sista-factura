@@ -3,367 +3,432 @@ import QRCode from 'qrcode';
 import type { Fatura } from '@/hooks/useFaturas';
 import { formatCurrency } from './format';
 
-const COLORS = {
-  primary: [212, 160, 50] as [number, number, number],
-  primaryDark: [180, 130, 30] as [number, number, number],
-  text: [30, 30, 30] as [number, number, number],
-  muted: [100, 100, 100] as [number, number, number],
-  border: [220, 210, 190] as [number, number, number],
-  background: [252, 250, 245] as [number, number, number],
-  white: [255, 255, 255] as [number, number, number],
-  headerBg: [40, 40, 50] as [number, number, number],
+/* ══════════════════════════════════════════════════════════════════
+   FAKTURA — PDF v4.0  "Ultra Clean"
+   Princípios:
+   • Branco total — zero fundos cinza, zero cards, zero bordas duplas
+   • Âmbar APENAS onde importa: topo, total, separador, barra tabela
+   • Tipografia limpa: hierarquia por tamanho e peso, não por caixas
+   • Espaço generoso — uma fatura que respira
+   ══════════════════════════════════════════════════════════════════ */
+
+// ── Paleta minimalista ────────────────────────────────────────────
+const AMBER  : [number,number,number] = [245, 166,  35];
+const INK    : [number,number,number] = [ 20,  20,  30];
+const DARK   : [number,number,number] = [ 28,  28,  40];   // header
+const MUTED  : [number,number,number] = [120, 120, 135];
+const RULE   : [number,number,number] = [230, 230, 235];   // linhas finas
+const ROW_ALT: [number,number,number] = [250, 250, 252];   // zebra subtil
+const WHITE  : [number,number,number] = [255, 255, 255];
+
+// ── Estado pills ──────────────────────────────────────────────────
+const ESTADO_BG: Record<string,[number,number,number]> = {
+  paga    : [220, 252, 231],
+  emitida : [254, 249, 215],
+  vencida : [254, 228, 228],
+  anulada : [240, 240, 242],
+  rascunho: [240, 240, 242],
+};
+const ESTADO_FG: Record<string,[number,number,number]> = {
+  paga    : [ 22, 163,  74],
+  emitida : [161,  98,   7],
+  vencida : [185,  28,  28],
+  anulada : [100, 100, 110],
+  rascunho: [100, 100, 110],
+};
+const ESTADO_LABEL: Record<string,string> = {
+  paga:'Paga', emitida:'Emitida', vencida:'Vencida', anulada:'Anulada', rascunho:'Rascunho',
 };
 
+const TIPO_LABEL: Record<string,string> = {
+  'fatura'       : 'FATURA',
+  'fatura-recibo': 'FATURA-RECIBO',
+  'recibo'       : 'RECIBO',
+  'nota-credito' : 'NOTA DE CRÉDITO',
+  'proforma'     : 'FATURA PROFORMA',
+};
+
+// ── Tipos ─────────────────────────────────────────────────────────
 export interface CompanyInfo {
-  nome_empresa?: string;
-  nif_produtor?: string;
-  endereco_empresa?: string;
-  telefone?: string;
-  email?: string;
-  website?: string;
-  morada?: string;
-  cidade?: string;
-  provincia?: string;
-  actividade_comercial?: string;
-  alvara_comercial?: string;
-  logo_url?: string;
+  nome_empresa?:        string;
+  nif_produtor?:        string;
+  endereco_empresa?:    string;
+  telefone?:            string;
+  email?:               string;
+  website?:             string;
+  morada?:              string;
+  cidade?:              string;
+  provincia?:           string;
+  actividade_comercial?:string;
+  alvara_comercial?:    string;
+  logo_url?:            string;
 }
 
-export async function generateInvoicePDF(fatura: Fatura, companyInfo?: CompanyInfo): Promise<Blob> {
+/* ════════════════════════════════════════════════════════════════ */
+export async function generateInvoicePDF(
+  fatura: Fatura,
+  companyInfo?: CompanyInfo
+): Promise<Blob> {
+
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W  = doc.internal.pageSize.getWidth();   // 210
+  const H  = doc.internal.pageSize.getHeight();  // 297
+  const ML = 18;   // margem esquerda
+  const MR = 18;   // margem direita
+  let   y  = 0;
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15;
-  let y = 0;
+  /* ── Helpers ─────────────────────────────────────────────────── */
+  const fc = (c: [number,number,number]) => doc.setFillColor(...c);
+  const tc = (c: [number,number,number]) => doc.setTextColor(...c);
+  const dc = (c: [number,number,number]) => doc.setDrawColor(...c);
+  const B  = () => doc.setFont('helvetica', 'bold');
+  const N  = () => doc.setFont('helvetica', 'normal');
+  const sz = (n: number) => doc.setFontSize(n);
 
-  const companyName = companyInfo?.nome_empresa || 'FAKTURA ANGOLA';
-  const companyNif = companyInfo?.nif_produtor;
-  const companyAddress = companyInfo?.morada || companyInfo?.endereco_empresa;
-  const companyCity = companyInfo?.cidade;
-  const companyProvince = companyInfo?.provincia;
-  const companyPhone = companyInfo?.telefone;
-  const companyEmail = companyInfo?.email;
-  const companyWebsite = companyInfo?.website;
-  const companyAlvara = companyInfo?.alvara_comercial;
-  const companyLogo = companyInfo?.logo_url;
+  // Linha horizontal fina
+  const rule = (yy: number, color = RULE, lw = 0.2) => {
+    dc(color); doc.setLineWidth(lw); doc.line(ML, yy, W - MR, yy);
+  };
 
-  // ── Top accent bar ──
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, pageWidth, 4, 'F');
+  // Pill de estado (pequena)
+  const statePill = (label: string, x: number, yy: number, bg: [number,number,number], fg: [number,number,number]) => {
+    const tw = doc.getTextWidth(label);
+    const pw = tw + 7; const ph = 5.8;
+    fc(bg); doc.roundedRect(x, yy - 4.2, pw, ph, 1.2, 1.2, 'F');
+    tc(fg); sz(7); B(); doc.text(label, x + pw / 2, yy, { align: 'center' });
+    N();
+  };
 
-  // ── Header area ──
-  doc.setFillColor(...COLORS.headerBg);
-  doc.rect(0, 4, pageWidth, 42, 'F');
+  /* ── Dados empresa ───────────────────────────────────────────── */
+  const compName  = (companyInfo?.nome_empresa || 'FAKTURA ANGOLA').toUpperCase();
+  const compNif   = companyInfo?.nif_produtor  || '';
+  const compAddr  = [
+    companyInfo?.morada || companyInfo?.endereco_empresa,
+    companyInfo?.cidade, companyInfo?.provincia,
+  ].filter(Boolean).join(', ');
+  const compPhone = companyInfo?.telefone       || '';
+  const compEmail = companyInfo?.email          || '';
+  const compAlv   = companyInfo?.alvara_comercial || '';
+  const compLogo  = companyInfo?.logo_url;
 
-  // Company logo
-  let logoLoaded = false;
-  if (companyLogo) {
+  const tipoLabel  = TIPO_LABEL[fatura.tipo] || 'FATURA';
+  const isProforma = fatura.tipo === 'proforma';
+
+  /* ════════════════════════════════════════════════════════════
+     ① FUNDO — branco puro
+  ════════════════════════════════════════════════════════════ */
+  fc(WHITE); doc.rect(0, 0, W, H, 'F');
+
+  /* ════════════════════════════════════════════════════════════
+     ② CABEÇALHO ESCURO  (0 → 48mm)
+        Só dois elementos: faixa âmbar 3mm no topo, bloco ink
+  ════════════════════════════════════════════════════════════ */
+  // Bloco escuro
+  fc(DARK); doc.rect(0, 0, W, 50, 'F');
+  // Faixa âmbar — 3mm topo
+  fc(AMBER); doc.rect(0, 0, W, 3, 'F');
+
+  // Logo (opcional)
+  let logoEnd = ML;
+  if (compLogo) {
     try {
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject();
-        img.src = companyLogo;
-      });
-      doc.addImage(img, 'PNG', margin, 8, 14, 14);
-      logoLoaded = true;
-    } catch (e) {
-      console.warn('Could not load company logo:', e);
-    }
+      await new Promise<void>((ok, no) => { img.onload = () => ok(); img.onerror = () => no(); img.src = compLogo; });
+      doc.addImage(img, 'PNG', ML, 9, 15, 15);
+      logoEnd = ML + 19;
+    } catch { /* skip */ }
   }
 
-  // Company name
-  const nameX = logoLoaded ? margin + 17 : margin;
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text(companyName.toUpperCase(), nameX, 17);
+  // Nome empresa — grande, branco
+  tc(WHITE); sz(15); B();
+  doc.text(compName, logoEnd, 19);
 
-  // Company details
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(200, 200, 200);
-  let hY = 22;
-  if (companyNif) { doc.text(`NIF: ${companyNif}`, nameX, hY); hY += 3.5; }
-  if (companyAddress) {
-    const addr = [companyAddress, companyCity, companyProvince].filter(Boolean).join(', ');
-    doc.text(addr, nameX, hY); hY += 3.5;
-  }
-  const contacts = [companyPhone, companyEmail].filter(Boolean);
-  if (contacts.length) { doc.text(contacts.join(' | '), nameX, hY); hY += 3.5; }
-  if (companyAlvara) { doc.text(`Alvará: ${companyAlvara}`, nameX, hY); }
+  // Info empresa — 1–2 linhas, cinzento claro
+  tc([150, 150, 165] as [number,number,number]); sz(7.5); N();
+  const line1 = [compNif ? `NIF: ${compNif}` : '', compAddr].filter(Boolean).join('   ');
+  const line2 = [compPhone, compEmail, compAlv ? `Alvará: ${compAlv}` : ''].filter(Boolean).join('   ');
+  if (line1) doc.text(line1, logoEnd, 26);
+  if (line2) doc.text(line2, logoEnd, 31.5);
 
-  // Invoice type badge (right side)
-  const isProforma = fatura.tipo === 'proforma';
-  const tipoTexto = {
-    'fatura': 'FATURA',
-    'fatura-recibo': 'FATURA-RECIBO',
-    'recibo': 'RECIBO',
-    'nota-credito': 'NOTA DE CRÉDITO',
-    'proforma': 'FATURA PROFORMA',
-  }[fatura.tipo] || 'FATURA';
+  // ── Lado direito: tipo em pill âmbar + número + data ──────────
+  // Pill tipo
+  const pillTw = doc.getTextWidth(tipoLabel) + 12;
+  fc(AMBER);
+  doc.roundedRect(W - MR - pillTw, 7, pillTw, 9, 1.8, 1.8, 'F');
+  tc(INK); sz(8.5); B();
+  doc.text(tipoLabel, W - MR - pillTw / 2, 13, { align: 'center' });
 
-  // Badge background
-  doc.setFillColor(...COLORS.primary);
-  const badgeW = doc.getTextWidth(tipoTexto) * 1.3 + 10;
-  doc.roundedRect(pageWidth - margin - badgeW, 8, badgeW, 9, 2, 2, 'F');
-  doc.setTextColor(...COLORS.headerBg);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text(tipoTexto, pageWidth - margin - badgeW / 2, 14, { align: 'center' });
+  // Número — grande
+  tc(WHITE); sz(20); B();
+  doc.text(fatura.numero, W - MR, 30, { align: 'right' });
 
-  // Invoice number
-  doc.setTextColor(200, 200, 200);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.text(fatura.numero, pageWidth - margin, 28, { align: 'right' });
+  // Data de emissão
+  tc([130, 130, 148] as [number,number,number]); sz(7.5); N();
+  doc.text(`Emitido em ${formatDate(fatura.data_emissao)}`, W - MR, 37, { align: 'right' });
 
-  y = 46;
+  y = 55;
 
-  // Proforma disclaimer
+  /* ════════════════════════════════════════════════════════════
+     ③ BANNER PROFORMA
+  ════════════════════════════════════════════════════════════ */
   if (isProforma) {
-    doc.setFillColor(255, 240, 180);
-    doc.rect(0, y, pageWidth, 8, 'F');
-    doc.setTextColor(120, 80, 0);
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'bold');
-    doc.text('DOCUMENTO PROFORMA – NÃO VÁLIDO COMO DOCUMENTO FISCAL', pageWidth / 2, y + 5, { align: 'center' });
+    fc([255, 244, 204] as [number,number,number]); doc.rect(0, y, W, 7.5, 'F');
+    fc(AMBER); doc.rect(0, y, 3.5, 7.5, 'F');
+    tc([140, 82, 0] as [number,number,number]); sz(7); B();
+    doc.text('DOCUMENTO PROFORMA — NÃO VÁLIDO COMO DOCUMENTO FISCAL', W / 2, y + 5, { align: 'center' });
     y += 12;
-  } else {
-    y += 4;
   }
 
-  // ── Two-column: Client & Details ──
-  const colW = (pageWidth - 2 * margin - 10) / 2;
-  const leftX = margin;
-  const rightX = margin + colW + 10;
-
-  // Client card
-  doc.setFillColor(...COLORS.background);
-  doc.roundedRect(leftX, y, colW, 38, 2, 2, 'F');
-  doc.setDrawColor(...COLORS.border);
-  doc.roundedRect(leftX, y, colW, 38, 2, 2, 'S');
-
-  doc.setFillColor(...COLORS.primary);
-  doc.roundedRect(leftX, y, colW, 7, 2, 2, 'F');
-  doc.rect(leftX, y + 4, colW, 3, 'F'); // fill bottom corners
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-  doc.text('CLIENTE', leftX + 4, y + 5);
-
-  let cY = y + 12;
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text(fatura.cliente?.nome || 'Consumidor Final', leftX + 4, cY);
-  cY += 5;
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...COLORS.muted);
-  doc.setFontSize(8);
-  doc.text(`NIF: ${fatura.cliente?.nif || 'N/A'}`, leftX + 4, cY);
-  cY += 4;
-  if (fatura.cliente?.endereco) { doc.text(fatura.cliente.endereco, leftX + 4, cY); cY += 4; }
-  if (fatura.cliente?.telefone) { doc.text(`Tel: ${fatura.cliente.telefone}`, leftX + 4, cY); cY += 4; }
-  if (fatura.cliente?.email) { doc.text(fatura.cliente.email, leftX + 4, cY); }
-
-  // Details card
-  doc.setFillColor(...COLORS.background);
-  doc.roundedRect(rightX, y, colW, 38, 2, 2, 'F');
-  doc.setDrawColor(...COLORS.border);
-  doc.roundedRect(rightX, y, colW, 38, 2, 2, 'S');
-
-  doc.setFillColor(...COLORS.primary);
-  doc.roundedRect(rightX, y, colW, 7, 2, 2, 'F');
-  doc.rect(rightX, y + 4, colW, 3, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-  doc.text('DETALHES', rightX + 4, y + 5);
-
-  let dY = y + 12;
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...COLORS.muted);
-  const details = [
-    ['Emissão:', formatDate(fatura.data_emissao)],
-    ['Vencimento:', formatDate(fatura.data_vencimento)],
-    ...(fatura.data_pagamento ? [['Pagamento:', formatDate(fatura.data_pagamento)]] : []),
-    ['Estado:', { 'rascunho': 'Rascunho', 'emitida': 'Emitida', 'paga': 'Paga', 'anulada': 'Anulada', 'vencida': 'Vencida' }[fatura.estado] || fatura.estado],
-  ];
-  for (const [label, val] of details) {
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...COLORS.text);
-    doc.text(label, rightX + 4, dY);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...COLORS.muted);
-    doc.text(val, rightX + 28, dY);
-    dY += 5;
-  }
-
-  y += 44;
-
-  // ── Items table ──
-  // Header
-  doc.setFillColor(...COLORS.headerBg);
-  doc.rect(margin, y, pageWidth - 2 * margin, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-
-  const colX = [margin + 3, margin + 70, margin + 88, margin + 110, margin + 130, margin + 152];
-  doc.text('DESCRIÇÃO', colX[0], y + 5.5);
-  doc.text('QTD', colX[1], y + 5.5);
-  doc.text('PREÇO UNIT.', colX[2], y + 5.5);
-  doc.text('IVA', colX[3], y + 5.5);
-  doc.text('DESC.', colX[4], y + 5.5);
-  doc.text('TOTAL', colX[5], y + 5.5);
-  y += 10;
-
-  // Items
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  if (fatura.itens && fatura.itens.length > 0) {
-    for (let i = 0; i < fatura.itens.length; i++) {
-      const item = fatura.itens[i];
-      // Alternating row bg
-      if (i % 2 === 0) {
-        doc.setFillColor(...COLORS.background);
-        doc.rect(margin, y - 3, pageWidth - 2 * margin, 7, 'F');
-      }
-      doc.setTextColor(...COLORS.text);
-      const prodName = item.produto?.nome || 'Produto';
-      const truncated = prodName.length > 38 ? prodName.slice(0, 35) + '...' : prodName;
-      doc.text(truncated, colX[0], y);
-      doc.text(String(item.quantidade), colX[1], y);
-      doc.text(formatCurrency(item.preco_unitario), colX[2], y);
-      doc.text(`${item.taxa_iva}%`, colX[3], y);
-      doc.text(`${item.desconto}%`, colX[4], y);
-      doc.setFont('helvetica', 'bold');
-      doc.text(formatCurrency(item.total), colX[5], y);
-      doc.setFont('helvetica', 'normal');
-      y += 7;
-    }
-  }
-
+  /* ════════════════════════════════════════════════════════════
+     ④ CLIENTE  +  DETALHES  — sem nenhuma borda, tipografia pura
+  ════════════════════════════════════════════════════════════ */
   y += 6;
 
-  // ── Totals ──
-  const totalsW = 70;
-  const totalsX = pageWidth - margin - totalsW;
+  // Label "CLIENTE" âmbar pequeno
+  tc(AMBER); sz(6.5); B();
+  doc.text('CLIENTE', ML, y);
+  y += 5.5;
 
-  // Separator line
-  doc.setDrawColor(...COLORS.primary);
-  doc.setLineWidth(0.5);
-  doc.line(totalsX, y, pageWidth - margin, y);
-  y += 5;
+  // Nome do cliente — destaque
+  tc(INK); sz(11); B();
+  doc.text(fatura.cliente?.nome || 'Consumidor Final', ML, y);
+  y += 5.5;
 
-  doc.setFontSize(8.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...COLORS.muted);
-  doc.text('Subtotal:', totalsX, y);
-  doc.setTextColor(...COLORS.text);
-  doc.text(formatCurrency(fatura.subtotal), pageWidth - margin, y, { align: 'right' });
-  y += 5;
+  // Info cliente em linha única
+  N(); sz(8); tc(MUTED);
+  const cParts: string[] = [];
+  if (fatura.cliente?.nif)      cParts.push(`NIF ${fatura.cliente.nif}`);
+  if (fatura.cliente?.endereco) cParts.push(fatura.cliente.endereco);
+  if (fatura.cliente?.telefone) cParts.push(fatura.cliente.telefone);
+  if (fatura.cliente?.email)    cParts.push(fatura.cliente.email);
+  if (cParts.length) {
+    doc.text(cParts.join('   ·   '), ML, y);
+  }
 
-  doc.setTextColor(...COLORS.muted);
-  doc.text('IVA (14%):', totalsX, y);
-  doc.setTextColor(...COLORS.text);
-  doc.text(formatCurrency(fatura.total_iva), pageWidth - margin, y, { align: 'right' });
+  // ── Detalhes (coluna direita, mesmo nível vertical) ───────────
+  const dX  = W / 2 + 5;
+  const dY0 = y - 11;   // alinhado com o nome do cliente
+
+  // 3 colunas: Emissão / Vencimento / Estado
+  sz(6.5); B(); tc(MUTED);
+  doc.text('EMISSÃO',    dX,       dY0);
+  doc.text('VENCIMENTO', dX + 36,  dY0);
+  doc.text('ESTADO',     dX + 76,  dY0);
+
+  sz(8.5); N(); tc(INK);
+  doc.text(formatDate(fatura.data_emissao),    dX,      dY0 + 6);
+  doc.text(formatDate(fatura.data_vencimento), dX + 36, dY0 + 6);
+
+  const eLabel = ESTADO_LABEL[fatura.estado] || fatura.estado;
+  statePill(
+    eLabel, dX + 76, dY0 + 6,
+    ESTADO_BG[fatura.estado] || [240,240,242],
+    ESTADO_FG[fatura.estado] || [100,100,110]
+  );
+
+  y += 10;
+
+  /* ════════════════════════════════════════════════════════════
+     ⑤ SEPARADOR fino
+  ════════════════════════════════════════════════════════════ */
+  rule(y, RULE, 0.3);
   y += 7;
 
-  // Total box
-  doc.setFillColor(...COLORS.primary);
-  doc.roundedRect(totalsX - 3, y - 4, totalsW + 3, 12, 2, 2, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('TOTAL:', totalsX + 2, y + 4);
-  doc.text(formatCurrency(fatura.total), pageWidth - margin - 2, y + 4, { align: 'right' });
+  /* ════════════════════════════════════════════════════════════
+     ⑥ TABELA
+     Header: fundo âmbar pálido + barra âmbar esquerda 3px
+     Linhas: zero bordas, só zebra muito subtil + linha inferior fina
+  ════════════════════════════════════════════════════════════ */
 
-  y += 20;
+  // Colunas X (right-aligned excepto Descrição)
+  const xD  = ML;           // descrição (left)
+  const xQ  = ML + 94;      // qty
+  const xPU = ML + 118;     // preço unit
+  const xIV = ML + 144;     // iva
+  const xDC = ML + 158;     // desconto
+  const xT  = W - MR;       // total
 
-  // Observations
-  if (fatura.observacoes) {
-    doc.setTextColor(...COLORS.text);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Observações:', margin, y);
-    y += 4;
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...COLORS.muted);
-    const lines = doc.splitTextToSize(fatura.observacoes, pageWidth - 2 * margin);
-    doc.text(lines, margin, y);
-    y += lines.length * 3.5 + 6;
+  // Header row
+  const HDR_H = 8.5;
+  fc([252, 246, 222] as [number,number,number]);
+  doc.rect(ML, y, W - ML - MR, HDR_H, 'F');
+  // Barra âmbar esquerda
+  fc(AMBER); doc.rect(ML, y, 3, HDR_H, 'F');
+
+  sz(6.8); B(); tc(INK);
+  const yHdr = y + 5.8;
+  doc.text('DESCRIÇÃO',   xD + 6,  yHdr);
+  doc.text('QTD',         xQ,      yHdr, { align: 'right' });
+  doc.text('PREÇO UNIT.', xPU,     yHdr, { align: 'right' });
+  doc.text('IVA',         xIV,     yHdr, { align: 'right' });
+  doc.text('DESC.',       xDC,     yHdr, { align: 'right' });
+  doc.text('TOTAL',       xT,      yHdr, { align: 'right' });
+  y += HDR_H + 2;
+
+  // Itens
+  const items = fatura.itens || [];
+  const ROW_H = 8;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    // Zebra alternada — apenas fundo muito subtil
+    if (i % 2 !== 0) {
+      fc(ROW_ALT); doc.rect(ML, y - 1.5, W - ML - MR, ROW_H, 'F');
+    }
+
+    // Linha inferior fina
+    rule(y + ROW_H - 2, RULE, 0.15);
+
+    const name  = item.produto?.nome || 'Produto';
+    const trunc = name.length > 54 ? name.slice(0, 51) + '...' : name;
+
+    // Descrição — bold ink
+    B(); sz(8.5); tc(INK);
+    doc.text(trunc, xD + 6, y + 4);
+
+    // Valores — normal muted
+    N(); tc(MUTED);
+    doc.text(String(item.quantidade),             xQ,  y + 4, { align: 'right' });
+    doc.text(formatCurrency(item.preco_unitario), xPU, y + 4, { align: 'right' });
+    doc.text(`${item.taxa_iva}%`,                 xIV, y + 4, { align: 'right' });
+    doc.text(`${item.desconto || 0}%`,            xDC, y + 4, { align: 'right' });
+
+    // Total — bold ink
+    B(); tc(INK);
+    doc.text(formatCurrency(item.total), xT, y + 4, { align: 'right' });
+
+    y += ROW_H;
   }
 
-  // Payment method
-  if (fatura.metodo_pagamento) {
-    doc.setTextColor(...COLORS.text);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.text('Método de Pagamento:', margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(fatura.metodo_pagamento, margin + 40, y);
-    y += 8;
+  // Fechar tabela: linha âmbar
+  dc(AMBER); doc.setLineWidth(0.7);
+  doc.line(ML, y, W - MR, y);
+  y += 12;
+
+  /* ════════════════════════════════════════════════════════════
+     ⑦ TOTAIS — puramente tipográfico, nenhuma borda
+  ════════════════════════════════════════════════════════════ */
+  const tLX = W - MR - 75;
+  const tVX = W - MR;
+
+  sz(8.5);
+  // Subtotal
+  N(); tc(MUTED); doc.text('Subtotal', tLX, y);
+  B(); tc(INK);   doc.text(formatCurrency(fatura.subtotal), tVX, y, { align: 'right' });
+  y += 6.5;
+
+  // IVA
+  N(); tc(MUTED); doc.text('IVA 14%', tLX, y);
+  B(); tc(INK);   doc.text(formatCurrency(fatura.total_iva), tVX, y, { align: 'right' });
+  y += 5;
+
+  // Linha âmbar — apenas entre IVA e Total
+  dc(AMBER); doc.setLineWidth(0.7);
+  doc.line(tLX, y, tVX, y);
+  y += 8;
+
+  // Total — maior, âmbar
+  sz(13); B();
+  tc(INK);   doc.text('TOTAL A PAGAR', tLX, y);
+  tc(AMBER); doc.text(formatCurrency(fatura.total), tVX, y, { align: 'right' });
+  y += 14;
+
+  /* ════════════════════════════════════════════════════════════
+     ⑧ OBSERVAÇÕES + MÉTODO PAGAMENTO — linha simples
+  ════════════════════════════════════════════════════════════ */
+  if (fatura.observacoes || fatura.metodo_pagamento) {
+    rule(y, RULE, 0.25);
+    y += 7;
+
+    if (fatura.observacoes) {
+      sz(6.5); B(); tc(AMBER); doc.text('OBSERVAÇÕES', ML, y);
+      y += 5;
+      N(); sz(8); tc(MUTED);
+      const obs = doc.splitTextToSize(fatura.observacoes, W - ML - MR - 60);
+      doc.text(obs, ML, y);
+      y += obs.length * 4.2 + 4;
+    }
+
+    if (fatura.metodo_pagamento) {
+      sz(6.5); B(); tc(MUTED); doc.text('MÉTODO DE PAGAMENTO', ML, y);
+      y += 5;
+      N(); sz(8.5); tc(INK); doc.text(fatura.metodo_pagamento, ML, y);
+    }
   }
 
-  // ── QR Code ──
+  /* ════════════════════════════════════════════════════════════
+     ⑨ QR CODE — canto inferior esquerdo, bem acima do rodapé
+     QR: 32×32mm, começa a H-65 → termina a H-33 → rodapé a H-20
+  ════════════════════════════════════════════════════════════ */
+  const QR_SIZE  = 32;          // tamanho do QR em mm
+  const QR_TOP   = H - 65;      // começa bem acima do rodapé
+  const RULE_Y   = QR_TOP - 8;  // linha separadora acima do QR
+
+  rule(RULE_Y, RULE, 0.25);
+
   try {
     const qrData = fatura.qr_code || JSON.stringify({
-      numero: fatura.numero,
-      data: fatura.data_emissao,
-      total: fatura.total,
-      nif_emitente: companyNif || '',
+      numero: fatura.numero, data: fatura.data_emissao,
+      total: fatura.total, nif_emitente: compNif,
     });
-    const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
-      width: 200,
-      margin: 1,
-      color: { dark: '#1e1e1e', light: '#ffffff' },
+    const qrUrl = await QRCode.toDataURL(qrData, {
+      width: 260, margin: 1,
+      color: { dark: '#14141E', light: '#FFFFFF' },
     });
-    const qrY = pageHeight - 50;
-    doc.addImage(qrCodeDataUrl, 'PNG', margin, qrY, 30, 30);
-    doc.setFontSize(6.5);
-    doc.setTextColor(...COLORS.muted);
-    doc.text('Código QR de Verificação', margin, qrY + 33);
-  } catch (error) {
-    console.error('Error generating QR code:', error);
-  }
+    doc.addImage(qrUrl, 'PNG', ML, QR_TOP, QR_SIZE, QR_SIZE);
 
-  // ── Footer ──
-  doc.setFillColor(...COLORS.headerBg);
-  doc.rect(0, pageHeight - 12, pageWidth, 12, 'F');
-  // Accent line
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, pageHeight - 12, pageWidth, 1.5, 'F');
+    // Texto ao lado do QR
+    sz(7); B(); tc(INK);
+    doc.text('Código QR de Verificação', ML + QR_SIZE + 5, QR_TOP + 8);
+    sz(7); N(); tc(MUTED);
+    doc.text('Digitalize para validar este documento', ML + QR_SIZE + 5, QR_TOP + 14);
+    doc.text(`Fatura: ${fatura.numero}`, ML + QR_SIZE + 5, QR_TOP + 20);
+  } catch { /* skip */ }
 
-  doc.setFontSize(7);
-  doc.setTextColor(180, 180, 180);
+  /* ════════════════════════════════════════════════════════════
+     ⑩ RODAPÉ — escuro + linha âmbar topo  (H-20 → fundo)
+  ════════════════════════════════════════════════════════════ */
+  fc(DARK);  doc.rect(0, H - 20, W, 20, 'F');
+  fc(AMBER); doc.rect(0, H - 20, W, 1.5, 'F');
+
+  sz(6.5); N(); tc([150, 150, 165] as [number,number,number]);
   doc.text(
-    `Documento processado por ${companyName} – Sistema de Faturação Certificado`,
-    pageWidth / 2, pageHeight - 6, { align: 'center' }
+    `${compName} — Sistema de Faturação Certificado  ·  Emitido em ${formatDate(fatura.data_emissao)}`,
+    W / 2, H - 13, { align: 'center' }
   );
-  doc.setFontSize(6);
+  sz(5.5);
   doc.text(
-    `Emitido em ${formatDate(fatura.data_emissao)} | Documento válido para efeitos fiscais em Angola`,
-    pageWidth / 2, pageHeight - 2.5, { align: 'center' }
+    'Documento válido para efeitos fiscais na República de Angola',
+    W / 2, H - 8.5, { align: 'center' }
   );
+  sz(5);
+  doc.text(
+    `Faktura Angola © ${new Date().getFullYear()} — Todos os direitos reservados`,
+    W / 2, H - 4.5, { align: 'center' }
+  );
+
+  // Marca FAKTURA canto direito
+  sz(8.5); B(); tc(AMBER);
+  doc.text('FAKTURA', W - MR, H - 13, { align: 'right' });
+  sz(6); N(); tc([95, 95, 115] as [number,number,number]);
+  doc.text('faktura.ao', W - MR, H - 8.5, { align: 'right' });
 
   return doc.output('blob');
 }
 
+/* ═══════════════════════════════════════════════════════════════ */
 function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('pt-AO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  if (!dateString) return '—';
+  return new Date(dateString).toLocaleDateString('pt-AO', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+  });
 }
 
 export function downloadInvoicePDF(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
+  const url  = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
+  link.href = url; link.download = filename;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
