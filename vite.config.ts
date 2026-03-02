@@ -18,7 +18,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+
       includeAssets: ["favicon.ico", "robots.txt", "placeholder.svg"],
+
       manifest: {
         name: "Faktura Angola",
         short_name: "Faktura",
@@ -36,17 +38,26 @@ export default defineConfig(({ mode }) => ({
           },
         ],
       },
+
       workbox: {
+        // 🔥 AQUI ESTÁ A CORREÇÃO
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB
+
         globPatterns: ["**/*.{js,css,html,ico,png,jpg,svg,woff2}"],
+
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/~oauth/],
+
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "supabase-api",
-              expiration: { maxEntries: 50, maxAgeSeconds: 300 },
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 300,
+              },
               networkTimeoutSeconds: 5,
             },
           },
@@ -54,6 +65,7 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ].filter(Boolean),
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
