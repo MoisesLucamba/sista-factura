@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type AppRole = 'admin' | 'operador' | 'contador';
+export type AppRole = 'admin' | 'operador' | 'contador' | 'comprador';
 
 interface Profile {
   id: string;
@@ -11,6 +11,10 @@ interface Profile {
   nome: string;
   email: string;
   avatar_url?: string;
+  nif?: string;
+  telefone?: string;
+  tipo?: string;
+  faktura_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -21,7 +25,7 @@ interface AuthContextType {
   profile: Profile | null;
   role: AppRole | null;
   loading: boolean;
-  signUp: (email: string, password: string, nome: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string }) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasRole: (requiredRole: AppRole) => boolean;
@@ -126,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, nome: string) => {
+  const signUp = async (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string }) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -135,6 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           emailRedirectTo: window.location.origin,
           data: {
             nome,
+            nif: extra?.nif,
+            telefone: extra?.telefone,
+            tipo: extra?.tipo || 'vendedor',
           },
         },
       });

@@ -24,8 +24,8 @@ import logoAlphadata from '@/assets/logos/alphadata.png';
 import teamCollab from '@/assets/team-collab.jpg';
 
 /* ─── Hooks ─────────────────────────────────────────────── */
-function useInView(threshold = 0.15) {
-  const ref = useRef(null);
+function useInView(threshold = 0.15): [React.RefObject<any>, boolean] {
+  const ref = useRef<any>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -289,7 +289,7 @@ function PageSobreNos() {
               <p className="text-muted-foreground leading-relaxed text-sm">Combinamos tecnologia moderna com profundo conhecimento da legislação angolana para criar uma plataforma que protege o seu negócio e liberta o seu tempo.</p>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {[['500+','Empresas activas',Users],['50K+','Faturas emitidas',FileText],['99%','Uptime garantido',TrendingUp],['2022','Fundada em Luanda',Heart]].map(([v,l,I],i) => (
+              {([{v:'500+',l:'Empresas activas',I:Users},{v:'50K+',l:'Faturas emitidas',I:FileText},{v:'99%',l:'Uptime garantido',I:TrendingUp},{v:'2022',l:'Fundada em Luanda',I:Heart}] as const).map(({v,l,I},i) => (
                 <div key={i} className="bg-card border border-border/50 rounded-2xl p-5 text-center group hover:border-primary/30 transition-all">
                   <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
                     <I className="w-4 h-4 text-primary" />
@@ -1469,12 +1469,17 @@ export default function LandingPage() {
                 <div className="text-center mb-10"><h3 className="text-3xl font-black mb-2">Como funciona</h3><p className="text-muted-foreground">Simples. Seguro. Automatico.</p></div>
               </FadeIn>
               <div className="grid md:grid-cols-4 gap-6 mb-16">
-                {[[UserPlus,'01','Crie a sua conta','Registe-se gratuitamente e receba o seu ID unico de comprador.'],[ScanLine,'02','Partilhe o seu ID','Ao fazer compras, informe o seu ID ao vendedor. Ex: M20XV.'],[FileText,'03','A fatura e emitida','A empresa usa o seu ID para preencher os dados automaticamente.'],[Wallet,'04','Receba os seus 50 Kz','Por cada fatura acima de 1.500 Kz, 50 Kz sao creditados automaticamente.']].map(([I,s,t,d],i) => (
+                {[
+                  {Ico:UserPlus,s:'01',t:'Crie a sua conta',d:'Registe-se gratuitamente e receba o seu ID unico de comprador.'},
+                  {Ico:ScanLine,s:'02',t:'Partilhe o seu ID',d:'Ao fazer compras, informe o seu ID ao vendedor. Ex: M20XV.'},
+                  {Ico:FileText,s:'03',t:'A fatura e emitida',d:'A empresa usa o seu ID para preencher os dados automaticamente.'},
+                  {Ico:Wallet,s:'04',t:'Receba os seus 50 Kz',d:'Por cada fatura acima de 1.500 Kz, 50 Kz sao creditados automaticamente.'},
+                ].map(({Ico,s,t,d},i) => (
                   <FadeIn key={i} delay={i*100} direction="up">
                     <div className="ec group bg-card border border-border/50 rounded-2xl p-6 text-center hover:border-primary/30 h-full relative">
                       {i<3 && <div className="hidden md:block absolute top-8 left-[calc(100%-1px)] w-6 h-px bg-gradient-to-r from-primary/30 to-primary/10 z-10" />}
                       <div className="relative w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 group-hover:bg-primary/20 transition-colors">
-                        <I className="w-7 h-7 text-primary" />
+                        <Ico className="w-7 h-7 text-primary" />
                         <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center">{i+1}</span>
                       </div>
                       <p className="text-xs font-bold text-primary/60 uppercase tracking-widest mb-2">{s}</p>
@@ -1499,7 +1504,7 @@ export default function LandingPage() {
                       <p className="text-muted-foreground leading-relaxed">Cada vez que fizer uma compra acima de 1.500 Kz numa empresa que usa a Faktura, recebe automaticamente <strong className="text-foreground">50 Kz</strong>. Quanto mais comprar, mais ganha.</p>
                     </div>
                     <div className="space-y-4">
-                      {[[10,500,'Compras ocasionais'],[30,1500,'Compras regulares'],[60,3000,'Comprador activo']].map(([f,t,l],i) => (
+                      {([{f:10,t:500,l:'Compras ocasionais'},{f:30,t:1500,l:'Compras regulares'},{f:60,t:3000,l:'Comprador activo'}] as const).map(({f,t,l},i) => (
                         <div key={i} className="bg-muted/50 rounded-xl p-4">
                           <div className="flex items-center justify-between mb-1.5">
                             <span className="text-sm font-semibold">{l}</span>

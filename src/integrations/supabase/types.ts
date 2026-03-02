@@ -146,6 +146,77 @@ export type Database = {
         }
         Relationships: []
       }
+      buyer_purchases: {
+        Row: {
+          buyer_user_id: string
+          created_at: string
+          descricao: string | null
+          fatura_id: string | null
+          id: string
+          pontos_ganhos: number
+          valor: number
+          vendor_name: string | null
+        }
+        Insert: {
+          buyer_user_id: string
+          created_at?: string
+          descricao?: string | null
+          fatura_id?: string | null
+          id?: string
+          pontos_ganhos?: number
+          valor?: number
+          vendor_name?: string | null
+        }
+        Update: {
+          buyer_user_id?: string
+          created_at?: string
+          descricao?: string | null
+          fatura_id?: string | null
+          id?: string
+          pontos_ganhos?: number
+          valor?: number
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buyer_purchases_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      buyer_wallets: {
+        Row: {
+          created_at: string
+          faktura_id: string
+          id: string
+          pontos: number
+          saldo: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          faktura_id: string
+          id?: string
+          pontos?: number
+          saldo?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          faktura_id?: string
+          id?: string
+          pontos?: number
+          saldo?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
           created_at: string
@@ -538,8 +609,12 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string
+          faktura_id: string | null
           id: string
+          nif: string | null
           nome: string
+          telefone: string | null
+          tipo: string | null
           updated_at: string
           user_id: string
         }
@@ -547,8 +622,12 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email: string
+          faktura_id?: string | null
           id?: string
+          nif?: string | null
           nome: string
+          telefone?: string | null
+          tipo?: string | null
           updated_at?: string
           user_id: string
         }
@@ -556,8 +635,12 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string
+          faktura_id?: string | null
           id?: string
+          nif?: string | null
           nome?: string
+          telefone?: string | null
+          tipo?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -642,6 +725,7 @@ export type Database = {
         }
         Returns: string
       }
+      generate_faktura_id: { Args: never; Returns: string }
       generate_invoice_number: {
         Args: { _serie: string; _user_id: string }
         Returns: string
@@ -659,7 +743,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "operador" | "contador"
+      app_role: "admin" | "operador" | "contador" | "comprador"
       send_channel: "whatsapp" | "sms" | "email"
       send_status: "pending" | "sent" | "delivered" | "failed" | "read"
     }
@@ -789,7 +873,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "operador", "contador"],
+      app_role: ["admin", "operador", "contador", "comprador"],
       send_channel: ["whatsapp", "sms", "email"],
       send_status: ["pending", "sent", "delivered", "failed", "read"],
     },

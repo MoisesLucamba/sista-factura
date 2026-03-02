@@ -27,6 +27,16 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Redirect buyers trying to access seller pages
+  if (role === 'comprador' && location.pathname !== '/comprador' && !allowedRoles?.includes('comprador')) {
+    return <Navigate to="/comprador" replace />;
+  }
+
+  // Redirect sellers trying to access buyer pages
+  if (role && role !== 'comprador' && allowedRoles?.includes('comprador') && allowedRoles.length === 1) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   if (allowedRoles && !canAccess(allowedRoles)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
