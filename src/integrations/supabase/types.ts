@@ -303,6 +303,8 @@ export type Database = {
       faturas: {
         Row: {
           assinatura_digital: string | null
+          buyer_faktura_id: string | null
+          buyer_user_id: string | null
           certificate_number: string | null
           cliente_id: string
           created_at: string
@@ -328,6 +330,8 @@ export type Database = {
         }
         Insert: {
           assinatura_digital?: string | null
+          buyer_faktura_id?: string | null
+          buyer_user_id?: string | null
           certificate_number?: string | null
           cliente_id: string
           created_at?: string
@@ -353,6 +357,8 @@ export type Database = {
         }
         Update: {
           assinatura_digital?: string | null
+          buyer_faktura_id?: string | null
+          buyer_user_id?: string | null
           certificate_number?: string | null
           cliente_id?: string
           created_at?: string
@@ -740,6 +746,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      lookup_buyer_by_faktura_id: {
+        Args: { _faktura_id: string }
+        Returns: {
+          email: string
+          nif: string
+          nome: string
+          telefone: string
+          user_id: string
+        }[]
       }
     }
     Enums: {

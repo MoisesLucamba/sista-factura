@@ -28,6 +28,7 @@ import { useProdutos } from '@/hooks/useProdutos';
 import { useCreateFatura, type FaturaInput } from '@/hooks/useFaturas';
 import { useAutoSendInvoice } from '@/hooks/useAutoSendInvoice';
 import { formatCurrency, calculateIVA } from '@/lib/format';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   ArrowLeft, 
   Plus, 
@@ -39,6 +40,9 @@ import {
   User,
   Loader2,
   AlertTriangle,
+  Search,
+  CheckCircle,
+  CreditCard,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -84,6 +88,12 @@ export default function NovaFatura() {
   const [cfNif, setCfNif] = useState('');
   const [cfEndereco, setCfEndereco] = useState('');
 
+  // Faktura ID lookup
+  const [useFakturaId, setUseFakturaId] = useState(false);
+  const [fakturaIdInput, setFakturaIdInput] = useState('');
+  const [buyerData, setBuyerData] = useState<{ user_id: string; nome: string; nif: string; telefone: string; email: string } | null>(null);
+  const [lookingUpBuyer, setLookingUpBuyer] = useState(false);
+
   // B2B inline fields
   const [b2bNome, setB2bNome] = useState('');
   const [b2bNif, setB2bNif] = useState('');
@@ -91,8 +101,35 @@ export default function NovaFatura() {
   const [useExistingClient, setUseExistingClient] = useState(true);
 
   const clienteSelecionado = clientes.find(c => c.id === clienteId);
-
   const isProforma = tipo === 'proforma';
+
+  const lookupBuyer = async () => {
+    if (!fakturaIdInput.trim()) {
+      toast.error('Digite o ID Faktura do comprador');
+      return;
+    }
+    setLookingUpBuyer(true);
+    try {
+      const { data, error } = await supabase.rpc('lookup_buyer_by_faktura_id', {
+        _faktura_id: fakturaIdInput.trim().toUpperCase(),
+      });
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const buyer = data[0] as { user_id: string; nome: string; nif: string; telefone: string; email: string };
+        setBuyerData(buyer);
+        setCfNome(buyer.nome || '');
+        setCfNif(buyer.nif || '');
+        toast.success('Comprador encontrado!');
+      } else {
+        setBuyerData(null);
+        toast.error('Nenhum comprador encontrado com este ID');
+      }
+    } catch {
+      toast.error('Erro ao procurar comprador');
+    } finally {
+      setLookingUpBuyer(false);
+    }
+  };
 
   const addItem = () => {
     setItens([...itens, {
@@ -232,6 +269,8 @@ export default function NovaFatura() {
         ? `DOCUMENTO PROFORMA – NÃO VÁLIDO COMO DOCUMENTO FISCAL${observacoes ? '\n' + observacoes : ''}`
         : observacoes || undefined,
       metodo_pagamento: metodoPagamento || undefined,
+      buyer_user_id: useFakturaId && buyerData ? buyerData.user_id : undefined,
+      buyer_faktura_id: useFakturaId && buyerData ? fakturaIdInput.trim().toUpperCase() : undefined,
       itens: itens.map(item => ({
         produto_id: item.produto_id,
         quantidade: item.quantidade,
@@ -433,35 +472,103 @@ export default function NovaFatura() {
               {/* Consumidor Final (B2C) */}
               {tipoCliente === 'consumidor_final' && (
                 <div className="space-y-4 animate-fade-in">
-                  <p className="text-sm text-muted-foreground">
-                    Todos os campos são opcionais. Se não preencher, será usado "Consumidor Final".
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Nome (opcional)</Label>
-                      <Input
-                        placeholder="Consumidor Final"
-                        value={cfNome}
-                        onChange={(e) => setCfNome(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>NIF (opcional)</Label>
-                      <Input
-                        placeholder="Deixar em branco"
-                        value={cfNif}
-                        onChange={(e) => setCfNif(e.target.value)}
-                      />
-                    </div>
+                  {/* Toggle: Manual vs Faktura ID */}
+                  <div className="flex gap-3">
+                    <Button
+                      variant={!useFakturaId ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => { setUseFakturaId(false); setBuyerData(null); }}
+                    >
+                      <User className="w-4 h-4 mr-1" />
+                      Dados manuais
+                    </Button>
+                    <Button
+                      variant={useFakturaId ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setUseFakturaId(true)}
+                    >
+                      <CreditCard className="w-4 h-4 mr-1" />
+                      ID Faktura
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Endereço (opcional)</Label>
-                    <Input
-                      placeholder="Endereço do cliente"
-                      value={cfEndereco}
-                      onChange={(e) => setCfEndereco(e.target.value)}
-                    />
-                  </div>
+
+                  {useFakturaId ? (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Insira o ID Faktura do comprador para preencher automaticamente.
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Ex: FK-12345"
+                          value={fakturaIdInput}
+                          onChange={(e) => setFakturaIdInput(e.target.value.toUpperCase())}
+                          className="font-mono"
+                        />
+                        <Button onClick={lookupBuyer} disabled={lookingUpBuyer} size="default">
+                          {lookingUpBuyer ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                        </Button>
+                      </div>
+
+                      {buyerData && (
+                        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3 animate-fade-in">
+                          <div className="flex items-center gap-2 text-primary">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="text-sm font-bold">Comprador encontrado</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Nome</Label>
+                              <Input value={buyerData.nome || ''} disabled className="bg-muted font-medium" />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">NIF</Label>
+                              <Input value={buyerData.nif || 'N/A'} disabled className="bg-muted font-mono" />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Telefone</Label>
+                              <Input value={buyerData.telefone || 'N/A'} disabled className="bg-muted" />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs text-muted-foreground">Email</Label>
+                              <Input value={buyerData.email || 'N/A'} disabled className="bg-muted" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Todos os campos são opcionais. Se não preencher, será usado "Consumidor Final".
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Nome (opcional)</Label>
+                          <Input
+                            placeholder="Consumidor Final"
+                            value={cfNome}
+                            onChange={(e) => setCfNome(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>NIF (opcional)</Label>
+                          <Input
+                            placeholder="Deixar em branco"
+                            value={cfNif}
+                            onChange={(e) => setCfNif(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Endereço (opcional)</Label>
+                        <Input
+                          placeholder="Endereço do cliente"
+                          value={cfEndereco}
+                          onChange={(e) => setCfEndereco(e.target.value)}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -780,10 +887,16 @@ export default function NovaFatura() {
                   <span className="text-muted-foreground">Cliente</span>
                   <span className="text-right truncate max-w-[150px]">
                     {tipoCliente === 'consumidor_final'
-                      ? (cfNome || 'Consumidor Final')
+                      ? (useFakturaId && buyerData ? buyerData.nome : (cfNome || 'Consumidor Final'))
                       : (useExistingClient ? clienteSelecionado?.nome || '—' : b2bNome || '—')}
                   </span>
                 </div>
+                {useFakturaId && buyerData && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">ID Faktura</span>
+                    <Badge variant="outline" className="font-mono text-xs">{fakturaIdInput}</Badge>
+                  </div>
+                )}
               </div>
 
               <Separator />

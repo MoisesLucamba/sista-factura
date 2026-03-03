@@ -52,6 +52,8 @@ export interface FaturaInput {
   data_vencimento: string;
   observacoes?: string;
   metodo_pagamento?: string;
+  buyer_user_id?: string;
+  buyer_faktura_id?: string;
   itens: Array<{
     produto_id: string;
     quantidade: number;
@@ -159,24 +161,31 @@ export function useCreateFatura() {
       });
 
       // Create fatura
+      const insertData: Record<string, unknown> = {
+        user_id: user!.id,
+        numero,
+        serie: invoiceSerie,
+        tipo: input.tipo,
+        estado: 'emitida',
+        cliente_id: input.cliente_id,
+        data_emissao: input.data_emissao,
+        data_vencimento: input.data_vencimento,
+        subtotal,
+        total_iva: totalIva,
+        total,
+        observacoes: input.observacoes,
+        metodo_pagamento: input.metodo_pagamento,
+        qr_code: qrData,
+      };
+
+      if (input.buyer_user_id) {
+        insertData.buyer_user_id = input.buyer_user_id;
+        insertData.buyer_faktura_id = input.buyer_faktura_id;
+      }
+
       const { data: fatura, error: faturaError } = await supabase
         .from('faturas')
-        .insert({
-          user_id: user!.id,
-          numero,
-          serie: invoiceSerie,
-          tipo: input.tipo,
-          estado: 'emitida',
-          cliente_id: input.cliente_id,
-          data_emissao: input.data_emissao,
-          data_vencimento: input.data_vencimento,
-          subtotal,
-          total_iva: totalIva,
-          total,
-          observacoes: input.observacoes,
-          metodo_pagamento: input.metodo_pagamento,
-          qr_code: qrData,
-        })
+        .insert(insertData as any)
         .select()
         .single();
 
