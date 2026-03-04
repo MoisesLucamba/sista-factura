@@ -12,9 +12,15 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Wallet, User, ShoppingBag, Star, LogOut, Copy, CheckCircle,
   Loader2, TrendingUp, Gift, Clock, FileText, Edit2, Save, X,
-  Receipt, Eye, Calendar, ArrowUpRight, Shield, Download,
+  Receipt, Eye, Calendar, ArrowUpRight, Shield, Download, Bell,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoFaktura from '@/assets/logo-faktura.png';
@@ -57,22 +63,75 @@ export default function DashboardComprador() {
   const [editTelefone, setEditTelefone] = useState('');
   const [editNif, setEditNif] = useState('');
   const [saving, setSaving] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewNumero, setPreviewNumero] = useState('');
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  const [notifications, setNotifications] = useState<string[]>([]);
+
+  const loadData = useCallback(async () => {
+    if (!user) return;
+    const [walletRes, purchasesRes, invoicesRes] = await Promise.all([
+      supabase.from('buyer_wallets').select('faktura_id, pontos, saldo').eq('user_id', user.id).single(),
+      supabase.from('buyer_purchases').select('*').eq('buyer_user_id', user.id).order('created_at', { ascending: false }).limit(50),
+      supabase.from('faturas').select('id, numero, total, estado, data_emissao, tipo, buyer_faktura_id').eq('buyer_user_id', user.id).order('created_at', { ascending: false }).limit(50),
+    ]);
+    if (walletRes.data) setWallet(walletRes.data as WalletData);
+    if (purchasesRes.data) setPurchases(purchasesRes.data as Purchase[]);
+    if (invoicesRes.data) setInvoices(invoicesRes.data as InvoiceLinked[]);
+    setLoading(false);
+  }, [user]);
 
   useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Real-time notifications for new invoices
+  useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      const [walletRes, purchasesRes, invoicesRes] = await Promise.all([
-        supabase.from('buyer_wallets').select('faktura_id, pontos, saldo').eq('user_id', user.id).single(),
-        supabase.from('buyer_purchases').select('*').eq('buyer_user_id', user.id).order('created_at', { ascending: false }).limit(50),
-        supabase.from('faturas').select('id, numero, total, estado, data_emissao, tipo, buyer_faktura_id').eq('buyer_user_id', user.id).order('created_at', { ascending: false }).limit(50),
-      ]);
-      if (walletRes.data) setWallet(walletRes.data as WalletData);
-      if (purchasesRes.data) setPurchases(purchasesRes.data as Purchase[]);
-      if (invoicesRes.data) setInvoices(invoicesRes.data as InvoiceLinked[]);
-      setLoading(false);
+    const channel = supabase
+      .channel('buyer-invoices')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'faturas',
+          filter: `buyer_user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newInv = payload.new as any;
+          toast.success(`Nova fatura recebida: ${newInv.numero}`, {
+            description: `Valor: ${formatCurrency(newInv.total)}`,
+            duration: 8000,
+          });
+          setNotifications(prev => [`Fatura ${newInv.numero} — ${formatCurrency(newInv.total)}`, ...prev.slice(0, 9)]);
+          // Reload data to update lists and wallet
+          loadData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'faturas',
+          filter: `buyer_user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as any;
+          if (updated.estado === 'emitida' && (payload.old as any)?.estado === 'rascunho') {
+            toast.info(`Fatura ${updated.numero} foi emitida!`, { duration: 6000 });
+            loadData();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-    load();
-  }, [user]);
+  }, [user, loadData]);
 
   const copyId = () => {
     if (wallet?.faktura_id) {
@@ -83,72 +142,87 @@ export default function DashboardComprador() {
     }
   };
 
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const fetchFullInvoice = useCallback(async (invoiceId: string) => {
+    const { data: fatura, error: fErr } = await supabase
+      .from('faturas')
+      .select('*')
+      .eq('id', invoiceId)
+      .single();
+    if (fErr || !fatura) throw new Error('Fatura não encontrada');
 
-  const handleDownloadPDF = useCallback(async (invoiceId: string, numero: string) => {
+    const { data: cliente } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('id', fatura.cliente_id)
+      .single();
+
+    const { data: itensRaw } = await supabase
+      .from('itens_fatura')
+      .select('*')
+      .eq('fatura_id', invoiceId);
+
+    const itens = await Promise.all(
+      (itensRaw || []).map(async (item) => {
+        const { data: produto } = await supabase
+          .from('produtos')
+          .select('*')
+          .eq('id', item.produto_id)
+          .single();
+        return { ...item, produto: produto ? { ...produto, tipo: produto.tipo as 'produto' | 'servico' } : undefined };
+      })
+    );
+
+    const { data: vendorConfig } = await supabase
+      .from('agt_config')
+      .select('*')
+      .eq('user_id', fatura.user_id)
+      .single();
+
+    const fullFatura = {
+      ...fatura,
+      tipo: fatura.tipo as Fatura['tipo'],
+      estado: fatura.estado as Fatura['estado'],
+      cliente: cliente ? { ...cliente, tipo: cliente.tipo as 'empresa' | 'particular' } : undefined,
+      itens,
+    } as Fatura;
+
+    const blob = await generateInvoicePDF(fullFatura, vendorConfig || undefined);
+    return { blob, numero: fatura.numero };
+  }, []);
+
+  const handlePreviewPDF = useCallback(async (invoiceId: string, numero: string) => {
     setDownloadingId(invoiceId);
     try {
-      // Fetch full invoice with client and items
-      const { data: fatura, error: fErr } = await supabase
-        .from('faturas')
-        .select('*')
-        .eq('id', invoiceId)
-        .single();
-      if (fErr || !fatura) throw new Error('Fatura não encontrada');
-
-      const { data: cliente } = await supabase
-        .from('clientes')
-        .select('*')
-        .eq('id', fatura.cliente_id)
-        .single();
-
-      const { data: itensRaw } = await supabase
-        .from('itens_fatura')
-        .select('*')
-        .eq('fatura_id', invoiceId);
-
-      // Fetch product names for each item
-      const itens = await Promise.all(
-        (itensRaw || []).map(async (item) => {
-          const { data: produto } = await supabase
-            .from('produtos')
-            .select('*')
-            .eq('id', item.produto_id)
-            .single();
-          return { ...item, produto: produto || undefined };
-        })
-      );
-
-      // Get vendor company info
-      const { data: vendorConfig } = await supabase
-        .from('agt_config')
-        .select('*')
-        .eq('user_id', fatura.user_id)
-        .single();
-
-      const fullFatura = {
-        ...fatura,
-        tipo: fatura.tipo as Fatura['tipo'],
-        estado: fatura.estado as Fatura['estado'],
-        cliente: cliente ? { ...cliente, tipo: cliente.tipo as 'empresa' | 'particular' } : undefined,
-        itens: itens.map(i => ({ ...i, produto: i.produto ? { ...i.produto, tipo: i.produto.tipo as 'produto' | 'servico' } : undefined })),
-      } as Fatura;
-
-      const blob = await generateInvoicePDF(fullFatura, vendorConfig || undefined);
+      const { blob } = await fetchFullInvoice(invoiceId);
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${numero}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success('PDF descarregado!');
+      setPreviewUrl(url);
+      setPreviewNumero(numero);
+      setPreviewBlob(blob);
     } catch (err) {
       console.error(err);
       toast.error('Erro ao gerar PDF');
     } finally {
       setDownloadingId(null);
     }
-  }, []);
+  }, [fetchFullInvoice]);
+
+  const handleDownloadFromPreview = () => {
+    if (!previewBlob || !previewNumero) return;
+    const url = URL.createObjectURL(previewBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${previewNumero}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('PDF descarregado!');
+  };
+
+  const closePreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewNumero('');
+    setPreviewBlob(null);
+  };
 
   const startEditing = () => {
     setEditNome(profile?.nome || '');
@@ -168,7 +242,6 @@ export default function DashboardComprador() {
       if (error) throw error;
       toast.success('Perfil atualizado!');
       setEditing(false);
-      // Reload page to refresh profile
       window.location.reload();
     } catch {
       toast.error('Erro ao atualizar perfil');
@@ -212,11 +285,44 @@ export default function DashboardComprador() {
         }
       `}</style>
 
+      {/* PDF Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) closePreview(); }}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-3 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary" />
+                {previewNumero}
+              </DialogTitle>
+              <Button onClick={handleDownloadFromPreview} size="sm" className="gap-2">
+                <Download className="w-4 h-4" />
+                Descarregar
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 px-6 pb-6">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full rounded-lg border border-border"
+                title="Preview da Fatura"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
           <img src={logoFaktura} alt="Faktura" className="h-8 object-contain" />
           <div className="flex items-center gap-3">
+            {notifications.length > 0 && (
+              <Badge variant="default" className="text-xs gap-1">
+                <Bell className="w-3 h-3" />
+                {notifications.length}
+              </Badge>
+            )}
             <span className="text-sm font-medium text-muted-foreground hidden sm:block">
               {profile?.nome}
             </span>
@@ -228,6 +334,26 @@ export default function DashboardComprador() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 pb-24 space-y-6">
+
+        {/* Notification Banner */}
+        {notifications.length > 0 && (
+          <div className="afu bg-primary/5 border border-primary/20 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold flex items-center gap-2">
+                <Bell className="w-4 h-4 text-primary" />
+                Notificações recentes
+              </h3>
+              <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setNotifications([])}>
+                Limpar
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {notifications.slice(0, 3).map((n, i) => (
+                <p key={i} className="text-xs text-muted-foreground">• {n}</p>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Welcome + ID Card */}
         <div className="afu" style={{ animationDelay: '0ms' }}>
@@ -330,19 +456,19 @@ export default function DashboardComprador() {
                           </div>
                           <div className="text-right flex-shrink-0 ml-3 flex items-center gap-2">
                             {estadoBadge(inv.estado)}
-                            <p className="text-sm font-bold">{formatCurrency(Number(inv.total))}</p>
+                            <p className="text-sm font-bold hidden sm:block">{formatCurrency(Number(inv.total))}</p>
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
                               disabled={downloadingId === inv.id}
-                              onClick={() => handleDownloadPDF(inv.id, inv.numero)}
-                              title="Descarregar PDF"
+                              onClick={() => handlePreviewPDF(inv.id, inv.numero)}
+                              title="Ver PDF"
                             >
                               {downloadingId === inv.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
-                                <Download className="w-4 h-4" />
+                                <Eye className="w-4 h-4" />
                               )}
                             </Button>
                           </div>
