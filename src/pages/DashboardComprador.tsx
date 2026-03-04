@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
+import { generateInvoicePDF } from '@/lib/pdf-generator';
+import type { Fatura } from '@/hooks/useFaturas';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Wallet, User, ShoppingBag, Star, LogOut, Copy, CheckCircle,
   Loader2, TrendingUp, Gift, Clock, FileText, Edit2, Save, X,
-  Receipt, Eye, Calendar, ArrowUpRight, Shield,
+  Receipt, Eye, Calendar, ArrowUpRight, Shield, Download,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoFaktura from '@/assets/logo-faktura.png';
@@ -80,6 +82,73 @@ export default function DashboardComprador() {
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownloadPDF = useCallback(async (invoiceId: string, numero: string) => {
+    setDownloadingId(invoiceId);
+    try {
+      // Fetch full invoice with client and items
+      const { data: fatura, error: fErr } = await supabase
+        .from('faturas')
+        .select('*')
+        .eq('id', invoiceId)
+        .single();
+      if (fErr || !fatura) throw new Error('Fatura não encontrada');
+
+      const { data: cliente } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('id', fatura.cliente_id)
+        .single();
+
+      const { data: itensRaw } = await supabase
+        .from('itens_fatura')
+        .select('*')
+        .eq('fatura_id', invoiceId);
+
+      // Fetch product names for each item
+      const itens = await Promise.all(
+        (itensRaw || []).map(async (item) => {
+          const { data: produto } = await supabase
+            .from('produtos')
+            .select('*')
+            .eq('id', item.produto_id)
+            .single();
+          return { ...item, produto: produto || undefined };
+        })
+      );
+
+      // Get vendor company info
+      const { data: vendorConfig } = await supabase
+        .from('agt_config')
+        .select('*')
+        .eq('user_id', fatura.user_id)
+        .single();
+
+      const fullFatura = {
+        ...fatura,
+        tipo: fatura.tipo as Fatura['tipo'],
+        estado: fatura.estado as Fatura['estado'],
+        cliente: cliente ? { ...cliente, tipo: cliente.tipo as 'empresa' | 'particular' } : undefined,
+        itens: itens.map(i => ({ ...i, produto: i.produto ? { ...i.produto, tipo: i.produto.tipo as 'produto' | 'servico' } : undefined })),
+      } as Fatura;
+
+      const blob = await generateInvoicePDF(fullFatura, vendorConfig || undefined);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${numero}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('PDF descarregado!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao gerar PDF');
+    } finally {
+      setDownloadingId(null);
+    }
+  }, []);
 
   const startEditing = () => {
     setEditNome(profile?.nome || '');
@@ -259,9 +328,23 @@ export default function DashboardComprador() {
                               </div>
                             </div>
                           </div>
-                          <div className="text-right flex-shrink-0 ml-3 flex items-center gap-3">
+                          <div className="text-right flex-shrink-0 ml-3 flex items-center gap-2">
                             {estadoBadge(inv.estado)}
                             <p className="text-sm font-bold">{formatCurrency(Number(inv.total))}</p>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              disabled={downloadingId === inv.id}
+                              onClick={() => handleDownloadPDF(inv.id, inv.numero)}
+                              title="Descarregar PDF"
+                            >
+                              {downloadingId === inv.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Download className="w-4 h-4" />
+                              )}
+                            </Button>
                           </div>
                         </div>
                       ))}
