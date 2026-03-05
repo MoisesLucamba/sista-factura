@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FileText, Users, Package,
   BarChart3, Settings, Building2, Truck,
   Receipt, Search, LogOut, ChevronLeft,
-  ChevronRight, Bell, X,
+  ChevronRight, Bell, X, ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -32,6 +32,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 const secondaryNavItems: NavItem[] = [
+  { icon: ShieldCheck, label: 'Admin', href: '/admin' },
   { icon: Building2, label: 'Empresa',        href: '/empresa'       },
   { icon: Settings,  label: 'Configurações',  href: '/configuracoes' },
 ];
