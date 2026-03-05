@@ -29,6 +29,7 @@ const TermosDeUso = lazy(() => import("./pages/TermosDeUso"));
 const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Perfil = lazy(() => import("./pages/Perfil"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -142,6 +143,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Empresa />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />

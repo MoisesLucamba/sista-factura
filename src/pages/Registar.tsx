@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import {
   Loader2, AlertCircle, ArrowRight, Zap, Shield, BarChart3,
   CheckCircle, CheckCircle2, FileText, BadgeDollarSign,
   Sparkles, Users, TrendingUp, Lock, Star, ShoppingBag, Store,
+  Camera, ShieldCheck,
 } from 'lucide-react';
 import logoFaktura from '@/assets/logo-faktura.png';
 import heroBusiness from '@/assets/hero-business.jpg';
@@ -27,6 +29,10 @@ export default function Registar() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
+  const [idDocFront, setIdDocFront] = useState<File | null>(null);
+  const [idDocBack, setIdDocBack] = useState<File | null>(null);
+  const [idDocFrontPreview, setIdDocFrontPreview] = useState<string | null>(null);
+  const [idDocBackPreview, setIdDocBackPreview] = useState<string | null>(null);
 
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -39,12 +45,40 @@ export default function Registar() {
     if (!telefone.trim()) { setError('O telefone é obrigatório.'); return; }
     if (password !== confirmPassword) { setError('As palavras-passe não coincidem.'); return; }
     if (password.length < 6) { setError('A palavra-passe deve ter pelo menos 6 caracteres.'); return; }
+    if (tipo === 'comprador' && (!idDocFront || !idDocBack)) {
+      setError('É obrigatório enviar a frente e verso do documento de identificação.');
+      return;
+    }
     setLoading(true);
     const { error } = await signUp(email, password, nome, { nif, telefone, tipo });
     if (error) {
       setError(error.message.includes('already registered') ? 'Este email já está registado.' : error.message);
       setLoading(false);
       return;
+    }
+    // Upload ID documents for buyers after signup
+    if (tipo === 'comprador' && idDocFront && idDocBack) {
+      try {
+        // We need the user session to upload - get it from supabase auth
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userId = sessionData.session?.user?.id;
+        if (userId) {
+          const frontExt = idDocFront.name.split('.').pop();
+          const backExt = idDocBack.name.split('.').pop();
+          const frontPath = `${userId}/id-front.${frontExt}`;
+          const backPath = `${userId}/id-back.${backExt}`;
+
+          await supabase.storage.from('id-documents').upload(frontPath, idDocFront);
+          await supabase.storage.from('id-documents').upload(backPath, idDocBack);
+
+          await supabase.from('profiles').update({
+            id_doc_front_url: frontPath,
+            id_doc_back_url: backPath,
+          } as any).eq('user_id', userId);
+        }
+      } catch (uploadErr) {
+        console.error('Error uploading ID docs:', uploadErr);
+      }
     }
     setSuccess(true);
     setLoading(false);
@@ -343,7 +377,48 @@ export default function Registar() {
               <p className="text-xs text-muted-foreground/60">O primeiro utilizador vendedor terá permissões de administrador.</p>
             )}
             {tipo === 'comprador' && (
-              <p className="text-xs text-muted-foreground/60">Receberá um ID Faktura único para acumular pontos nas suas compras.</p>
+              <div className="fu-4 space-y-3">
+                <p className="text-xs text-muted-foreground/60">Receberá um ID Faktura único para acumular pontos nas suas compras.</p>
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+                  <p className="text-xs font-bold text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Verificação de Identidade Obrigatória
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mb-3">Envie fotos do seu BI/Passaporte (frente e verso) para validação da sua conta.</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold">Frente do BI</Label>
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border/70 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all overflow-hidden">
+                        {idDocFrontPreview ? (
+                          <img src={idDocFrontPreview} alt="Frente" className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <div className="text-center p-2">
+                            <Camera className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
+                            <span className="text-[10px] text-muted-foreground">Carregar foto</span>
+                          </div>
+                        )}
+                        <input type="file" accept="image/*" className="hidden" disabled={loading}
+                          onChange={e => { const f = e.target.files?.[0]; if (f) { setIdDocFront(f); setIdDocFrontPreview(URL.createObjectURL(f)); } }} />
+                      </label>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold">Verso do BI</Label>
+                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border/70 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all overflow-hidden">
+                        {idDocBackPreview ? (
+                          <img src={idDocBackPreview} alt="Verso" className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <div className="text-center p-2">
+                            <Camera className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
+                            <span className="text-[10px] text-muted-foreground">Carregar foto</span>
+                          </div>
+                        )}
+                        <input type="file" accept="image/*" className="hidden" disabled={loading}
+                          onChange={e => { const f = e.target.files?.[0]; if (f) { setIdDocBack(f); setIdDocBackPreview(URL.createObjectURL(f)); } }} />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
 
             <div className="fu-5 pt-1">

@@ -612,39 +612,57 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           avatar_url: string | null
           created_at: string
           email: string
           faktura_id: string | null
           id: string
+          id_doc_back_url: string | null
+          id_doc_front_url: string | null
           nif: string | null
           nome: string
+          rejection_reason: string | null
           telefone: string | null
           tipo: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           email: string
           faktura_id?: string | null
           id?: string
+          id_doc_back_url?: string | null
+          id_doc_front_url?: string | null
           nif?: string | null
           nome: string
+          rejection_reason?: string | null
           telefone?: string | null
           tipo?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string
           faktura_id?: string | null
           id?: string
+          id_doc_back_url?: string | null
+          id_doc_front_url?: string | null
           nif?: string | null
           nome?: string
+          rejection_reason?: string | null
           telefone?: string | null
           tipo?: string | null
           updated_at?: string
