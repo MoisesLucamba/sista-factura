@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, role, loading, canAccess } = useAuth();
+  const { user, role, profile, loading, canAccess } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -25,6 +25,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Redirect buyers with pending/rejected approval to the pending page
+  if (role === 'comprador' && profile?.approval_status !== 'approved' && location.pathname !== '/aprovacao-pendente') {
+    return <Navigate to="/aprovacao-pendente" replace />;
   }
 
   // Redirect buyers trying to access seller pages

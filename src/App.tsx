@@ -30,6 +30,7 @@ const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Perfil = lazy(() => import("./pages/Perfil"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -56,6 +57,14 @@ const App = () => (
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
+            <Route
+              path="/aprovacao-pendente"
+              element={
+                <ProtectedRoute allowedRoles={['comprador']}>
+                  <PendingApproval />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Protected routes */}
             <Route

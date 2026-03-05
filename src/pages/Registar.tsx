@@ -113,9 +113,19 @@ export default function Registar() {
             Enviámos um email de confirmação para
           </p>
           <p className="fu-2 font-bold text-foreground mb-6 text-sm">{email}</p>
-          <p className="fu-2 text-xs text-muted-foreground mb-8 leading-relaxed max-w-xs mx-auto">
+          <p className="fu-2 text-xs text-muted-foreground mb-4 leading-relaxed max-w-xs mx-auto">
             Verifique a sua caixa de entrada e clique no link de confirmação para activar a sua conta.
           </p>
+          {tipo === 'comprador' && (
+            <div className="fu-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-4 text-left">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-200 mb-1">⏳ Verificação automática</p>
+              <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                Após confirmar o email, o nosso sistema de inteligência artificial irá verificar
+                se o número de identificação que digitou corresponde ao documento enviado.
+                Se tudo estiver correto, a sua conta será aprovada automaticamente.
+              </p>
+            </div>
+          )}
           <div className="fu-3">
             <Button
               onClick={() => navigate('/login')}
