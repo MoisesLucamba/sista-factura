@@ -1,1 +1,4 @@
 project_id = "ewfjvgzachtonehujvom"
+
+[functions.verify-buyer-id]
+verify_jwt = false

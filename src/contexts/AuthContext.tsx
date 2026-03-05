@@ -15,6 +15,7 @@ interface Profile {
   telefone?: string;
   tipo?: string;
   faktura_id?: string;
+  approval_status?: string;
   created_at: string;
   updated_at: string;
 }
