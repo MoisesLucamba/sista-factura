@@ -45,6 +45,7 @@ import { useProdutos } from '@/hooks/useProdutos';
 import { useAgtConfig } from '@/hooks/useAgtConfig';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
+import { exportMapaIVAPDF, exportFaturacaoMensalPDF, exportRelatorioAnualPDF } from '@/lib/report-pdf-generator';
 
 /* ─── Tooltip ─── */
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -194,80 +195,47 @@ export default function Relatorios() {
   }, [faturas, currentYear]);
 
   /* ── Exports ── */
+  const companyData = {
+    nome_empresa: agtConfig?.nome_empresa,
+    nif_produtor: agtConfig?.nif_produtor,
+    endereco_empresa: agtConfig?.endereco_empresa,
+    morada: agtConfig?.morada,
+    cidade: agtConfig?.cidade,
+    provincia: agtConfig?.provincia,
+    telefone: agtConfig?.telefone,
+    email: agtConfig?.email,
+    alvara_comercial: agtConfig?.alvara_comercial,
+  };
+
   const exportMapaIVA = () => {
     try {
-      const doc = new jsPDF();
-      doc.setFontSize(18); doc.text('Mapa de IVA', 14, 22);
-      doc.setFontSize(10); doc.text(`Ano: ${selectedYear}`, 14, 30);
-      if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
-      if (agtConfig?.nif_produtor) doc.text(`NIF: ${agtConfig.nif_produtor}`, 14, 42);
-      doc.text(`Data: ${new Date().toLocaleDateString('pt-AO')}`, 14, 48);
-      let y = 58;
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-      doc.text('Mês', 14, y); doc.text('Base (Kz)', 60, y); doc.text('IVA (Kz)', 115, y); doc.text('Total (Kz)', 160, y);
-      y += 2; doc.line(14, y, 196, y); y += 6; doc.setFont('helvetica', 'normal');
-      let tb = 0, ti = 0, tt = 0;
-      faturacaoMensal.forEach(m => {
-        const base = m.valor - m.iva;
-        doc.text(m.mes, 14, y); doc.text(formatCurrency(base), 60, y); doc.text(formatCurrency(m.iva), 115, y); doc.text(formatCurrency(m.valor), 160, y);
-        tb += base; ti += m.iva; tt += m.valor; y += 7;
-      });
-      y += 2; doc.line(14, y, 196, y); y += 6; doc.setFont('helvetica', 'bold');
-      doc.text('TOTAL', 14, y); doc.text(formatCurrency(tb), 60, y); doc.text(formatCurrency(ti), 115, y); doc.text(formatCurrency(tt), 160, y);
-      doc.save(`Mapa_IVA_${selectedYear}.pdf`);
+      exportMapaIVAPDF(companyData, selectedYear, faturacaoMensal);
       toast.success('Mapa de IVA exportado!');
     } catch { toast.error('Erro ao exportar'); }
   };
 
   const exportFaturacaoMensal = () => {
     try {
-      const doc = new jsPDF();
-      doc.setFontSize(18); doc.text('Faturação Mensal', 14, 22);
-      doc.setFontSize(10); doc.text(`Ano: ${selectedYear}`, 14, 30);
-      if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
-      doc.text(`Data: ${new Date().toLocaleDateString('pt-AO')}`, 14, 42);
-      let y = 52;
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
-      doc.text('Mês', 14, y); doc.text('Nº Fat.', 50, y); doc.text('Subtotal', 75, y); doc.text('IVA', 115, y); doc.text('Total', 155, y);
-      y += 2; doc.line(14, y, 196, y); y += 6; doc.setFont('helvetica', 'normal');
-      ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].forEach((mes, i) => {
+      const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      const enrichedData = months.map((mes, i) => {
         const ms = String(i + 1).padStart(2, '0');
         const fMes = faturasDoAno.filter(f => f.data_emissao?.split('-')[1] === ms && f.estado !== 'anulada');
-        doc.text(mes, 14, y); doc.text(fMes.length.toString(), 50, y);
-        doc.text(formatCurrency(fMes.reduce((s, f) => s + Number(f.subtotal || 0), 0)), 75, y);
-        doc.text(formatCurrency(fMes.reduce((s, f) => s + Number(f.total_iva || 0), 0)), 115, y);
-        doc.text(formatCurrency(fMes.reduce((s, f) => s + Number(f.total || 0), 0)), 155, y);
-        y += 7;
+        return {
+          mes,
+          valor: fMes.reduce((s, f) => s + Number(f.total || 0), 0),
+          iva: fMes.reduce((s, f) => s + Number(f.total_iva || 0), 0),
+          numFaturas: fMes.length,
+          subtotal: fMes.reduce((s, f) => s + Number(f.subtotal || 0), 0),
+        };
       });
-      doc.save(`Faturacao_Mensal_${selectedYear}.pdf`);
+      exportFaturacaoMensalPDF(companyData, selectedYear, enrichedData);
       toast.success('Relatório de faturação exportado!');
     } catch { toast.error('Erro ao exportar'); }
   };
 
   const exportRelatorioAnual = () => {
     try {
-      const doc = new jsPDF();
-      doc.setFontSize(18); doc.text('Relatório Anual', 14, 22);
-      doc.setFontSize(10); doc.text(`Ano: ${selectedYear}`, 14, 30);
-      if (agtConfig?.nome_empresa) doc.text(`Empresa: ${agtConfig.nome_empresa}`, 14, 36);
-      doc.text(`Data: ${new Date().toLocaleDateString('pt-AO')}`, 14, 42);
-      let y = 54;
-      doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.text('Resumo Anual', 14, y); y += 8;
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-      doc.text(`Faturas emitidas: ${realStats.faturasEmitidas}`, 14, y); y += 6;
-      doc.text(`Clientes: ${realStats.totalClientes}`, 14, y); y += 6;
-      doc.text(`Faturação total: ${formatCurrency(realStats.faturacaoAnual)}`, 14, y); y += 6;
-      doc.text(`IVA total: ${formatCurrency(realStats.ivaAnual)}`, 14, y); y += 12;
-      doc.setFont('helvetica', 'bold'); doc.text('Por Estado', 14, y); y += 8;
-      doc.setFont('helvetica', 'normal');
-      estadoFaturas.forEach(e => { doc.text(`${e.name}: ${e.value}`, 14, y); y += 6; });
-      y += 6;
-      if (topClientes.length > 0) {
-        doc.setFont('helvetica', 'bold'); doc.text('Top Clientes', 14, y); y += 8;
-        doc.setFont('helvetica', 'normal');
-        topClientes.forEach(c => { doc.text(`${c.nome}: ${formatCurrency(c.vendas)}`, 14, y); y += 6; });
-      }
-      doc.save(`Relatorio_Anual_${selectedYear}.pdf`);
+      exportRelatorioAnualPDF(companyData, selectedYear, realStats, estadoFaturas, topClientes, faturacaoMensal);
       toast.success('Relatório anual exportado!');
     } catch { toast.error('Erro ao exportar'); }
   };
