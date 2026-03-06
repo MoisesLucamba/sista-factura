@@ -622,9 +622,11 @@ export type Database = {
           id: string
           id_doc_back_url: string | null
           id_doc_front_url: string | null
+          id_doc_nif_url: string | null
           nif: string | null
           nome: string
           rejection_reason: string | null
+          seller_subtype: string | null
           telefone: string | null
           tipo: string | null
           updated_at: string
@@ -641,9 +643,11 @@ export type Database = {
           id?: string
           id_doc_back_url?: string | null
           id_doc_front_url?: string | null
+          id_doc_nif_url?: string | null
           nif?: string | null
           nome: string
           rejection_reason?: string | null
+          seller_subtype?: string | null
           telefone?: string | null
           tipo?: string | null
           updated_at?: string
@@ -660,9 +664,11 @@ export type Database = {
           id?: string
           id_doc_back_url?: string | null
           id_doc_front_url?: string | null
+          id_doc_nif_url?: string | null
           nif?: string | null
           nome?: string
           rejection_reason?: string | null
+          seller_subtype?: string | null
           telefone?: string | null
           tipo?: string | null
           updated_at?: string

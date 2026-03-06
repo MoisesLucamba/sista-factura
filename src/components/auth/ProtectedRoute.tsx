@@ -27,8 +27,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Redirect buyers with pending/rejected approval to the pending page
-  if (role === 'comprador' && profile?.approval_status !== 'approved' && location.pathname !== '/aprovacao-pendente') {
+  // Redirect users with pending/rejected approval to the pending page
+  const needsApproval = profile?.approval_status && profile.approval_status !== 'approved';
+  if (needsApproval && location.pathname !== '/aprovacao-pendente') {
     return <Navigate to="/aprovacao-pendente" replace />;
   }
 
