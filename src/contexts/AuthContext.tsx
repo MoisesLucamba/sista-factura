@@ -26,7 +26,7 @@ interface AuthContextType {
   profile: Profile | null;
   role: AppRole | null;
   loading: boolean;
-  signUp: (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string }) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string; sellerSubtype?: string }) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasRole: (requiredRole: AppRole) => boolean;
@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string }) => {
+  const signUp = async (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string; sellerSubtype?: string }) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -143,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             nif: extra?.nif,
             telefone: extra?.telefone,
             tipo: extra?.tipo || 'vendedor',
+            seller_subtype: extra?.sellerSubtype,
           },
         },
       });

@@ -16,9 +16,11 @@ import logoFaktura from '@/assets/logo-faktura.png';
 import heroBusiness from '@/assets/hero-business.jpg';
 
 type UserTipo = 'vendedor' | 'comprador';
+type SellerSubtype = 'pessoal' | 'empresa';
 
 export default function Registar() {
   const [tipo, setTipo] = useState<UserTipo>('vendedor');
+  const [sellerSubtype, setSellerSubtype] = useState<SellerSubtype>('pessoal');
   const [nome, setNome] = useState('');
   const [nif, setNif] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -33,6 +35,8 @@ export default function Registar() {
   const [idDocBack, setIdDocBack] = useState<File | null>(null);
   const [idDocFrontPreview, setIdDocFrontPreview] = useState<string | null>(null);
   const [idDocBackPreview, setIdDocBackPreview] = useState<string | null>(null);
+  const [idDocNif, setIdDocNif] = useState<File | null>(null);
+  const [idDocNifPreview, setIdDocNifPreview] = useState<string | null>(null);
 
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -49,36 +53,53 @@ export default function Registar() {
       setError('É obrigatório enviar a frente e verso do documento de identificação.');
       return;
     }
+    if (tipo === 'vendedor' && sellerSubtype === 'pessoal' && (!idDocFront || !idDocBack)) {
+      setError('É obrigatório enviar a frente e verso do documento de identificação.');
+      return;
+    }
+    if (tipo === 'vendedor' && sellerSubtype === 'empresa' && !idDocNif) {
+      setError('É obrigatório enviar o documento de confirmação do NIF da empresa.');
+      return;
+    }
     setLoading(true);
-    const { error } = await signUp(email, password, nome, { nif, telefone, tipo });
+    const { error } = await signUp(email, password, nome, { nif, telefone, tipo, sellerSubtype: tipo === 'vendedor' ? sellerSubtype : undefined });
     if (error) {
       setError(error.message.includes('already registered') ? 'Este email já está registado.' : error.message);
       setLoading(false);
       return;
     }
-    // Upload ID documents for buyers after signup
-    if (tipo === 'comprador' && idDocFront && idDocBack) {
-      try {
-        // We need the user session to upload - get it from supabase auth
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData.session?.user?.id;
-        if (userId) {
+    // Upload ID documents after signup
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+      if (userId) {
+        // Buyer or Seller Pessoal: upload front + back
+        if ((tipo === 'comprador' || (tipo === 'vendedor' && sellerSubtype === 'pessoal')) && idDocFront && idDocBack) {
           const frontExt = idDocFront.name.split('.').pop();
           const backExt = idDocBack.name.split('.').pop();
           const frontPath = `${userId}/id-front.${frontExt}`;
           const backPath = `${userId}/id-back.${backExt}`;
-
           await supabase.storage.from('id-documents').upload(frontPath, idDocFront);
           await supabase.storage.from('id-documents').upload(backPath, idDocBack);
-
           await supabase.from('profiles').update({
             id_doc_front_url: frontPath,
             id_doc_back_url: backPath,
+            seller_subtype: tipo === 'vendedor' ? sellerSubtype : null,
           } as any).eq('user_id', userId);
         }
-      } catch (uploadErr) {
-        console.error('Error uploading ID docs:', uploadErr);
+        // Seller Empresa: upload single NIF doc
+        if (tipo === 'vendedor' && sellerSubtype === 'empresa' && idDocNif) {
+          const nifExt = idDocNif.name.split('.').pop();
+          const nifPath = `${userId}/nif-doc.${nifExt}`;
+          await supabase.storage.from('id-documents').upload(nifPath, idDocNif);
+          await supabase.from('profiles').update({
+            id_doc_nif_url: nifPath,
+            seller_subtype: sellerSubtype,
+          } as any).eq('user_id', userId);
+        }
       }
+    } catch (uploadErr) {
+      console.error('Error uploading ID docs:', uploadErr);
     }
     setSuccess(true);
     setLoading(false);
@@ -123,6 +144,15 @@ export default function Registar() {
                 Após confirmar o email, o nosso sistema de inteligência artificial irá verificar
                 se o número de identificação que digitou corresponde ao documento enviado.
                 Se tudo estiver correto, a sua conta será aprovada automaticamente.
+              </p>
+            </div>
+          )}
+          {tipo === 'vendedor' && (
+            <div className="fu-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-4 text-left">
+              <p className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">⏳ Verificação de documentos</p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                Após confirmar o email, o nosso sistema irá verificar os seus documentos
+                para validar a sua identidade e NIF. A aprovação é automática.
               </p>
             </div>
           )}
@@ -384,8 +414,93 @@ export default function Registar() {
             )}
 
             {tipo === 'vendedor' && (
-              <p className="text-xs text-muted-foreground/60">O primeiro utilizador vendedor terá permissões de administrador.</p>
+              <div className="fu-4 space-y-3">
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3">
+                  <p className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Verificação de Identidade Obrigatória
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mb-3">Selecione o tipo de vendedor e envie os documentos correspondentes.</p>
+                  
+                  {/* Seller sub-type toggle */}
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <button type="button" onClick={() => setSellerSubtype('pessoal')}
+                      className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                        sellerSubtype === 'pessoal' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted/50 text-muted-foreground hover:text-foreground'
+                      }`}>
+                      Pessoal
+                    </button>
+                    <button type="button" onClick={() => setSellerSubtype('empresa')}
+                      className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                        sellerSubtype === 'empresa' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted/50 text-muted-foreground hover:text-foreground'
+                      }`}>
+                      Empresa
+                    </button>
+                  </div>
+
+                  {sellerSubtype === 'pessoal' ? (
+                    <>
+                      <p className="text-[11px] text-muted-foreground mb-2">Envie fotos do seu BI/Passaporte (frente e verso) para validação.</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-bold">Frente do BI</Label>
+                          <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border/70 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all overflow-hidden">
+                            {idDocFrontPreview ? (
+                              <img src={idDocFrontPreview} alt="Frente" className="w-full h-full object-cover rounded-lg" />
+                            ) : (
+                              <div className="text-center p-2">
+                                <Camera className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
+                                <span className="text-[10px] text-muted-foreground">Carregar foto</span>
+                              </div>
+                            )}
+                            <input type="file" accept="image/*" className="hidden" disabled={loading}
+                              onChange={e => { const f = e.target.files?.[0]; if (f) { setIdDocFront(f); setIdDocFrontPreview(URL.createObjectURL(f)); } }} />
+                          </label>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-bold">Verso do BI</Label>
+                          <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border/70 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all overflow-hidden">
+                            {idDocBackPreview ? (
+                              <img src={idDocBackPreview} alt="Verso" className="w-full h-full object-cover rounded-lg" />
+                            ) : (
+                              <div className="text-center p-2">
+                                <Camera className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
+                                <span className="text-[10px] text-muted-foreground">Carregar foto</span>
+                              </div>
+                            )}
+                            <input type="file" accept="image/*" className="hidden" disabled={loading}
+                              onChange={e => { const f = e.target.files?.[0]; if (f) { setIdDocBack(f); setIdDocBackPreview(URL.createObjectURL(f)); } }} />
+                          </label>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[11px] text-muted-foreground mb-2">Envie o documento que confirma o NIF da sua empresa.</p>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold">Documento do NIF (Empresa)</Label>
+                        <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-border/70 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all overflow-hidden">
+                          {idDocNifPreview ? (
+                            <img src={idDocNifPreview} alt="NIF Doc" className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <div className="text-center p-2">
+                              <Camera className="w-5 h-5 mx-auto text-muted-foreground mb-1" />
+                              <span className="text-[10px] text-muted-foreground">Carregar documento do NIF</span>
+                            </div>
+                          )}
+                          <input type="file" accept="image/*,.pdf" className="hidden" disabled={loading}
+                            onChange={e => { const f = e.target.files?.[0]; if (f) { setIdDocNif(f); setIdDocNifPreview(f.type.startsWith('image') ? URL.createObjectURL(f) : null); } }} />
+                        </label>
+                        {idDocNif && !idDocNifPreview && (
+                          <p className="text-[11px] text-primary font-medium">📄 {idDocNif.name}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             )}
+
             {tipo === 'comprador' && (
               <div className="fu-4 space-y-3">
                 <p className="text-xs text-muted-foreground/60">Receberá um ID Faktura único para acumular pontos nas suas compras.</p>
