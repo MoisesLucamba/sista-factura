@@ -4,6 +4,7 @@ import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { RecentInvoices } from '@/components/dashboard/RecentInvoices';
 import { TopClients } from '@/components/dashboard/TopClients';
 import { useDashboardStats, useFaturas } from '@/hooks/useFaturas';
+import { ReferralDashboard } from '@/components/referral/ReferralDashboard';
 import { useClientes } from '@/hooks/useClientes';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import {
