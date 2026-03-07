@@ -41,6 +41,8 @@ export default function PendingApproval() {
     setVerifying(true);
     setStatus('verifying');
     try {
+      const profileData = await supabase.from('profiles').select('tipo').eq('user_id', user.id).single();
+      const dest = profileData.data?.tipo === 'comprador' ? '/comprador' : '/dashboard';
       const { data, error } = await supabase.functions.invoke('verify-buyer-id', {
         body: { user_id: user.id },
       });
