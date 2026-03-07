@@ -119,7 +119,10 @@ export default function PendingApproval() {
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               O seu documento foi verificado com sucesso. A redirecionar para o seu dashboard...
             </p>
-            <Button onClick={() => navigate('/comprador')} className="gap-2">
+            <Button onClick={() => {
+              const tipo = profile?.tipo;
+              navigate(tipo === 'comprador' ? '/comprador' : '/dashboard');
+            }} className="gap-2">
               Ir para o Dashboard <ArrowRight className="w-4 h-4" />
             </Button>
           </>
