@@ -69,7 +69,7 @@ export default function Registar() {
       return;
     }
     setLoading(true);
-    const { error } = await signUp(email, password, nome, { nif, telefone, tipo, sellerSubtype: tipo === 'vendedor' ? sellerSubtype : undefined });
+    const { error } = await signUp(email, password, nome, { nif, telefone, tipo, sellerSubtype: tipo === 'vendedor' ? sellerSubtype : undefined, referralCode: referralCode.trim() || undefined });
     if (error) {
       setError(error.message.includes('already registered') ? 'Este email já está registado.' : error.message);
       setLoading(false);
