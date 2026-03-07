@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string; sellerSubtype?: string }) => {
+  const signUp = async (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string; sellerSubtype?: string; referralCode?: string }) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
