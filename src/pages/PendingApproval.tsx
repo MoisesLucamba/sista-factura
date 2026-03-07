@@ -52,7 +52,7 @@ export default function PendingApproval() {
       if (data.status === 'approved') {
         toast.success('Verificação concluída! A sua conta foi aprovada.');
         setStatus('approved');
-        setTimeout(() => navigate('/comprador'), 2000);
+        setTimeout(() => navigate(dest), 2000);
       } else if (data.status === 'rejected') {
         setStatus('rejected');
         setRejectionReason(data.reason);
