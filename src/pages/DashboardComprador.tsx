@@ -532,6 +532,11 @@ export default function DashboardComprador() {
               </Card>
             </TabsContent>
 
+            {/* Indicações Tab */}
+            <TabsContent value="indicacoes">
+              <ReferralDashboard />
+            </TabsContent>
+
             {/* Perfil Tab */}
             <TabsContent value="perfil">
               <Card>
