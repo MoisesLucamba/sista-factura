@@ -28,7 +28,7 @@ export default function PendingApproval() {
       .single();
 
     if (!data) return;
-    if (data.tipo !== 'comprador' || data.approval_status === 'approved') {
+    if (data.approval_status === 'approved') {
       navigate(data.tipo === 'comprador' ? '/comprador' : '/dashboard');
       return;
     }
