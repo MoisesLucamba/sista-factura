@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -37,9 +37,16 @@ export default function Registar() {
   const [idDocBackPreview, setIdDocBackPreview] = useState<string | null>(null);
   const [idDocNif, setIdDocNif] = useState<File | null>(null);
   const [idDocNifPreview, setIdDocNifPreview] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState('');
 
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) setReferralCode(ref);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +69,7 @@ export default function Registar() {
       return;
     }
     setLoading(true);
-    const { error } = await signUp(email, password, nome, { nif, telefone, tipo, sellerSubtype: tipo === 'vendedor' ? sellerSubtype : undefined });
+    const { error } = await signUp(email, password, nome, { nif, telefone, tipo, sellerSubtype: tipo === 'vendedor' ? sellerSubtype : undefined, referralCode: referralCode.trim() || undefined });
     if (error) {
       setError(error.message.includes('already registered') ? 'Este email já está registado.' : error.message);
       setLoading(false);
@@ -545,6 +552,14 @@ export default function Registar() {
                 </div>
               </div>
             )}
+
+            {/* Referral Code */}
+            <div className="fu-5 space-y-1.5">
+              <Label htmlFor="referralCode" className="text-sm font-bold">Código de Indicação <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              <Input id="referralCode" type="text" placeholder="REF-XXXXXX" value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                onFocus={() => setFocused('referralCode')} onBlur={() => setFocused(null)} disabled={loading} className={inputClass('referralCode')} />
+              <p className="text-[10px] text-muted-foreground">Foi indicado por alguém? Insira o código para ambos ganharem recompensas.</p>
+            </div>
 
             <div className="fu-5 pt-1">
               <Button type="submit" disabled={loading}

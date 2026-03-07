@@ -625,6 +625,8 @@ export type Database = {
           id_doc_nif_url: string | null
           nif: string | null
           nome: string
+          referral_code: string | null
+          referred_by: string | null
           rejection_reason: string | null
           seller_subtype: string | null
           telefone: string | null
@@ -646,6 +648,8 @@ export type Database = {
           id_doc_nif_url?: string | null
           nif?: string | null
           nome: string
+          referral_code?: string | null
+          referred_by?: string | null
           rejection_reason?: string | null
           seller_subtype?: string | null
           telefone?: string | null
@@ -667,6 +671,8 @@ export type Database = {
           id_doc_nif_url?: string | null
           nif?: string | null
           nome?: string
+          referral_code?: string | null
+          referred_by?: string | null
           rejection_reason?: string | null
           seller_subtype?: string | null
           telefone?: string | null
@@ -718,6 +724,39 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+          reward_type: string
+          reward_value: number
+          status: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+          reward_type: string
+          reward_value?: number
+          status?: string
+          user_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
+          reward_type?: string
+          reward_value?: number
+          status?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -760,6 +799,7 @@ export type Database = {
         Args: { _serie: string; _user_id: string }
         Returns: string
       }
+      generate_referral_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

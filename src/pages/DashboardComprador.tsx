@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { ReferralDashboard } from '@/components/referral/ReferralDashboard';
 import { formatCurrency } from '@/lib/format';
 import { generateInvoicePDF } from '@/lib/pdf-generator';
 import type { Fatura } from '@/hooks/useFaturas';
@@ -401,7 +402,7 @@ export default function DashboardComprador() {
         {/* Tabs */}
         <div className="afu" style={{ animationDelay: '200ms' }}>
           <Tabs defaultValue="faturas" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="faturas" className="text-xs sm:text-sm">
                 <FileText className="w-4 h-4 mr-1 hidden sm:block" />
                 Faturas
@@ -409,6 +410,10 @@ export default function DashboardComprador() {
               <TabsTrigger value="compras" className="text-xs sm:text-sm">
                 <ShoppingBag className="w-4 h-4 mr-1 hidden sm:block" />
                 Compras
+              </TabsTrigger>
+              <TabsTrigger value="indicacoes" className="text-xs sm:text-sm">
+                <Gift className="w-4 h-4 mr-1 hidden sm:block" />
+                Indicações
               </TabsTrigger>
               <TabsTrigger value="perfil" className="text-xs sm:text-sm">
                 <User className="w-4 h-4 mr-1 hidden sm:block" />
@@ -525,6 +530,11 @@ export default function DashboardComprador() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Indicações Tab */}
+            <TabsContent value="indicacoes">
+              <ReferralDashboard />
             </TabsContent>
 
             {/* Perfil Tab */}

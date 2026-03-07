@@ -4,6 +4,7 @@ import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { RecentInvoices } from '@/components/dashboard/RecentInvoices';
 import { TopClients } from '@/components/dashboard/TopClients';
 import { useDashboardStats, useFaturas } from '@/hooks/useFaturas';
+import { ReferralDashboard } from '@/components/referral/ReferralDashboard';
 import { useClientes } from '@/hooks/useClientes';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import {
@@ -333,12 +334,20 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Recent Invoices ── */}
-      <div
-        className="anim-fade-up grid-section"
-        style={{ animationDelay: '660ms' }}
-      >
-        <RecentInvoices faturas={faturas.slice(0, 5)} />
+      {/* ── Recent Invoices + Referrals ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div
+          className="anim-fade-up lg:col-span-2 grid-section"
+          style={{ animationDelay: '660ms' }}
+        >
+          <RecentInvoices faturas={faturas.slice(0, 5)} />
+        </div>
+        <div
+          className="anim-fade-up lg:col-span-1 grid-section"
+          style={{ animationDelay: '740ms' }}
+        >
+          <ReferralDashboard />
+        </div>
       </div>
     </MainLayout>
   );
