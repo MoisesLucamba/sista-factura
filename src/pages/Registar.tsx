@@ -37,9 +37,16 @@ export default function Registar() {
   const [idDocBackPreview, setIdDocBackPreview] = useState<string | null>(null);
   const [idDocNif, setIdDocNif] = useState<File | null>(null);
   const [idDocNifPreview, setIdDocNifPreview] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState('');
 
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) setReferralCode(ref);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
