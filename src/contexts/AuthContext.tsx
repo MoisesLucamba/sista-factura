@@ -144,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             telefone: extra?.telefone,
             tipo: extra?.tipo || 'vendedor',
             seller_subtype: extra?.sellerSubtype,
+            referral_code: extra?.referralCode,
           },
         },
       });
