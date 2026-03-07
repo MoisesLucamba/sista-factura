@@ -553,6 +553,14 @@ export default function Registar() {
               </div>
             )}
 
+            {/* Referral Code */}
+            <div className="fu-5 space-y-1.5">
+              <Label htmlFor="referralCode" className="text-sm font-bold">Código de Indicação <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              <Input id="referralCode" type="text" placeholder="REF-XXXXXX" value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                onFocus={() => setFocused('referralCode')} onBlur={() => setFocused(null)} disabled={loading} className={inputClass('referralCode')} />
+              <p className="text-[10px] text-muted-foreground">Foi indicado por alguém? Insira o código para ambos ganharem recompensas.</p>
+            </div>
+
             <div className="fu-5 pt-1">
               <Button type="submit" disabled={loading}
                 className="w-full h-12 text-base font-black rounded-xl shadow-lg shadow-primary/25 btn-glow ag hover:scale-[1.02] transition-all group gap-2">
