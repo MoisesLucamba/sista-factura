@@ -714,6 +714,15 @@ export default function Faturas() {
         open={!!sendDialogFatura}
         onOpenChange={(open) => !open && setSendDialogFatura(null)}
       />
+
+      {/* Payment Link Dialog */}
+      <CreatePaymentLinkDialog
+        open={!!paymentLinkFatura}
+        onOpenChange={(open) => !open && setPaymentLinkFatura(null)}
+        defaultAmount={paymentLinkFatura ? Number(paymentLinkFatura.total) : 0}
+        defaultDescription={paymentLinkFatura ? `Pagamento da ${paymentLinkFatura.numero}` : ''}
+        faturaId={paymentLinkFatura?.id}
+      />
     </MainLayout>
   );
 }
