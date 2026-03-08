@@ -22,7 +22,7 @@ import {
   FileText, XCircle, CheckCircle, Loader2, Send,
   TrendingUp, ArrowUpRight, X, AlertCircle, Calendar,
   DollarSign, RefreshCw, Activity, Sparkles, ChevronDown,
-  Receipt, Filter, Copy, Edit,
+  Receipt, Filter, Copy, Edit, Link2,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -36,6 +36,7 @@ import { cn } from '@/lib/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { SendInvoiceDialog } from '@/components/faturas/SendInvoiceDialog';
+import { CreatePaymentLinkDialog } from '@/components/pagamentos/CreatePaymentLinkDialog';
 
 /* ─── Types ─────────────────────────────────────────── */
 type EstadoFatura   = 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
@@ -84,6 +85,7 @@ export default function Faturas() {
   const [isDownloading,    setIsDownloading]     = useState<string | null>(null);
   const [sendDialogFatura, setSendDialogFatura]  = useState<Fatura | null>(null);
   const [showFilters,      setShowFilters]       = useState(false);
+  const [paymentLinkFatura, setPaymentLinkFatura] = useState<Fatura | null>(null);
   const [hoveredRow,       setHoveredRow]        = useState<string | null>(null);
 
   const { data: selectedFatura } = useFatura(selectedFaturaId || '');
@@ -517,6 +519,11 @@ export default function Faturas() {
                                 <DropdownMenuItem onClick={() => setSendDialogFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
                                   <Send className="w-4 h-4 text-muted-foreground" /> Enviar ao Cliente
                                 </DropdownMenuItem>
+                                {(fatura.estado === 'emitida' || fatura.estado === 'vencida') && (
+                                  <DropdownMenuItem onClick={() => setPaymentLinkFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
+                                    <Link2 className="w-4 h-4 text-primary" /> Gerar Link de Pagamento
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem onClick={() => {
                                   // Store fatura data in sessionStorage for duplication
                                   sessionStorage.setItem('duplicar_fatura', JSON.stringify({
@@ -706,6 +713,15 @@ export default function Faturas() {
         fatura={sendDialogFatura}
         open={!!sendDialogFatura}
         onOpenChange={(open) => !open && setSendDialogFatura(null)}
+      />
+
+      {/* Payment Link Dialog */}
+      <CreatePaymentLinkDialog
+        open={!!paymentLinkFatura}
+        onOpenChange={(open) => !open && setPaymentLinkFatura(null)}
+        defaultAmount={paymentLinkFatura ? Number(paymentLinkFatura.total) : 0}
+        defaultDescription={paymentLinkFatura ? `Pagamento da ${paymentLinkFatura.numero}` : ''}
+        faturaId={paymentLinkFatura?.id}
       />
     </MainLayout>
   );

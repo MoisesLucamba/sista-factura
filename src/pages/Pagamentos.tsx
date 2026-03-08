@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,9 +12,11 @@ import {
   CreditCard, Link2, Building2, ArrowUpRight,
   CheckCircle, Clock, XCircle, Filter,
   TrendingUp, Banknote, RefreshCw, Plus,
-  Copy, ExternalLink, QrCode,
+  Copy, ExternalLink, QrCode, Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CreatePaymentLinkDialog } from '@/components/pagamentos/CreatePaymentLinkDialog';
+import { PaymentLinkDetails } from '@/components/pagamentos/PaymentLinkDetails';
 
 function usePaymentLinks() {
   const { user } = useAuth();
@@ -61,6 +64,8 @@ const statusConfig = {
 export default function Pagamentos() {
   const { data: links = [], isLoading: loadingLinks } = usePaymentLinks();
   const { data: reconciliations = [], isLoading: loadingRecon } = useReconciliations();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [detailsCode, setDetailsCode] = useState<string | null>(null);
 
   const copyLink = (code: string) => {
     navigator.clipboard.writeText(`${window.location.origin}/pagar/${code}`);
@@ -78,7 +83,7 @@ export default function Pagamentos() {
               Gerir links de pagamento, Multicaixa e conciliação bancária
             </p>
           </div>
-          <Button className="gradient-fintech border-0 text-primary-foreground glow-fintech">
+          <Button className="gradient-fintech border-0 text-primary-foreground glow-fintech" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Link de Pagamento
           </Button>
@@ -160,7 +165,7 @@ export default function Pagamentos() {
                     </div>
                     <p className="font-semibold mb-1">Nenhum link de pagamento</p>
                     <p className="text-sm text-muted-foreground mb-4">Crie links para receber pagamentos dos seus clientes.</p>
-                    <Button className="gradient-fintech border-0 text-primary-foreground">
+                    <Button className="gradient-fintech border-0 text-primary-foreground" onClick={() => setCreateDialogOpen(true)}>
                       <Plus className="w-4 h-4 mr-2" /> Criar Primeiro Link
                     </Button>
                   </div>
@@ -186,6 +191,9 @@ export default function Pagamentos() {
                               <StatusIcon className="w-3 h-3 mr-1" />
                               {config.label}
                             </Badge>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailsCode(link.code)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyLink(link.code)}>
                               <Copy className="w-4 h-4" />
                             </Button>
@@ -271,6 +279,8 @@ export default function Pagamentos() {
             </Card>
           </TabsContent>
         </Tabs>
+        <CreatePaymentLinkDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+        <PaymentLinkDetails linkCode={detailsCode} open={!!detailsCode} onOpenChange={(open) => !open && setDetailsCode(null)} />
       </div>
     </MainLayout>
   );

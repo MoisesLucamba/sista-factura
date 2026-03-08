@@ -34,6 +34,7 @@ const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 const Carteira = lazy(() => import("./pages/Carteira"));
 const Pagamentos = lazy(() => import("./pages/Pagamentos"));
+const PagarLink = lazy(() => import("./pages/PagarLink"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/pagar/:code" element={<PagarLink />} />
             <Route
               path="/aprovacao-pendente"
               element={
