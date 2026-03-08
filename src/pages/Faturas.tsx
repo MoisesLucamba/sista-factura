@@ -22,7 +22,7 @@ import {
   FileText, XCircle, CheckCircle, Loader2, Send,
   TrendingUp, ArrowUpRight, X, AlertCircle, Calendar,
   DollarSign, RefreshCw, Activity, Sparkles, ChevronDown,
-  Receipt, Filter, Copy, Edit,
+  Receipt, Filter, Copy, Edit, Link2,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
