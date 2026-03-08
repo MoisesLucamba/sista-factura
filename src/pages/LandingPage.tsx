@@ -7,7 +7,7 @@ import {
   Wallet, Repeat, MessageSquare, Smartphone, Mail, Code2, Webhook,
   Target, Heart, Coffee, Laptop, Briefcase, MapPin, BookOpen,
   AlertTriangle, Server, Key, RefreshCw, Lock, Eye, UserCheck,
-  Bell, Phone, ExternalLink,
+  Bell, Phone, ExternalLink, CreditCard, Link2, Banknote,
 } from 'lucide-react';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
@@ -82,29 +82,29 @@ const features = [
     detail: 'Cada documento gerado inclui os campos obrigatórios por lei: NIF do emitente e receptor, data, descrição dos bens/serviços, valor base, IVA aplicável e valor total. Armazenamento automático por 5+ anos.',
   },
   {
+    icon: Wallet, title: 'Carteira Digital',
+    description: 'Saldo interno para receber e enviar pagamentos entre utilizadores. Receba pagamentos de faturas directamente na sua carteira Faktura.',
+    detail: 'Gerencie o seu saldo, visualize transacções, faça transferências entre utilizadores e acompanhe todos os movimentos financeiros em tempo real.',
+  },
+  {
+    icon: CreditCard, title: 'Multicaixa Express',
+    description: 'Aceite pagamentos por referência Multicaixa directamente na fatura. Gere referências EMIS e receba confirmação automática de pagamento.',
+    detail: 'Integração com o sistema EMIS para gerar referências de pagamento. O cliente paga no Multicaixa Express e a fatura é marcada como paga automaticamente.',
+  },
+  {
+    icon: Link2, title: 'Links de Pagamento',
+    description: 'Gere links únicos com QR code para clientes pagarem faturas online. Partilhe via WhatsApp, SMS ou email com um clique.',
+    detail: 'Links com expiração configurável, limites de uso e rastreamento em tempo real. Veja quando o cliente abriu e pagou.',
+  },
+  {
     icon: Shield, title: 'Conformidade AGT 100%',
     description: 'Certificação digital, QR codes e assinaturas electrónicas em conformidade total com as normas da Administração Geral Tributária de Angola.',
     detail: 'Integração directa com o portal e-Fatura da AGT para validação automática. Nunca emita um documento inválido — a Faktura valida tudo antes de enviar.',
   },
   {
-    icon: BarChart3, title: 'Relatórios Inteligentes',
-    description: 'Dashboard completo com métricas em tempo real: facturação por período, clientes mais activos, documentos em aberto e tendências de crescimento.',
-    detail: 'Exportação para Excel, PDF ou integração via API. Configure alertas automáticos para cobranças em atraso e relatórios mensais enviados por email.',
-  },
-  {
-    icon: Users, title: 'Gestão de Clientes',
-    description: 'Base de dados completa com histórico de transacções, contactos, NIF e padrões de compra. Com o programa ID, dados de compradores registados preenchem automaticamente.',
-    detail: 'Segmente clientes por volume de compra, sector de actividade ou localização. Importe clientes em massa via CSV ou da sua base de dados existente.',
-  },
-  {
-    icon: Globe, title: 'Multi-Canal de Envio',
-    description: 'Envie facturas directamente por WhatsApp Business, SMS ou email com um clique. O cliente recebe o documento no canal que preferir.',
-    detail: 'Templates personalizáveis com a sua marca. Confirmação de recepção em tempo real. Reenvio automático se o primeiro envio falhar.',
-  },
-  {
-    icon: Clock, title: 'Automação Completa',
-    description: 'Facturas recorrentes, lembretes de pagamento automáticos e relatórios mensais gerados sem intervenção manual.',
-    detail: 'Configure regras: emitir factura no dia X de cada mês, enviar lembrete 5 dias após vencimento, marcar como pago quando receber confirmação Multicaixa.',
+    icon: Repeat, title: 'Reconciliação Bancária',
+    description: 'Reconcilie pagamentos bancários com faturas automaticamente. Compare extractos bancários com documentos emitidos num só ecrã.',
+    detail: 'Carregue extractos bancários e o sistema identifica automaticamente quais faturas foram pagas. Reduza horas de trabalho manual a minutos.',
   },
 ];
 
@@ -1066,7 +1066,7 @@ export default function LandingPage() {
               <div className="heroB mb-7">
                 <div className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-default">
                   <Sparkles className="w-4 h-4 text-white animate-pulse" />
-                  <span className="text-sm font-bold text-white tracking-wide">A plataforma #1 de faturação em Angola</span>
+                 <span className="text-sm font-bold text-white tracking-wide">Faturação + Pagamentos — Tudo numa só plataforma</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 </div>
               </div>
@@ -1075,7 +1075,7 @@ export default function LandingPage() {
               <div className="max-w-3xl mb-7">
                 <h1 className="font-black tracking-tight text-white"
                   style={{ fontSize: 'clamp(2.8rem, 7.5vw, 7rem)', lineHeight: 0.88, letterSpacing: '-0.02em' }}>
-                  <span className="hero1 block drop-shadow-lg">Faturação que</span>
+                  <span className="hero1 block drop-shadow-lg">Fature, cobre</span>
                   <span className="hero2 block">
                     <span style={{
                       background: 'linear-gradient(90deg, hsl(var(--primary)) 0%, #fff 45%, hsl(var(--primary)) 90%)',
@@ -1084,18 +1084,18 @@ export default function LandingPage() {
                       WebkitTextFillColor: 'transparent',
                       animation: 'shimmer 3s linear infinite',
                       filter: 'drop-shadow(0 0 24px hsl(var(--primary)/.5))',
-                    }}>impulsiona</span>
+                    }}>e receba</span>
                     <span className="text-white drop-shadow-lg"> ✦</span>
                   </span>
-                  <span className="hero3 block text-white drop-shadow-lg">o seu negócio</span>
+                  <span className="hero3 block text-white drop-shadow-lg">tudo num só lugar</span>
                 </h1>
               </div>
 
               {/* Subtítulo */}
               <p className="heroS text-white/75 max-w-2xl mb-10 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
-                Emita faturas profissionais, gerencie clientes e mantenha-se em conformidade com a AGT —
-                tudo num só lugar, em segundos. Grátis para começar.
+                Emita faturas, gere links de pagamento, aceite Multicaixa Express e gerencie a sua carteira digital —
+                a fintech de faturação feita para Angola.
               </p>
 
               {/* CTAs */}
@@ -1211,7 +1211,7 @@ export default function LandingPage() {
               {/* Tags */}
               <FadeIn direction="up" delay={80}>
                 <div className="flex flex-wrap justify-center gap-2.5 mb-14">
-                  {['Faturas em segundos','Conformidade AGT','Multi-canal','Relatórios avançados','Gestão de clientes','Automatização','API REST','WhatsApp nativo','Multicaixa','ID Comprador'].map((tag) => (
+                  {['Faturas em segundos','Multicaixa Express','Links de Pagamento','Carteira Digital','Conformidade AGT','Reconciliação Bancária','WhatsApp nativo','QR Code','API REST','ID Comprador'].map((tag) => (
                     <span key={tag} className="tag-pill text-sm font-semibold px-4 py-2 rounded-full cursor-default">{tag}</span>
                   ))}
                 </div>
@@ -1276,6 +1276,103 @@ export default function LandingPage() {
                   </FadeIn>
                 ))}
               </div>
+            </div>
+          </section>
+
+          {/* ── FINTECH PAYMENTS SECTION ── */}
+          <section className="py-24 relative overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-primary/5 rounded-full blur-[140px]" />
+            </div>
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <FadeIn direction="up">
+                <div className="text-center mb-16">
+                  <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
+                    <Banknote className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-bold">Pagamentos Integrados</span>
+                  </div>
+                  <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5 leading-tight">
+                    Fature e <span className="shimmer-text">cobre</span><br />sem sair da plataforma
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Multicaixa Express, links de pagamento com QR code e carteira digital — tudo integrado na sua faturação.
+                  </p>
+                </div>
+              </FadeIn>
+
+              <div className="grid md:grid-cols-3 gap-6 mb-12">
+                {[
+                  { icon: CreditCard, t: 'Multicaixa Express', d: 'Gere referências EMIS directamente na fatura. O cliente paga e a confirmação é automática.', badge: 'Integrado' },
+                  { icon: Link2, t: 'Links de Pagamento', d: 'Crie links com QR code e partilhe via WhatsApp. O cliente paga sem instalar nada.', badge: 'QR Code' },
+                  { icon: Wallet, t: 'Carteira Digital', d: 'Receba pagamentos na sua carteira Faktura. Visualize saldo, transacções e faça transferências.', badge: 'Tempo Real' },
+                ].map(({ icon: I, t, d, badge }, i) => (
+                  <FadeIn key={i} delay={i * 120} direction="up">
+                    <div className="ec bg-card border-2 border-border/50 rounded-2xl p-8 group hover:border-primary/30 h-full relative overflow-hidden">
+                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
+                      <div className="flex items-start justify-between mb-5">
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                          <I className="w-7 h-7 text-primary" />
+                        </div>
+                        <span className="text-xs font-black bg-primary/10 text-primary px-3 py-1 rounded-full">{badge}</span>
+                      </div>
+                      <h3 className="text-xl font-black mb-3">{t}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
+                    </div>
+                  </FadeIn>
+                ))}
+              </div>
+
+              {/* Payment flow demo */}
+              <FadeIn direction="up" delay={200}>
+                <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+                  <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+                  <div className="relative grid lg:grid-cols-2 gap-10 items-center z-10">
+                    <div>
+                      <div className="inline-flex items-center gap-2 bg-primary/15 rounded-full px-4 py-1.5 mb-4">
+                        <Zap className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-bold text-accent-foreground">Fluxo de Pagamento</span>
+                      </div>
+                      <h3 className="text-3xl font-black text-accent-foreground mb-4">Da fatura ao pagamento em 3 passos</h3>
+                      <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">Emita a fatura, gere uma referência Multicaixa ou link de pagamento, e receba automaticamente.</p>
+                      <div className="space-y-4">
+                        {[
+                          { s: '01', t: 'Emita a fatura', d: 'Crie a fatura normalmente com todos os dados fiscais.' },
+                          { s: '02', t: 'Gere o link ou referência', d: 'Multicaixa Express ou link de pagamento com QR code.' },
+                          { s: '03', t: 'Receba o pagamento', d: 'Confirmação automática e fatura marcada como paga.' },
+                        ].map(({ s, t, d }) => (
+                          <div key={s} className="flex items-start gap-4">
+                            <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-black text-primary">{s}</span>
+                            </div>
+                            <div>
+                              <p className="font-bold text-accent-foreground text-sm">{t}</p>
+                              <p className="text-xs text-accent-foreground/50">{d}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-accent-foreground/5 rounded-2xl p-6 border border-accent-foreground/10">
+                      <div className="space-y-4">
+                        <div className="bg-accent-foreground/5 rounded-xl p-4 border border-accent-foreground/10">
+                          <p className="text-xs text-accent-foreground/40 font-semibold uppercase tracking-wider">Referência Multicaixa</p>
+                          <p className="text-2xl font-black text-primary mt-1 font-mono tracking-widest">123 456 789</p>
+                          <p className="text-xs text-accent-foreground/40 mt-1">Entidade: 11234 · Expira em 60 min</p>
+                        </div>
+                        <div className="bg-accent-foreground/5 rounded-xl p-4 border border-accent-foreground/10">
+                          <p className="text-xs text-accent-foreground/40 font-semibold uppercase tracking-wider">Valor a Pagar</p>
+                          <p className="text-3xl font-black text-accent-foreground mt-1">25.000 <span className="text-lg text-accent-foreground/40">Kz</span></p>
+                        </div>
+                        <div className="flex items-center gap-2 text-primary text-sm font-bold">
+                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                          Aguardando pagamento...
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
             </div>
           </section>
 
@@ -1737,7 +1834,7 @@ export default function LandingPage() {
               <button onClick={() => setActivePage(null)}>
                 <img src={logoFaktura} alt="Faktura" className="h-10 object-contain brightness-0 invert mb-4" />
               </button>
-              <p className="text-sm text-accent-foreground/50 leading-relaxed">A plataforma de faturacao mais moderna de Angola.</p>
+              <p className="text-sm text-accent-foreground/50 leading-relaxed">A plataforma de faturação e pagamentos mais moderna de Angola.</p>
               <div className="flex gap-3 mt-4">
                 <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Phone className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
                 <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Mail className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
