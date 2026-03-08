@@ -245,7 +245,7 @@ function PageIntegracoes() {
 const teamMembers = [
   { name: 'Carlos Mendes', role: 'CEO & Co-fundador', init: 'CM', color: 'bg-blue-100 text-blue-700' },
   { name: 'Ana Ferreira', role: 'CTO & Co-fundadora', init: 'AF', color: 'bg-purple-100 text-purple-700' },
-  { name: 'Pedro Santos', role: 'Head of Product', init: 'PS', color: 'bg-green-100 text-green-700' },
+  { name: 'Pedro Santos', role: 'Head of Product', init: 'PS', color: 'bg-amber-100 text-amber-700' },
   { name: 'Sofia Lopes', role: 'Head of Design', init: 'SL', color: 'bg-amber-100 text-amber-700' },
   { name: 'Miguel Costa', role: 'Lead Engineer', init: 'MC', color: 'bg-rose-100 text-rose-700' },
   { name: 'Beatriz Neto', role: 'Head of Sales', init: 'BN', color: 'bg-teal-100 text-teal-700' },
