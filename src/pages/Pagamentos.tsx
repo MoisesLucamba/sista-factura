@@ -191,6 +191,9 @@ export default function Pagamentos() {
                               <StatusIcon className="w-3 h-3 mr-1" />
                               {config.label}
                             </Badge>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailsCode(link.code)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyLink(link.code)}>
                               <Copy className="w-4 h-4" />
                             </Button>
