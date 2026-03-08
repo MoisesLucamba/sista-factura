@@ -182,6 +182,22 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/carteira"
+              element={
+                <ProtectedRoute>
+                  <Carteira />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pagamentos"
+              element={
+                <ProtectedRoute>
+                  <Pagamentos />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
