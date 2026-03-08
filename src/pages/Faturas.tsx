@@ -519,6 +519,11 @@ export default function Faturas() {
                                 <DropdownMenuItem onClick={() => setSendDialogFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
                                   <Send className="w-4 h-4 text-muted-foreground" /> Enviar ao Cliente
                                 </DropdownMenuItem>
+                                {(fatura.estado === 'emitida' || fatura.estado === 'vencida') && (
+                                  <DropdownMenuItem onClick={() => setPaymentLinkFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
+                                    <Link2 className="w-4 h-4 text-primary" /> Gerar Link de Pagamento
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem onClick={() => {
                                   // Store fatura data in sessionStorage for duplication
                                   sessionStorage.setItem('duplicar_fatura', JSON.stringify({
