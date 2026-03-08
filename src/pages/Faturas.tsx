@@ -33,7 +33,7 @@ import {
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { SendInvoiceDialog } from '@/components/faturas/SendInvoiceDialog';
 
