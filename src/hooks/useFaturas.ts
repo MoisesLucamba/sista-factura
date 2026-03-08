@@ -153,12 +153,73 @@ export function useCreateFatura() {
       const totalIva = input.itens.reduce((sum, item) => sum + item.valor_iva, 0);
       const total = input.itens.reduce((sum, item) => sum + item.total, 0);
 
-      // Generate QR code data
-      const qrData = JSON.stringify({
+      // Fetch AGT config for NIF and certificate
+      const { data: agtConfig } = await supabase
+        .from('agt_config')
+        .select('nif_produtor, certificate_number, public_key')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+
+      const nifEmitente = agtConfig?.nif_produtor || '000000000';
+      const certificateNumber = agtConfig?.certificate_number || '';
+
+      // Fetch client NIF
+      const { data: clienteData } = await supabase
+        .from('clientes')
+        .select('nif')
+        .eq('id', input.cliente_id)
+        .single();
+      const nifCliente = clienteData?.nif || '999999999';
+
+      // Hash Chain: fetch previous invoice hash in the same series
+      const { data: previousInvoice } = await supabase
+        .from('faturas')
+        .select('signature_hash')
+        .eq('user_id', user!.id)
+        .eq('serie', invoiceSerie)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const previousHash = previousInvoice?.signature_hash || null;
+
+      // Generate document hash (SHA-256) with hash chain
+      const documentHash = await generateDocumentHash({
         numero,
-        data: input.data_emissao,
-        total: total.toFixed(2),
-        nif: user!.id.slice(0, 9)
+        data_emissao: input.data_emissao,
+        tipo: input.tipo,
+        subtotal,
+        total_iva: totalIva,
+        total,
+        nif_emitente: nifEmitente,
+        nif_cliente: nifCliente,
+        previous_hash: previousHash,
+      });
+
+      // Sign document hash (uses private key if available, otherwise hash)
+      let signatureHash = documentHash;
+      if (agtConfig?.public_key) {
+        // In production, signing would use the private key stored securely
+        // For now, we store the document hash as the signature
+        signatureHash = documentHash;
+      }
+
+      // Generate ATCUD
+      const atcud = `${invoiceSerie}-${numero.split('/')[2] || '000001'}`;
+
+      // Build AGT-compliant QR code
+      const hash4chars = documentHash.substring(0, 4).toUpperCase();
+      const qrData = buildAgtQrPayload({
+        nif_emitente: nifEmitente,
+        nif_cliente: nifCliente,
+        tipo: input.tipo,
+        estado: 'emitida',
+        data_emissao: input.data_emissao,
+        numero,
+        atcud,
+        subtotal,
+        total_iva: totalIva,
+        total,
+        hash_4chars: hash4chars,
       });
 
       // Create fatura
@@ -177,6 +238,9 @@ export function useCreateFatura() {
         observacoes: input.observacoes,
         metodo_pagamento: input.metodo_pagamento,
         qr_code: qrData,
+        signature_hash: signatureHash,
+        certificate_number: certificateNumber,
+        is_locked: true,
       };
 
       if (input.buyer_user_id) {
