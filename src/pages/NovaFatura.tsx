@@ -428,6 +428,24 @@ export default function NovaFatura() {
                   />
                 </div>
               </div>
+
+              {/* Nota de Crédito — Referência obrigatória */}
+              {tipo === 'nota-credito' && (
+                <div className="space-y-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-destructive" />
+                    Fatura de Referência (obrigatório) *
+                  </Label>
+                  <Input
+                    placeholder="Ex: FT/2026/000001"
+                    value={notaCreditoRef}
+                    onChange={(e) => setNotaCreditoRef(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    A AGT exige a referência ao documento original ao emitir uma nota de crédito.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
