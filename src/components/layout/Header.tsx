@@ -260,15 +260,15 @@ export function Header() {
         {/* Right side */}
         <div className="flex items-center gap-2 ml-4">
           {/* Company indicator */}
-          <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-primary-foreground/10 rounded-lg border border-primary-foreground/20">
-            <div className="p-1.5 rounded-md bg-primary-foreground/15">
-              <Building2 className="w-4 h-4 text-primary-foreground" />
+          <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border">
+            <div className="p-1.5 rounded-md bg-primary/10">
+              <Building2 className="w-4 h-4 text-primary" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-primary-foreground leading-tight">
+              <span className="text-sm font-semibold text-foreground leading-tight">
                 Minha Empresa, Lda
               </span>
-              <span className="text-xs text-primary-foreground/60 leading-tight">
+              <span className="text-xs text-muted-foreground leading-tight">
                 NIF: 5000000000
               </span>
             </div>
