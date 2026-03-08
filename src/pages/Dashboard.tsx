@@ -118,14 +118,13 @@ export default function Dashboard() {
     );
   }
 
-  const statItems: Array<{ title: string; value: string; subtitle?: string; icon: any; variant: 'default' | 'primary' | 'success' | 'warning' | 'danger'; trend?: string; trendUp?: boolean }> = [
+  const statItems: Array<{ title: string; value: string; subtitle?: string; icon: any; variant: 'default' | 'primary' | 'success' | 'warning' | 'danger'; trend?: { value: number; isPositive: boolean } }> = [
     {
       title: 'Faturação Mensal',
       value: formatCurrency(stats?.faturacaoMensal || 0),
       icon: Banknote,
       variant: 'primary',
-      trend: '+12%',
-      trendUp: true,
+      trend: stats?.trendPercentage !== undefined ? { value: Math.abs(stats.trendPercentage), isPositive: stats.trendPercentage >= 0 } : undefined,
     },
     {
       title: 'IVA a Entregar',
@@ -140,7 +139,6 @@ export default function Dashboard() {
       subtitle: `${stats?.faturasPendentes || 0} pendentes`,
       icon: FileText,
       variant: 'success',
-      trend: `${stats?.faturasPendentes || 0} pendentes`,
     },
     {
       title: 'Total Clientes',
