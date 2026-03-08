@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,9 +12,11 @@ import {
   CreditCard, Link2, Building2, ArrowUpRight,
   CheckCircle, Clock, XCircle, Filter,
   TrendingUp, Banknote, RefreshCw, Plus,
-  Copy, ExternalLink, QrCode,
+  Copy, ExternalLink, QrCode, Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CreatePaymentLinkDialog } from '@/components/pagamentos/CreatePaymentLinkDialog';
+import { PaymentLinkDetails } from '@/components/pagamentos/PaymentLinkDetails';
 
 function usePaymentLinks() {
   const { user } = useAuth();
