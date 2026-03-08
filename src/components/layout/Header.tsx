@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Bell, 
   Search, 
@@ -34,6 +34,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Notification {
   id: string;
@@ -45,45 +46,52 @@ interface Notification {
 }
 
 export function Header() {
-  const { profile, role, signOut } = useAuth();
+  const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
   
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'warning',
-      title: 'Fatura Vencida',
-      message: 'FT/2024/000003 - Comercial Benguela',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      read: false,
-    },
-    {
-      id: '2',
-      type: 'error',
-      title: 'Stock Crítico',
-      message: 'Monitor LED 24" - Apenas 3 unidades restantes',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-      read: false,
-    },
-    {
-      id: '3',
-      type: 'success',
-      title: 'Novo Cliente Registado',
-      message: 'Tech Solutions Angola adicionado ao sistema',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-      read: false,
-    },
-    {
-      id: '4',
-      type: 'info',
-      title: 'Atualização do Sistema',
-      message: 'Nova versão disponível com melhorias de performance',
-      timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000), // 2 days ago
-      read: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (data) {
+      setNotifications(data.map((n: any) => ({
+        id: n.id,
+        type: n.type as Notification['type'],
+        title: n.title,
+        message: n.message,
+        timestamp: new Date(n.created_at),
+        read: n.read,
+      })));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchNotifications();
+
+    if (!user) return;
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
+        fetchNotifications();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchNotifications]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -166,22 +174,27 @@ export function Header() {
     return `Há ${days} dias`;
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     setNotifications(prev =>
       prev.map(notif =>
         notif.id === id ? { ...notif, read: true } : notif
       )
     );
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications(prev =>
       prev.map(notif => ({ ...notif, read: true }))
     );
+    if (user) {
+      await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false);
+    }
   };
 
-  const clearNotification = (id: string) => {
+  const clearNotification = async (id: string) => {
     setNotifications(prev => prev.filter(notif => notif.id !== id));
+    await supabase.from('notifications').delete().eq('id', id);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
