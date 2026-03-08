@@ -409,7 +409,7 @@ export function Header() {
                     {profile ? getInitials(profile.nome) : 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <ChevronDown className="w-4 h-4 text-primary-foreground/60 hidden sm:block" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 p-2">
