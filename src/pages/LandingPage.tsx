@@ -1211,7 +1211,7 @@ export default function LandingPage() {
               {/* Tags */}
               <FadeIn direction="up" delay={80}>
                 <div className="flex flex-wrap justify-center gap-2.5 mb-14">
-                  {['Faturas em segundos','Conformidade AGT','Multi-canal','Relatórios avançados','Gestão de clientes','Automatização','API REST','WhatsApp nativo','Multicaixa','ID Comprador'].map((tag) => (
+                  {['Faturas em segundos','Multicaixa Express','Links de Pagamento','Carteira Digital','Conformidade AGT','Reconciliação Bancária','WhatsApp nativo','QR Code','API REST','ID Comprador'].map((tag) => (
                     <span key={tag} className="tag-pill text-sm font-semibold px-4 py-2 rounded-full cursor-default">{tag}</span>
                   ))}
                 </div>
