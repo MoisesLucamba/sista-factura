@@ -85,6 +85,7 @@ export default function Faturas() {
   const [isDownloading,    setIsDownloading]     = useState<string | null>(null);
   const [sendDialogFatura, setSendDialogFatura]  = useState<Fatura | null>(null);
   const [showFilters,      setShowFilters]       = useState(false);
+  const [paymentLinkFatura, setPaymentLinkFatura] = useState<Fatura | null>(null);
   const [hoveredRow,       setHoveredRow]        = useState<string | null>(null);
 
   const { data: selectedFatura } = useFatura(selectedFaturaId || '');
