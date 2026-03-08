@@ -195,6 +195,10 @@ export default function NovaFatura() {
       toast.error('Preencha todos os itens');
       return;
     }
+    if (tipo === 'nota-credito' && !notaCreditoRef.trim()) {
+      toast.error('A referência à fatura original é obrigatória para notas de crédito');
+      return;
+    }
 
     let finalClienteId = clienteId;
 
