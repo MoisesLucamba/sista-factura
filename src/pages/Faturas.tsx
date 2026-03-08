@@ -36,6 +36,7 @@ import { cn } from '@/lib/utils';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { SendInvoiceDialog } from '@/components/faturas/SendInvoiceDialog';
+import { CreatePaymentLinkDialog } from '@/components/pagamentos/CreatePaymentLinkDialog';
 
 /* ─── Types ─────────────────────────────────────────── */
 type EstadoFatura   = 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
