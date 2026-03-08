@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,114 +6,120 @@
 
 @layer base {
   :root {
-    /* Core surfaces - Clean white */
-    --background: 0 0% 100%;
-    --foreground: 230 25% 12%;
+    /* Core surfaces — Clean off-white */
+    --background: 220 20% 98%;
+    --foreground: 222 47% 11%;
 
     /* Cards */
     --card: 0 0% 100%;
-    --card-foreground: 230 25% 12%;
+    --card-foreground: 222 47% 11%;
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 230 25% 12%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Primary - Vibrant Yellow/Amber */
-    --primary: 45 100% 51%;
-    --primary-foreground: 230 25% 12%;
+    /* Primary — Electric teal/cyan fintech */
+    --primary: 168 80% 36%;
+    --primary-foreground: 0 0% 100%;
 
     /* Secondary */
-    --secondary: 45 30% 95%;
-    --secondary-foreground: 230 25% 20%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 20%;
 
     /* Muted */
-    --muted: 45 15% 96%;
-    --muted-foreground: 230 10% 45%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    /* Accent - Deep dark for contrast */
-    --accent: 230 30% 15%;
+    /* Accent — Deep navy for contrast */
+    --accent: 222 47% 11%;
     --accent-foreground: 0 0% 100%;
 
     /* Success */
-    --success: 145 65% 40%;
+    --success: 152 69% 38%;
     --success-foreground: 0 0% 100%;
 
     /* Warning */
-    --warning: 30 95% 50%;
-    --warning-foreground: 230 25% 12%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
 
     /* Destructive */
-    --destructive: 0 85% 55%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders */
-    --border: 45 15% 88%;
-    --input: 45 15% 88%;
-    --ring: 45 100% 51%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 168 80% 36%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Dark with yellow accents */
-    --sidebar-background: 230 30% 10%;
-    --sidebar-foreground: 45 20% 95%;
-    --sidebar-primary: 45 100% 51%;
-    --sidebar-primary-foreground: 230 25% 12%;
-    --sidebar-accent: 230 25% 16%;
-    --sidebar-accent-foreground: 45 20% 95%;
-    --sidebar-border: 230 25% 16%;
-    --sidebar-ring: 45 100% 51%;
+    /* Sidebar — Deep navy with teal accents */
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 168 80% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 14%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 222 35% 15%;
+    --sidebar-ring: 168 80% 42%;
 
     /* Charts */
-    --chart-1: 45 100% 51%;
-    --chart-2: 230 30% 15%;
-    --chart-3: 145 65% 40%;
-    --chart-4: 200 70% 50%;
-    --chart-5: 15 85% 55%;
+    --chart-1: 168 80% 36%;
+    --chart-2: 222 47% 11%;
+    --chart-3: 152 69% 38%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 262 60% 52%;
+
+    /* Fintech-specific tokens */
+    --fintech-glow: 168 80% 42%;
+    --fintech-navy: 222 47% 11%;
+    --fintech-gradient-start: 168 80% 36%;
+    --fintech-gradient-end: 199 89% 48%;
   }
 
   .dark {
-    --background: 230 30% 6%;
-    --foreground: 45 20% 95%;
+    --background: 222 47% 5%;
+    --foreground: 210 20% 92%;
 
-    --card: 230 30% 10%;
-    --card-foreground: 45 20% 95%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 20% 92%;
 
-    --popover: 230 30% 10%;
-    --popover-foreground: 45 20% 95%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 20% 92%;
 
-    --primary: 45 100% 51%;
-    --primary-foreground: 230 25% 12%;
+    --primary: 168 80% 42%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 230 25% 16%;
-    --secondary-foreground: 45 15% 90%;
+    --secondary: 222 40% 14%;
+    --secondary-foreground: 210 20% 90%;
 
-    --muted: 230 25% 16%;
-    --muted-foreground: 45 10% 55%;
+    --muted: 222 40% 14%;
+    --muted-foreground: 220 12% 50%;
 
-    --accent: 45 100% 51%;
-    --accent-foreground: 230 25% 12%;
+    --accent: 168 80% 42%;
+    --accent-foreground: 222 47% 8%;
 
-    --success: 145 65% 45%;
+    --success: 152 69% 42%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 30 95% 55%;
-    --warning-foreground: 230 25% 10%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 222 47% 8%;
 
-    --destructive: 0 75% 50%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 25% 18%;
-    --input: 230 25% 18%;
-    --ring: 45 100% 51%;
+    --border: 222 35% 15%;
+    --input: 222 35% 15%;
+    --ring: 168 80% 42%;
 
-    --sidebar-background: 230 35% 5%;
-    --sidebar-foreground: 45 15% 90%;
-    --sidebar-primary: 45 100% 51%;
-    --sidebar-primary-foreground: 230 25% 12%;
-    --sidebar-accent: 230 30% 10%;
-    --sidebar-accent-foreground: 45 15% 90%;
-    --sidebar-border: 230 30% 12%;
-    --sidebar-ring: 45 100% 51%;
+    --sidebar-background: 222 50% 4%;
+    --sidebar-foreground: 210 15% 85%;
+    --sidebar-primary: 168 80% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 45% 10%;
+    --sidebar-accent-foreground: 210 15% 90%;
+    --sidebar-border: 222 40% 10%;
+    --sidebar-ring: 168 80% 42%;
   }
 }
 
@@ -124,11 +130,11 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-family: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
     @apply font-semibold tracking-tight;
   }
 }
@@ -139,27 +145,41 @@
   }
 
   .glass-effect {
-    @apply backdrop-blur-lg bg-card/80;
+    @apply backdrop-blur-xl bg-card/70 border border-border/50;
   }
 
   .card-shadow {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
   }
 
   .card-shadow-lg {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
   }
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  /* Fintech gradient utilities */
+  .gradient-fintech {
+    background: linear-gradient(135deg, hsl(var(--fintech-gradient-start)), hsl(var(--fintech-gradient-end)));
+  }
+
+  .gradient-fintech-subtle {
+    background: linear-gradient(135deg, hsl(var(--fintech-gradient-start) / 0.08), hsl(var(--fintech-gradient-end) / 0.05));
+  }
+
+  .glow-fintech {
+    box-shadow: 0 0 20px -4px hsl(var(--fintech-glow) / 0.3), 0 4px 12px -2px hsl(var(--fintech-glow) / 0.2);
+  }
+
+  .font-mono-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
