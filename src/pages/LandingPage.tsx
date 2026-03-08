@@ -1066,7 +1066,7 @@ export default function LandingPage() {
               <div className="heroB mb-7">
                 <div className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-default">
                   <Sparkles className="w-4 h-4 text-white animate-pulse" />
-                  <span className="text-sm font-bold text-white tracking-wide">A plataforma #1 de faturação em Angola</span>
+                 <span className="text-sm font-bold text-white tracking-wide">Faturação + Pagamentos — Tudo numa só plataforma</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 </div>
               </div>
@@ -1075,7 +1075,7 @@ export default function LandingPage() {
               <div className="max-w-3xl mb-7">
                 <h1 className="font-black tracking-tight text-white"
                   style={{ fontSize: 'clamp(2.8rem, 7.5vw, 7rem)', lineHeight: 0.88, letterSpacing: '-0.02em' }}>
-                  <span className="hero1 block drop-shadow-lg">Faturação que</span>
+                  <span className="hero1 block drop-shadow-lg">Fature, cobre</span>
                   <span className="hero2 block">
                     <span style={{
                       background: 'linear-gradient(90deg, hsl(var(--primary)) 0%, #fff 45%, hsl(var(--primary)) 90%)',
@@ -1084,18 +1084,18 @@ export default function LandingPage() {
                       WebkitTextFillColor: 'transparent',
                       animation: 'shimmer 3s linear infinite',
                       filter: 'drop-shadow(0 0 24px hsl(var(--primary)/.5))',
-                    }}>impulsiona</span>
+                    }}>e receba</span>
                     <span className="text-white drop-shadow-lg"> ✦</span>
                   </span>
-                  <span className="hero3 block text-white drop-shadow-lg">o seu negócio</span>
+                  <span className="hero3 block text-white drop-shadow-lg">tudo num só lugar</span>
                 </h1>
               </div>
 
               {/* Subtítulo */}
               <p className="heroS text-white/75 max-w-2xl mb-10 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
-                Emita faturas profissionais, gerencie clientes e mantenha-se em conformidade com a AGT —
-                tudo num só lugar, em segundos. Grátis para começar.
+                Emita faturas, gere links de pagamento, aceite Multicaixa Express e gerencie a sua carteira digital —
+                a fintech de faturação feita para Angola.
               </p>
 
               {/* CTAs */}
