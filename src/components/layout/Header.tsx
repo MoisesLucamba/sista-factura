@@ -249,7 +249,7 @@ export function Header() {
                   <X className="w-3.5 h-3.5" />
                 </Button>
               )}
-              <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary-foreground/10 text-primary-foreground/70 rounded border border-primary-foreground/20">
+              <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded border border-border">
                 <Command className="w-3 h-3" />
                 K
               </kbd>
