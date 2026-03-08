@@ -22,6 +22,7 @@ import {
   useDeleteCliente, type Cliente, type ClienteInput,
 } from '@/hooks/useClientes';
 import { formatNIF } from '@/lib/format';
+import { exportToCSV } from '@/lib/csv-export';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Plus, Search, MoreVertical, Edit, Trash2, FileText,
