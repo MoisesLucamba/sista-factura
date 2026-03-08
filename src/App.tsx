@@ -172,6 +172,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/notificacoes"
+              element={
+                <ProtectedRoute>
+                  <Notificacoes />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
