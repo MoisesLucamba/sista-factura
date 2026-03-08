@@ -62,6 +62,7 @@ export interface CompanyInfo {
   actividade_comercial?:string;
   alvara_comercial?:    string;
   logo_url?:            string;
+  certificate_number?:  string;
 }
 
 /* ════════════════════════════════════════════════════════════════ */
