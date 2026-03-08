@@ -280,7 +280,7 @@ export function Header() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="relative hover:bg-primary-foreground/20 text-primary-foreground transition-colors"
+                className="relative hover:bg-muted text-foreground transition-colors"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
