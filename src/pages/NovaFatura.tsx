@@ -82,6 +82,7 @@ export default function NovaFatura() {
   const [dataVencimento, setDataVencimento] = useState<string>(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
+  const [notaCreditoRef, setNotaCreditoRef] = useState('');
 
   // B2C inline fields
   const [cfNome, setCfNome] = useState('');
