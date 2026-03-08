@@ -174,22 +174,27 @@ export function Header() {
     return `Há ${days} dias`;
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     setNotifications(prev =>
       prev.map(notif =>
         notif.id === id ? { ...notif, read: true } : notif
       )
     );
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications(prev =>
       prev.map(notif => ({ ...notif, read: true }))
     );
+    if (user) {
+      await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false);
+    }
   };
 
-  const clearNotification = (id: string) => {
+  const clearNotification = async (id: string) => {
     setNotifications(prev => prev.filter(notif => notif.id !== id));
+    await supabase.from('notifications').delete().eq('id', id);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
