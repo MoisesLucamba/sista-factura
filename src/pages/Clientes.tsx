@@ -402,6 +402,7 @@ export default function Clientes() {
                 </form>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
         </div>
       </FadeUp>
