@@ -414,19 +414,20 @@ export async function generateInvoicePDF(
   fc(AMBER); doc.rect(0, H - 20, W, 1.5, 'F');
 
   sz(6.5); N(); tc([150, 150, 165] as [number,number,number]);
+  const certLabel = compCert ? `  ·  Software certificado nº ${compCert}` : '';
   doc.text(
-    `${compName} — Sistema de Faturação Certificado  ·  Emitido em ${formatDate(fatura.data_emissao)}`,
-    W / 2, H - 13, { align: 'center' }
+    `${compName} — Sistema de Faturação Certificado${certLabel}`,
+    W / 2, H - 14, { align: 'center' }
   );
   sz(5.5);
   doc.text(
-    'Documento válido para efeitos fiscais na República de Angola',
-    W / 2, H - 8.5, { align: 'center' }
+    `Emitido em ${formatDate(fatura.data_emissao)}  ·  Documento válido para efeitos fiscais na República de Angola`,
+    W / 2, H - 9.5, { align: 'center' }
   );
   sz(5);
   doc.text(
     `Faktura Angola © ${new Date().getFullYear()} — Todos os direitos reservados`,
-    W / 2, H - 4.5, { align: 'center' }
+    W / 2, H - 5, { align: 'center' }
   );
 
   // Marca FAKTURA canto direito
