@@ -83,7 +83,7 @@ export default function Pagamentos() {
               Gerir links de pagamento, Multicaixa e conciliação bancária
             </p>
           </div>
-          <Button className="gradient-fintech border-0 text-primary-foreground glow-fintech">
+          <Button className="gradient-fintech border-0 text-primary-foreground glow-fintech" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Link de Pagamento
           </Button>
