@@ -232,10 +232,10 @@ export function Header() {
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
               className={cn(
-                "pl-10 pr-20 h-10 bg-primary-foreground/10 border-2 transition-all text-primary-foreground placeholder:text-primary-foreground/50",
+                "pl-10 pr-20 h-10 bg-muted/50 border-2 transition-all text-foreground placeholder:text-muted-foreground",
                 searchFocused 
-                  ? "border-primary-foreground/30 bg-primary-foreground/20 shadow-md" 
-                  : "border-transparent hover:bg-primary-foreground/15"
+                  ? "border-primary/30 bg-muted shadow-md" 
+                  : "border-transparent hover:bg-muted"
               )}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
