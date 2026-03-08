@@ -671,11 +671,11 @@ function PageSeguranca() {
         </div>
       </section>
 
-      <section className="py-4 bg-green-50 dark:bg-green-950/20 border-y border-green-100 dark:border-green-900/30">
+      <section className="py-4 bg-primary/5 dark:bg-primary/10 border-y border-primary/20 dark:border-primary/20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-sm font-bold text-green-700 dark:text-green-400">Todos os sistemas operacionais</span>
-          <span className="text-sm text-green-600/60">— Uptime 99.9% nos ultimos 90 dias</span>
+          <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+          <span className="text-sm font-bold text-primary dark:text-primary">Todos os sistemas operacionais</span>
+          <span className="text-sm text-primary/60">— Uptime 99.9% nos ultimos 90 dias</span>
         </div>
       </section>
 
