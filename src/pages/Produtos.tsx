@@ -503,7 +503,8 @@ export default function Produtos() {
                 </DialogFooter>
               </form>
             </DialogContent>
-          </Dialog>
+           </Dialog>
+          </div>
         </div>
       </div>
 
