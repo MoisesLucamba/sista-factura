@@ -243,7 +243,7 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 hover:bg-primary-foreground/20 text-primary-foreground"
+                  className="h-6 w-6 p-0 hover:bg-muted text-muted-foreground"
                   onClick={() => setSearchValue('')}
                 >
                   <X className="w-3.5 h-3.5" />
