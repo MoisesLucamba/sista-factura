@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -86,5 +87,3 @@ export function usePagination<T>(items: T[], itemsPerPage: number = 15) {
     itemsPerPage,
   };
 }
-
-import { useState } from 'react';
