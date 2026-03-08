@@ -64,6 +64,8 @@ const statusConfig = {
 export default function Pagamentos() {
   const { data: links = [], isLoading: loadingLinks } = usePaymentLinks();
   const { data: reconciliations = [], isLoading: loadingRecon } = useReconciliations();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [detailsCode, setDetailsCode] = useState<string | null>(null);
 
   const copyLink = (code: string) => {
     navigator.clipboard.writeText(`${window.location.origin}/pagar/${code}`);
