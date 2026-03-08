@@ -82,29 +82,29 @@ const features = [
     detail: 'Cada documento gerado inclui os campos obrigatórios por lei: NIF do emitente e receptor, data, descrição dos bens/serviços, valor base, IVA aplicável e valor total. Armazenamento automático por 5+ anos.',
   },
   {
+    icon: Wallet, title: 'Carteira Digital',
+    description: 'Saldo interno para receber e enviar pagamentos entre utilizadores. Receba pagamentos de faturas directamente na sua carteira Faktura.',
+    detail: 'Gerencie o seu saldo, visualize transacções, faça transferências entre utilizadores e acompanhe todos os movimentos financeiros em tempo real.',
+  },
+  {
+    icon: CreditCard, title: 'Multicaixa Express',
+    description: 'Aceite pagamentos por referência Multicaixa directamente na fatura. Gere referências EMIS e receba confirmação automática de pagamento.',
+    detail: 'Integração com o sistema EMIS para gerar referências de pagamento. O cliente paga no Multicaixa Express e a fatura é marcada como paga automaticamente.',
+  },
+  {
+    icon: Link2, title: 'Links de Pagamento',
+    description: 'Gere links únicos com QR code para clientes pagarem faturas online. Partilhe via WhatsApp, SMS ou email com um clique.',
+    detail: 'Links com expiração configurável, limites de uso e rastreamento em tempo real. Veja quando o cliente abriu e pagou.',
+  },
+  {
     icon: Shield, title: 'Conformidade AGT 100%',
     description: 'Certificação digital, QR codes e assinaturas electrónicas em conformidade total com as normas da Administração Geral Tributária de Angola.',
     detail: 'Integração directa com o portal e-Fatura da AGT para validação automática. Nunca emita um documento inválido — a Faktura valida tudo antes de enviar.',
   },
   {
-    icon: BarChart3, title: 'Relatórios Inteligentes',
-    description: 'Dashboard completo com métricas em tempo real: facturação por período, clientes mais activos, documentos em aberto e tendências de crescimento.',
-    detail: 'Exportação para Excel, PDF ou integração via API. Configure alertas automáticos para cobranças em atraso e relatórios mensais enviados por email.',
-  },
-  {
-    icon: Users, title: 'Gestão de Clientes',
-    description: 'Base de dados completa com histórico de transacções, contactos, NIF e padrões de compra. Com o programa ID, dados de compradores registados preenchem automaticamente.',
-    detail: 'Segmente clientes por volume de compra, sector de actividade ou localização. Importe clientes em massa via CSV ou da sua base de dados existente.',
-  },
-  {
-    icon: Globe, title: 'Multi-Canal de Envio',
-    description: 'Envie facturas directamente por WhatsApp Business, SMS ou email com um clique. O cliente recebe o documento no canal que preferir.',
-    detail: 'Templates personalizáveis com a sua marca. Confirmação de recepção em tempo real. Reenvio automático se o primeiro envio falhar.',
-  },
-  {
-    icon: Clock, title: 'Automação Completa',
-    description: 'Facturas recorrentes, lembretes de pagamento automáticos e relatórios mensais gerados sem intervenção manual.',
-    detail: 'Configure regras: emitir factura no dia X de cada mês, enviar lembrete 5 dias após vencimento, marcar como pago quando receber confirmação Multicaixa.',
+    icon: Repeat, title: 'Reconciliação Bancária',
+    description: 'Reconcilie pagamentos bancários com faturas automaticamente. Compare extractos bancários com documentos emitidos num só ecrã.',
+    detail: 'Carregue extractos bancários e o sistema identifica automaticamente quais faturas foram pagas. Reduza horas de trabalho manual a minutos.',
   },
 ];
 
