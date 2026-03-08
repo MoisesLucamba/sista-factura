@@ -32,6 +32,8 @@ const Perfil = lazy(() => import("./pages/Perfil"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 const Notificacoes = lazy(() => import("./pages/Notificacoes"));
+const Carteira = lazy(() => import("./pages/Carteira"));
+const Pagamentos = lazy(() => import("./pages/Pagamentos"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -177,6 +179,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Notificacoes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/carteira"
+              element={
+                <ProtectedRoute>
+                  <Carteira />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pagamentos"
+              element={
+                <ProtectedRoute>
+                  <Pagamentos />
                 </ProtectedRoute>
               }
             />

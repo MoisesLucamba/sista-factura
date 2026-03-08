@@ -146,6 +146,66 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_reconciliations: {
+        Row: {
+          bank_amount: number
+          bank_reference: string | null
+          created_at: string
+          fatura_id: string | null
+          id: string
+          invoice_amount: number
+          matched_at: string | null
+          notes: string | null
+          status: string
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_amount?: number
+          bank_reference?: string | null
+          created_at?: string
+          fatura_id?: string | null
+          id?: string
+          invoice_amount?: number
+          matched_at?: string | null
+          notes?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_amount?: number
+          bank_reference?: string | null
+          created_at?: string
+          fatura_id?: string | null
+          id?: string
+          invoice_amount?: number
+          matched_at?: string | null
+          notes?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_reconciliations_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_reconciliations_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       buyer_purchases: {
         Row: {
           buyer_user_id: string
@@ -589,6 +649,78 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_links: {
+        Row: {
+          amount: number
+          code: string
+          created_at: string
+          currency: string
+          description: string | null
+          expires_at: string | null
+          fatura_id: string | null
+          id: string
+          max_uses: number | null
+          metadata: Json | null
+          paid_at: string | null
+          status: string
+          transaction_id: string | null
+          updated_at: string
+          use_count: number | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          code: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          expires_at?: string | null
+          fatura_id?: string | null
+          id?: string
+          max_uses?: number | null
+          metadata?: Json | null
+          paid_at?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          use_count?: number | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          code?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          expires_at?: string | null
+          fatura_id?: string | null
+          id?: string
+          max_uses?: number | null
+          metadata?: Json | null
+          paid_at?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          use_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_links_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_links_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos: {
         Row: {
           codigo: string
@@ -787,6 +919,80 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          external_reference: string | null
+          failed_at: string | null
+          failure_reason: string | null
+          fatura_id: string | null
+          id: string
+          metadata: Json | null
+          payment_method: string | null
+          receiver_wallet_id: string | null
+          reference: string | null
+          sender_wallet_id: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          external_reference?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
+          fatura_id?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          receiver_wallet_id?: string | null
+          reference?: string | null
+          sender_wallet_id?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          external_reference?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
+          fatura_id?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          receiver_wallet_id?: string | null
+          reference?: string | null
+          sender_wallet_id?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -829,6 +1035,7 @@ export type Database = {
         Args: { _serie: string; _user_id: string }
         Returns: string
       }
+      generate_payment_link_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }

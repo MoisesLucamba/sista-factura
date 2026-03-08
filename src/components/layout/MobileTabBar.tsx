@@ -4,16 +4,16 @@ import { memo, useCallback } from 'react';
 import {
   LayoutDashboard,
   FileText,
-  Users,
-  Package,
+  Wallet,
+  CreditCard,
   Menu,
 } from 'lucide-react';
 
 const tabs = [
   { icon: LayoutDashboard, label: 'Início', href: '/dashboard' },
   { icon: FileText, label: 'Faturas', href: '/faturas' },
-  { icon: Users, label: 'Clientes', href: '/clientes' },
-  { icon: Package, label: 'Produtos', href: '/produtos' },
+  { icon: Wallet, label: 'Carteira', href: '/carteira' },
+  { icon: CreditCard, label: 'Pagar', href: '/pagamentos' },
   { icon: Menu, label: 'Mais', href: '/configuracoes' },
 ] as const;
 
