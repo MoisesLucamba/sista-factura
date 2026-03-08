@@ -438,7 +438,7 @@ const perks2 = [
 const jobs = [
   { title: 'Engenheiro(a) Full-Stack', dept: 'Engineering', loc: 'Luanda / Remoto', tags: ['React','TypeScript','Node.js'], desc: 'Construa funcionalidades que milhares de empresas angolanas usam todos os dias.', c: 'bg-blue-100 text-blue-700' },
   { title: 'Product Designer', dept: 'Design', loc: 'Luanda / Remoto', tags: ['Figma','UX Research'], desc: 'Desenhe experiências que tornam a faturação simples para qualquer empresário.', c: 'bg-purple-100 text-purple-700' },
-  { title: 'Account Executive', dept: 'Sales', loc: 'Luanda', tags: ['B2B','CRM'], desc: 'Apresente a Faktura a empresas e ajude-as a modernizar a sua faturação.', c: 'bg-green-100 text-green-700' },
+  { title: 'Account Executive', dept: 'Sales', loc: 'Luanda', tags: ['B2B','CRM'], desc: 'Apresente a Faktura a empresas e ajude-as a modernizar a sua faturação.', c: 'bg-amber-100 text-amber-700' },
   { title: 'Customer Success Manager', dept: 'Operations', loc: 'Luanda / Remoto', tags: ['Suporte','Onboarding'], desc: 'Garanta que os clientes tiram o máximo da plataforma.', c: 'bg-amber-100 text-amber-700' },
 ];
 
