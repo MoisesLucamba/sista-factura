@@ -229,7 +229,7 @@ function PageIntegracoes() {
                 <p><span className="text-primary">"valor"</span>: <span className="text-blue-400">25000</span></p>
                 <p><span className="text-primary">"descricao"</span>: <span className="text-amber-400">"Servico de consultoria"</span></p>
               </div>
-              <div className="mt-4 flex items-center gap-2 text-green-400 text-xs">
+              <div className="mt-4 flex items-center gap-2 text-primary text-xs">
                 <CheckCircle className="w-3.5 h-3.5" />
                 <span>200 OK — FT 2025/1284 emitida</span>
               </div>
