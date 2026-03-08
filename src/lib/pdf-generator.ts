@@ -111,6 +111,7 @@ export async function generateInvoicePDF(
   const compEmail = companyInfo?.email          || '';
   const compAlv   = companyInfo?.alvara_comercial || '';
   const compLogo  = companyInfo?.logo_url;
+  const compCert  = companyInfo?.certificate_number || '';
 
   const tipoLabel  = TIPO_LABEL[fatura.tipo] || 'FATURA';
   const isProforma = fatura.tipo === 'proforma';
