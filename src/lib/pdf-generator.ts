@@ -308,7 +308,7 @@ export async function generateInvoicePDF(
   y += 12;
 
   /* ════════════════════════════════════════════════════════════
-     ⑦ TOTAIS — puramente tipográfico, nenhuma borda
+     ⑦ TOTAIS — IVA discriminado por taxa (AGT-compliant)
   ════════════════════════════════════════════════════════════ */
   const tLX = W - MR - 75;
   const tVX = W - MR;
@@ -319,10 +319,29 @@ export async function generateInvoicePDF(
   B(); tc(INK);   doc.text(formatCurrency(fatura.subtotal), tVX, y, { align: 'right' });
   y += 6.5;
 
-  // IVA
-  N(); tc(MUTED); doc.text('IVA 14%', tLX, y);
-  B(); tc(INK);   doc.text(formatCurrency(fatura.total_iva), tVX, y, { align: 'right' });
-  y += 5;
+  // IVA discriminado por taxa
+  const ivaByRate: Record<number, number> = {};
+  for (const item of items) {
+    const rate = item.taxa_iva || 0;
+    ivaByRate[rate] = (ivaByRate[rate] || 0) + (item.valor_iva || 0);
+  }
+  const sortedRates = Object.keys(ivaByRate).map(Number).sort((a, b) => b - a);
+  
+  for (const rate of sortedRates) {
+    const label = rate === 0 ? 'IVA Isento' : `IVA ${rate}%`;
+    N(); tc(MUTED); doc.text(label, tLX, y);
+    B(); tc(INK);   doc.text(formatCurrency(ivaByRate[rate]), tVX, y, { align: 'right' });
+    y += 6.5;
+  }
+
+  // If no items, show single IVA line
+  if (sortedRates.length === 0) {
+    N(); tc(MUTED); doc.text('IVA', tLX, y);
+    B(); tc(INK);   doc.text(formatCurrency(fatura.total_iva), tVX, y, { align: 'right' });
+    y += 6.5;
+  }
+
+  y -= 1.5;
 
   // Linha âmbar — apenas entre IVA e Total
   dc(AMBER); doc.setLineWidth(0.7);
