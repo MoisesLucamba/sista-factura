@@ -298,6 +298,7 @@ export default function Dashboard() {
               subtitle={item.subtitle}
               icon={item.icon}
               variant={item.variant}
+              trend={item.trend}
             />
           </div>
         ))}
