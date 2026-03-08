@@ -75,6 +75,7 @@ export default function Faturas() {
   const { data: agtConfig } = useAgtConfig();
   const updateEstado   = useUpdateFaturaEstado();
   const convertProforma = useConvertProforma();
+  const navigate = useNavigate();
 
   const [searchTerm,       setSearchTerm]       = useState('');
   const [estadoFilter,     setEstadoFilter]      = useState<string>('all');
