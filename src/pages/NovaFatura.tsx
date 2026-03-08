@@ -272,7 +272,9 @@ export default function NovaFatura() {
       data_vencimento: dataVencimento,
       observacoes: isProforma
         ? `DOCUMENTO PROFORMA – NÃO VÁLIDO COMO DOCUMENTO FISCAL${observacoes ? '\n' + observacoes : ''}`
-        : observacoes || undefined,
+        : tipo === 'nota-credito'
+          ? `Ref. documento original: ${notaCreditoRef.trim()}${observacoes ? '\n' + observacoes : ''}`
+          : observacoes || undefined,
       metodo_pagamento: metodoPagamento || undefined,
       buyer_user_id: useFakturaId && buyerData ? buyerData.user_id : undefined,
       buyer_faktura_id: useFakturaId && buyerData ? fakturaIdInput.trim().toUpperCase() : undefined,
