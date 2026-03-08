@@ -1158,8 +1158,8 @@ export default function LandingPage() {
             </div>
 
             <div className="af absolute right-14 bottom-[30%] z-20 float-badge rounded-xl px-3 py-2.5 hidden xl:flex items-center gap-3 border border-white/15">
-              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                <BadgeDollarSign className="w-4 h-4 text-green-600" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <BadgeDollarSign className="w-4 h-4 text-primary" />
               </div>
               <div>
                 <p className="text-xs font-bold text-foreground">+50 Kz creditados</p>
