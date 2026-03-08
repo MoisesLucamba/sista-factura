@@ -357,7 +357,7 @@ const blogPosts = [
   { cat: 'Conformidade', title: 'Guia completo: NIF, IBAN e dados obrigatórios na fatura', excerpt: 'Saiba exactamente quais campos são legalmente obrigatórios e como preenchê-los correctamente.', author: 'Beatriz Neto', date: '20 Dez 2024', read: '7 min', init: 'BN', c: 'bg-teal-100 text-teal-700' },
   { cat: 'Integrações', title: 'Como enviar faturas pelo WhatsApp automaticamente', excerpt: 'Configure a integração WhatsApp Business em 2 minutos e os seus clientes recebem faturas no telemóvel.', author: 'Miguel Costa', date: '15 Dez 2024', read: '4 min', init: 'MC', c: 'bg-rose-100 text-rose-700' },
 ];
-const catColors = { Faturação:'bg-primary/10 text-primary', Dicas:'bg-blue-100 text-blue-700', Produto:'bg-purple-100 text-purple-700', Negócio:'bg-green-100 text-green-700', Conformidade:'bg-teal-100 text-teal-700', Integrações:'bg-amber-100 text-amber-700' };
+const catColors = { Faturação:'bg-primary/10 text-primary', Dicas:'bg-blue-100 text-blue-700', Produto:'bg-purple-100 text-purple-700', Negócio:'bg-amber-100 text-amber-700', Conformidade:'bg-teal-100 text-teal-700', Integrações:'bg-amber-100 text-amber-700' };
 
 function PageBlog() {
   return (
