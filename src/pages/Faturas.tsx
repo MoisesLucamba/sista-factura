@@ -517,6 +517,19 @@ export default function Faturas() {
                                 <DropdownMenuItem onClick={() => setSendDialogFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
                                   <Send className="w-4 h-4 text-muted-foreground" /> Enviar ao Cliente
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  // Store fatura data in sessionStorage for duplication
+                                  sessionStorage.setItem('duplicar_fatura', JSON.stringify({
+                                    tipo: fatura.tipo,
+                                    cliente_id: fatura.cliente_id,
+                                    observacoes: fatura.observacoes,
+                                    metodo_pagamento: fatura.metodo_pagamento,
+                                  }));
+                                  navigate('/faturas/nova');
+                                  toast.info('Fatura duplicada — preencha os itens');
+                                }} className="rounded-lg gap-2 cursor-pointer">
+                                  <Copy className="w-4 h-4 text-muted-foreground" /> Duplicar Fatura
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {fatura.tipo === 'proforma' && fatura.estado === 'emitida' && (
                                   <DropdownMenuItem className="rounded-lg gap-2 text-primary focus:text-primary font-semibold cursor-pointer" onClick={() => convertProforma.mutate(fatura.id)} disabled={convertProforma.isPending}>
