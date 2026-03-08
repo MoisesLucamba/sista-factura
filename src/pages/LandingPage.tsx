@@ -195,7 +195,7 @@ function PageIntegracoes() {
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                       <Icon className="w-6 h-6 text-primary" />
                     </div>
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${status === 'Disponível' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${status === 'Disponível' ? 'bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
                       {status}
                     </span>
                   </div>
@@ -229,7 +229,7 @@ function PageIntegracoes() {
                 <p><span className="text-primary">"valor"</span>: <span className="text-blue-400">25000</span></p>
                 <p><span className="text-primary">"descricao"</span>: <span className="text-amber-400">"Servico de consultoria"</span></p>
               </div>
-              <div className="mt-4 flex items-center gap-2 text-green-400 text-xs">
+              <div className="mt-4 flex items-center gap-2 text-primary text-xs">
                 <CheckCircle className="w-3.5 h-3.5" />
                 <span>200 OK — FT 2025/1284 emitida</span>
               </div>
@@ -245,7 +245,7 @@ function PageIntegracoes() {
 const teamMembers = [
   { name: 'Carlos Mendes', role: 'CEO & Co-fundador', init: 'CM', color: 'bg-blue-100 text-blue-700' },
   { name: 'Ana Ferreira', role: 'CTO & Co-fundadora', init: 'AF', color: 'bg-purple-100 text-purple-700' },
-  { name: 'Pedro Santos', role: 'Head of Product', init: 'PS', color: 'bg-green-100 text-green-700' },
+  { name: 'Pedro Santos', role: 'Head of Product', init: 'PS', color: 'bg-amber-100 text-amber-700' },
   { name: 'Sofia Lopes', role: 'Head of Design', init: 'SL', color: 'bg-amber-100 text-amber-700' },
   { name: 'Miguel Costa', role: 'Lead Engineer', init: 'MC', color: 'bg-rose-100 text-rose-700' },
   { name: 'Beatriz Neto', role: 'Head of Sales', init: 'BN', color: 'bg-teal-100 text-teal-700' },
@@ -353,11 +353,11 @@ const blogPosts = [
   { cat: 'Faturação', tag: true, title: 'O que mudou na faturação electrónica em Angola em 2025', excerpt: 'A AGT reforçou os requisitos para emissão de faturas digitais. Veja o que mudou e como a Faktura já cumpre todos os novos critérios.', author: 'Equipa Faktura', date: '15 Jan 2025', read: '6 min', init: 'EF', c: 'bg-primary/15 text-primary' },
   { cat: 'Dicas', title: 'Como evitar os 5 erros mais comuns na emissão de faturas', excerpt: 'Erros simples podem causar problemas sérios com o fisco. Descubra quais são e como a Faktura os elimina automaticamente.', author: 'Carlos Mendes', date: '8 Jan 2025', read: '4 min', init: 'CM', c: 'bg-blue-100 text-blue-700' },
   { cat: 'Produto', title: 'Novo: ID de comprador — ganhe 50 Kz por cada fatura', excerpt: 'Registe-se, partilhe o seu ID e receba automaticamente 50 Kz por cada compra faturada acima de 1.500 Kz.', author: 'Ana Ferreira', date: '2 Jan 2025', read: '3 min', init: 'AF', c: 'bg-purple-100 text-purple-700' },
-  { cat: 'Negócio', title: 'Faturação recorrente: automatize cobranças mensais', excerpt: 'Se tem clientes com serviços mensais, a faturação recorrente da Faktura vai poupar horas de trabalho repetitivo.', author: 'Pedro Santos', date: '28 Dez 2024', read: '5 min', init: 'PS', c: 'bg-green-100 text-green-700' },
+  { cat: 'Negócio', title: 'Faturação recorrente: automatize cobranças mensais', excerpt: 'Se tem clientes com serviços mensais, a faturação recorrente da Faktura vai poupar horas de trabalho repetitivo.', author: 'Pedro Santos', date: '28 Dez 2024', read: '5 min', init: 'PS', c: 'bg-amber-100 text-amber-700' },
   { cat: 'Conformidade', title: 'Guia completo: NIF, IBAN e dados obrigatórios na fatura', excerpt: 'Saiba exactamente quais campos são legalmente obrigatórios e como preenchê-los correctamente.', author: 'Beatriz Neto', date: '20 Dez 2024', read: '7 min', init: 'BN', c: 'bg-teal-100 text-teal-700' },
   { cat: 'Integrações', title: 'Como enviar faturas pelo WhatsApp automaticamente', excerpt: 'Configure a integração WhatsApp Business em 2 minutos e os seus clientes recebem faturas no telemóvel.', author: 'Miguel Costa', date: '15 Dez 2024', read: '4 min', init: 'MC', c: 'bg-rose-100 text-rose-700' },
 ];
-const catColors = { Faturação:'bg-primary/10 text-primary', Dicas:'bg-blue-100 text-blue-700', Produto:'bg-purple-100 text-purple-700', Negócio:'bg-green-100 text-green-700', Conformidade:'bg-teal-100 text-teal-700', Integrações:'bg-amber-100 text-amber-700' };
+const catColors = { Faturação:'bg-primary/10 text-primary', Dicas:'bg-blue-100 text-blue-700', Produto:'bg-purple-100 text-purple-700', Negócio:'bg-amber-100 text-amber-700', Conformidade:'bg-teal-100 text-teal-700', Integrações:'bg-amber-100 text-amber-700' };
 
 function PageBlog() {
   return (
@@ -438,7 +438,7 @@ const perks2 = [
 const jobs = [
   { title: 'Engenheiro(a) Full-Stack', dept: 'Engineering', loc: 'Luanda / Remoto', tags: ['React','TypeScript','Node.js'], desc: 'Construa funcionalidades que milhares de empresas angolanas usam todos os dias.', c: 'bg-blue-100 text-blue-700' },
   { title: 'Product Designer', dept: 'Design', loc: 'Luanda / Remoto', tags: ['Figma','UX Research'], desc: 'Desenhe experiências que tornam a faturação simples para qualquer empresário.', c: 'bg-purple-100 text-purple-700' },
-  { title: 'Account Executive', dept: 'Sales', loc: 'Luanda', tags: ['B2B','CRM'], desc: 'Apresente a Faktura a empresas e ajude-as a modernizar a sua faturação.', c: 'bg-green-100 text-green-700' },
+  { title: 'Account Executive', dept: 'Sales', loc: 'Luanda', tags: ['B2B','CRM'], desc: 'Apresente a Faktura a empresas e ajude-as a modernizar a sua faturação.', c: 'bg-amber-100 text-amber-700' },
   { title: 'Customer Success Manager', dept: 'Operations', loc: 'Luanda / Remoto', tags: ['Suporte','Onboarding'], desc: 'Garanta que os clientes tiram o máximo da plataforma.', c: 'bg-amber-100 text-amber-700' },
 ];
 
@@ -671,11 +671,11 @@ function PageSeguranca() {
         </div>
       </section>
 
-      <section className="py-4 bg-green-50 dark:bg-green-950/20 border-y border-green-100 dark:border-green-900/30">
+      <section className="py-4 bg-primary/5 dark:bg-primary/10 border-y border-primary/20 dark:border-primary/20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-sm font-bold text-green-700 dark:text-green-400">Todos os sistemas operacionais</span>
-          <span className="text-sm text-green-600/60">— Uptime 99.9% nos ultimos 90 dias</span>
+          <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+          <span className="text-sm font-bold text-primary dark:text-primary">Todos os sistemas operacionais</span>
+          <span className="text-sm text-primary/60">— Uptime 99.9% nos ultimos 90 dias</span>
         </div>
       </section>
 
@@ -1158,8 +1158,8 @@ export default function LandingPage() {
             </div>
 
             <div className="af absolute right-14 bottom-[30%] z-20 float-badge rounded-xl px-3 py-2.5 hidden xl:flex items-center gap-3 border border-white/15">
-              <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                <BadgeDollarSign className="w-4 h-4 text-green-600" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <BadgeDollarSign className="w-4 h-4 text-primary" />
               </div>
               <div>
                 <p className="text-xs font-bold text-foreground">+50 Kz creditados</p>
