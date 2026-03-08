@@ -61,6 +61,7 @@ const App = () => (
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/pagar/:code" element={<PagarLink />} />
             <Route
               path="/aprovacao-pendente"
               element={
