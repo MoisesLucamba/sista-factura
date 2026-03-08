@@ -52,9 +52,11 @@ export function Sidebar() {
   const filteredMain = mainNavItems.filter(i =>
     !search || i.label.toLowerCase().includes(search.toLowerCase())
   );
-  const filteredSecondary = secondaryNavItems.filter(i =>
-    !search || i.label.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredSecondary = secondaryNavItems.filter(i => {
+    // Hide Admin for non-admin users
+    if (i.href === '/admin' && role !== 'admin') return false;
+    return !search || i.label.toLowerCase().includes(search.toLowerCase());
+  });
 
   /* ── NavLink ─────────────────────────────────────── */
   const NavLink = ({ item }: { item: NavItem }) => {

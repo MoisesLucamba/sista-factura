@@ -1,58 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Search,
-  FileText,
-  Receipt,
-  FileCheck,
-  Download,
-  Eye,
-  FolderOpen,
+  Search, FileText, Receipt, FileCheck, Download, Eye, FolderOpen, Loader2, Activity,
 } from 'lucide-react';
-
-/* ─── Mock data ─── */
-const mockDocuments = [
-  { id: '1', tipo: 'Factura',        numero: 'FT/2026/000001', data: '2026-02-10', cliente: 'Tech Solutions',      valor: 150000, estado: 'Emitida' },
-  { id: '2', tipo: 'Recibo',         numero: 'RC/2026/000001', data: '2026-02-09', cliente: 'Comercial Benguela',  valor: 85000,  estado: 'Pago' },
-  { id: '3', tipo: 'Nota de Crédito',numero: 'NC/2026/000001', data: '2026-02-08', cliente: 'Logística Express',   valor: 25000,  estado: 'Emitida' },
-  { id: '4', tipo: 'Proforma',       numero: 'PF/2026/000001', data: '2026-02-07', cliente: 'Tech Solutions',      valor: 200000, estado: 'Pendente' },
-];
+import { useFaturas, type Fatura } from '@/hooks/useFaturas';
+import { formatCurrency, formatDate } from '@/lib/format';
+import { Pagination, usePagination } from '@/components/shared/Pagination';
+import { exportToCSV } from '@/lib/csv-export';
+import { toast } from 'sonner';
 
 /* ─── Estado badge ─── */
 const EstadoBadge = ({ estado }: { estado: string }) => {
-  switch (estado) {
-    case 'Pago':
-      return <Badge className="bg-green-100 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800 font-semibold">{estado}</Badge>;
-    case 'Emitida':
-      return <Badge className="bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800 font-semibold">{estado}</Badge>;
-    case 'Pendente':
-      return <Badge className="bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800 font-semibold">{estado}</Badge>;
-    default:
-      return <Badge variant="outline">{estado}</Badge>;
-  }
+  const map: Record<string, string> = {
+    paga: 'bg-green-100 text-green-700 border border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800',
+    emitida: 'bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800',
+    rascunho: 'bg-muted text-muted-foreground border border-muted-foreground/20',
+    vencida: 'bg-red-100 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800',
+    anulada: 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-800',
+  };
+  const labels: Record<string, string> = {
+    paga: 'Pago', emitida: 'Emitida', rascunho: 'Rascunho', vencida: 'Vencida', anulada: 'Anulada',
+  };
+  return <Badge className={`${map[estado] || ''} font-semibold`}>{labels[estado] || estado}</Badge>;
 };
 
 /* ─── Tipo icon ─── */
 const tipoIcon = (tipo: string) => {
   switch (tipo) {
-    case 'Factura':         return <FileText className="w-4 h-4 text-primary" />;
-    case 'Recibo':          return <Receipt className="w-4 h-4 text-green-600 dark:text-green-400" />;
-    case 'Nota de Crédito': return <FileCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
-    default:                return <FileText className="w-4 h-4 text-muted-foreground" />;
+    case 'fatura':
+    case 'fatura-recibo': return <FileText className="w-4 h-4 text-primary" />;
+    case 'recibo':        return <Receipt className="w-4 h-4 text-green-600 dark:text-green-400" />;
+    case 'nota-credito':  return <FileCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
+    default:              return <FileText className="w-4 h-4 text-muted-foreground" />;
   }
+};
+
+const tipoLabels: Record<string, string> = {
+  'fatura': 'Factura',
+  'fatura-recibo': 'Factura-Recibo',
+  'recibo': 'Recibo',
+  'nota-credito': 'Nota de Crédito',
+  'proforma': 'Proforma',
 };
 
 /* ─── KPI card ─── */
@@ -78,7 +74,7 @@ const KpiCard = ({
 );
 
 /* ─── Document table ─── */
-const DocTable = ({ docs }: { docs: typeof mockDocuments }) => {
+const DocTable = ({ docs }: { docs: Fatura[] }) => {
   if (docs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
@@ -110,19 +106,19 @@ const DocTable = ({ docs }: { docs: typeof mockDocuments }) => {
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-foreground">{doc.numero}</p>
-                  <p className="text-xs text-muted-foreground">{doc.tipo}</p>
+                  <p className="text-xs text-muted-foreground">{tipoLabels[doc.tipo] || doc.tipo}</p>
                 </div>
               </div>
             </TableCell>
             <TableCell className="hidden sm:table-cell">
-              <span className="text-sm font-medium text-foreground">{doc.cliente}</span>
+              <span className="text-sm font-medium text-foreground">{doc.cliente?.nome || '—'}</span>
             </TableCell>
             <TableCell className="hidden md:table-cell">
-              <span className="text-sm text-muted-foreground">{doc.data}</span>
+              <span className="text-sm text-muted-foreground">{formatDate(doc.data_emissao)}</span>
             </TableCell>
             <TableCell>
               <span className="text-sm font-bold text-foreground">
-                {doc.valor.toLocaleString('pt-AO')} Kz
+                {formatCurrency(Number(doc.total))}
               </span>
             </TableCell>
             <TableCell>
@@ -147,21 +143,45 @@ const DocTable = ({ docs }: { docs: typeof mockDocuments }) => {
 
 /* ══════════════════ MAIN PAGE ══════════════════ */
 export default function Documentos() {
+  const { data: faturas = [], isLoading } = useFaturas();
   const [search, setSearch] = useState('');
 
-  const filtered = mockDocuments.filter(d =>
+  const filtered = faturas.filter(d =>
     d.numero.toLowerCase().includes(search.toLowerCase()) ||
-    d.cliente.toLowerCase().includes(search.toLowerCase())
+    d.cliente?.nome?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const facturas    = filtered.filter(d => d.tipo === 'Factura');
-  const recibos     = filtered.filter(d => d.tipo === 'Recibo');
-  const outros      = filtered.filter(d => d.tipo === 'Nota de Crédito' || d.tipo === 'Proforma');
+  const facturas = filtered.filter(d => d.tipo === 'fatura' || d.tipo === 'fatura-recibo');
+  const recibos  = filtered.filter(d => d.tipo === 'recibo');
+  const outros   = filtered.filter(d => d.tipo === 'nota-credito' || d.tipo === 'proforma');
 
-  const totalFacturas    = mockDocuments.filter(d => d.tipo === 'Factura').length;
-  const totalRecibos     = mockDocuments.filter(d => d.tipo === 'Recibo').length;
-  const totalCredito     = mockDocuments.filter(d => d.tipo === 'Nota de Crédito').length;
-  const totalProformas   = mockDocuments.filter(d => d.tipo === 'Proforma').length;
+  const totalFacturas  = faturas.filter(d => d.tipo === 'fatura' || d.tipo === 'fatura-recibo').length;
+  const totalRecibos   = faturas.filter(d => d.tipo === 'recibo').length;
+  const totalCredito   = faturas.filter(d => d.tipo === 'nota-credito').length;
+  const totalProformas = faturas.filter(d => d.tipo === 'proforma').length;
+
+  // Pagination for each tab
+  const allPagination = usePagination(filtered);
+  const facturasPagination = usePagination(facturas);
+  const recibosPagination = usePagination(recibos);
+  const outrosPagination = usePagination(outros);
+
+  if (isLoading) {
+    return (
+      <MainLayout title="Documentos" description="Todos os documentos fiscais emitidos">
+        <div className="flex flex-col items-center justify-center h-72 gap-4">
+          <div className="relative w-14 h-14">
+            <div className="absolute inset-0 rounded-full border-4 border-primary/15" />
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary animate-spin" />
+            <div className="absolute inset-2 rounded-full bg-primary/10 flex items-center justify-center">
+              <Activity className="w-4 h-4 text-primary" />
+            </div>
+          </div>
+          <p className="text-sm font-semibold">A carregar documentos…</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout title="Documentos" description="Todos os documentos fiscais emitidos">
@@ -179,15 +199,50 @@ export default function Documentos() {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <Input
-              placeholder="Pesquisar por número ou cliente..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-10 h-10"
-            />
+          <div className="flex items-center gap-3">
+            {/* Export */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                exportToCSV(
+                  filtered.map(f => ({
+                    numero: f.numero,
+                    tipo: tipoLabels[f.tipo] || f.tipo,
+                    cliente: f.cliente?.nome || '',
+                    data: f.data_emissao,
+                    valor: Number(f.total),
+                    iva: Number(f.total_iva),
+                    estado: f.estado,
+                  })),
+                  [
+                    { key: 'numero', label: 'Número' },
+                    { key: 'tipo', label: 'Tipo' },
+                    { key: 'cliente', label: 'Cliente' },
+                    { key: 'data', label: 'Data' },
+                    { key: 'valor', label: 'Valor' },
+                    { key: 'iva', label: 'IVA' },
+                    { key: 'estado', label: 'Estado' },
+                  ],
+                  'documentos'
+                );
+                toast.success('CSV exportado!');
+              }}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exportar CSV
+            </Button>
+
+            {/* Search */}
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Pesquisar por número ou cliente..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-10 h-10"
+              />
+            </div>
           </div>
         </div>
 
@@ -251,7 +306,8 @@ export default function Documentos() {
           <TabsContent value="todos" className="mt-4">
             <Card>
               <CardContent className="p-0 overflow-x-auto">
-                <DocTable docs={filtered} />
+                <DocTable docs={allPagination.paginatedItems} />
+                <Pagination currentPage={allPagination.currentPage} totalItems={allPagination.totalItems} itemsPerPage={allPagination.itemsPerPage} onPageChange={allPagination.setCurrentPage} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -259,7 +315,8 @@ export default function Documentos() {
           <TabsContent value="facturas" className="mt-4">
             <Card>
               <CardContent className="p-0 overflow-x-auto">
-                <DocTable docs={facturas} />
+                <DocTable docs={facturasPagination.paginatedItems} />
+                <Pagination currentPage={facturasPagination.currentPage} totalItems={facturasPagination.totalItems} itemsPerPage={facturasPagination.itemsPerPage} onPageChange={facturasPagination.setCurrentPage} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -267,7 +324,8 @@ export default function Documentos() {
           <TabsContent value="recibos" className="mt-4">
             <Card>
               <CardContent className="p-0 overflow-x-auto">
-                <DocTable docs={recibos} />
+                <DocTable docs={recibosPagination.paginatedItems} />
+                <Pagination currentPage={recibosPagination.currentPage} totalItems={recibosPagination.totalItems} itemsPerPage={recibosPagination.itemsPerPage} onPageChange={recibosPagination.setCurrentPage} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -275,7 +333,8 @@ export default function Documentos() {
           <TabsContent value="outros" className="mt-4">
             <Card>
               <CardContent className="p-0 overflow-x-auto">
-                <DocTable docs={outros} />
+                <DocTable docs={outrosPagination.paginatedItems} />
+                <Pagination currentPage={outrosPagination.currentPage} totalItems={outrosPagination.totalItems} itemsPerPage={outrosPagination.itemsPerPage} onPageChange={outrosPagination.setCurrentPage} />
               </CardContent>
             </Card>
           </TabsContent>
