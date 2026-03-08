@@ -82,6 +82,7 @@ export default function NovaFatura() {
   const [dataVencimento, setDataVencimento] = useState<string>(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
+  const [notaCreditoRef, setNotaCreditoRef] = useState('');
 
   // B2C inline fields
   const [cfNome, setCfNome] = useState('');
@@ -194,6 +195,10 @@ export default function NovaFatura() {
       toast.error('Preencha todos os itens');
       return;
     }
+    if (tipo === 'nota-credito' && !notaCreditoRef.trim()) {
+      toast.error('A referência à fatura original é obrigatória para notas de crédito');
+      return;
+    }
 
     let finalClienteId = clienteId;
 
@@ -267,7 +272,9 @@ export default function NovaFatura() {
       data_vencimento: dataVencimento,
       observacoes: isProforma
         ? `DOCUMENTO PROFORMA – NÃO VÁLIDO COMO DOCUMENTO FISCAL${observacoes ? '\n' + observacoes : ''}`
-        : observacoes || undefined,
+        : tipo === 'nota-credito'
+          ? `Ref. documento original: ${notaCreditoRef.trim()}${observacoes ? '\n' + observacoes : ''}`
+          : observacoes || undefined,
       metodo_pagamento: metodoPagamento || undefined,
       buyer_user_id: useFakturaId && buyerData ? buyerData.user_id : undefined,
       buyer_faktura_id: useFakturaId && buyerData ? fakturaIdInput.trim().toUpperCase() : undefined,
@@ -427,6 +434,24 @@ export default function NovaFatura() {
                   />
                 </div>
               </div>
+
+              {/* Nota de Crédito — Referência obrigatória */}
+              {tipo === 'nota-credito' && (
+                <div className="space-y-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-destructive" />
+                    Fatura de Referência (obrigatório) *
+                  </Label>
+                  <Input
+                    placeholder="Ex: FT/2026/000001"
+                    value={notaCreditoRef}
+                    onChange={(e) => setNotaCreditoRef(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    A AGT exige a referência ao documento original ao emitir uma nota de crédito.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

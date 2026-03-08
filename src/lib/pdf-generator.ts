@@ -62,6 +62,7 @@ export interface CompanyInfo {
   actividade_comercial?:string;
   alvara_comercial?:    string;
   logo_url?:            string;
+  certificate_number?:  string;
 }
 
 /* ════════════════════════════════════════════════════════════════ */
@@ -110,6 +111,7 @@ export async function generateInvoicePDF(
   const compEmail = companyInfo?.email          || '';
   const compAlv   = companyInfo?.alvara_comercial || '';
   const compLogo  = companyInfo?.logo_url;
+  const compCert  = companyInfo?.certificate_number || '';
 
   const tipoLabel  = TIPO_LABEL[fatura.tipo] || 'FATURA';
   const isProforma = fatura.tipo === 'proforma';
@@ -307,7 +309,7 @@ export async function generateInvoicePDF(
   y += 12;
 
   /* ════════════════════════════════════════════════════════════
-     ⑦ TOTAIS — puramente tipográfico, nenhuma borda
+     ⑦ TOTAIS — IVA discriminado por taxa (AGT-compliant)
   ════════════════════════════════════════════════════════════ */
   const tLX = W - MR - 75;
   const tVX = W - MR;
@@ -318,10 +320,29 @@ export async function generateInvoicePDF(
   B(); tc(INK);   doc.text(formatCurrency(fatura.subtotal), tVX, y, { align: 'right' });
   y += 6.5;
 
-  // IVA
-  N(); tc(MUTED); doc.text('IVA 14%', tLX, y);
-  B(); tc(INK);   doc.text(formatCurrency(fatura.total_iva), tVX, y, { align: 'right' });
-  y += 5;
+  // IVA discriminado por taxa
+  const ivaByRate: Record<number, number> = {};
+  for (const item of items) {
+    const rate = item.taxa_iva || 0;
+    ivaByRate[rate] = (ivaByRate[rate] || 0) + (item.valor_iva || 0);
+  }
+  const sortedRates = Object.keys(ivaByRate).map(Number).sort((a, b) => b - a);
+  
+  for (const rate of sortedRates) {
+    const label = rate === 0 ? 'IVA Isento' : `IVA ${rate}%`;
+    N(); tc(MUTED); doc.text(label, tLX, y);
+    B(); tc(INK);   doc.text(formatCurrency(ivaByRate[rate]), tVX, y, { align: 'right' });
+    y += 6.5;
+  }
+
+  // If no items, show single IVA line
+  if (sortedRates.length === 0) {
+    N(); tc(MUTED); doc.text('IVA', tLX, y);
+    B(); tc(INK);   doc.text(formatCurrency(fatura.total_iva), tVX, y, { align: 'right' });
+    y += 6.5;
+  }
+
+  y -= 1.5;
 
   // Linha âmbar — apenas entre IVA e Total
   dc(AMBER); doc.setLineWidth(0.7);
@@ -384,6 +405,9 @@ export async function generateInvoicePDF(
     sz(7); N(); tc(MUTED);
     doc.text('Digitalize para validar este documento', ML + QR_SIZE + 5, QR_TOP + 14);
     doc.text(`Fatura: ${fatura.numero}`, ML + QR_SIZE + 5, QR_TOP + 20);
+    if (fatura.signature_hash) {
+      doc.text(`Hash: ${fatura.signature_hash.substring(0, 8).toUpperCase()}...`, ML + QR_SIZE + 5, QR_TOP + 26);
+    }
   } catch { /* skip */ }
 
   /* ════════════════════════════════════════════════════════════
@@ -393,19 +417,20 @@ export async function generateInvoicePDF(
   fc(AMBER); doc.rect(0, H - 20, W, 1.5, 'F');
 
   sz(6.5); N(); tc([150, 150, 165] as [number,number,number]);
+  const certLabel = compCert ? `  ·  Software certificado nº ${compCert}` : '';
   doc.text(
-    `${compName} — Sistema de Faturação Certificado  ·  Emitido em ${formatDate(fatura.data_emissao)}`,
-    W / 2, H - 13, { align: 'center' }
+    `${compName} — Sistema de Faturação Certificado${certLabel}`,
+    W / 2, H - 14, { align: 'center' }
   );
   sz(5.5);
   doc.text(
-    'Documento válido para efeitos fiscais na República de Angola',
-    W / 2, H - 8.5, { align: 'center' }
+    `Emitido em ${formatDate(fatura.data_emissao)}  ·  Documento válido para efeitos fiscais na República de Angola`,
+    W / 2, H - 9.5, { align: 'center' }
   );
   sz(5);
   doc.text(
     `Faktura Angola © ${new Date().getFullYear()} — Todos os direitos reservados`,
-    W / 2, H - 4.5, { align: 'center' }
+    W / 2, H - 5, { align: 'center' }
   );
 
   // Marca FAKTURA canto direito

@@ -1030,6 +1030,10 @@ export type Database = {
         }
         Returns: string
       }
+      generate_atcud: {
+        Args: { _numero: string; _serie: string }
+        Returns: string
+      }
       generate_faktura_id: { Args: never; Returns: string }
       generate_invoice_number: {
         Args: { _serie: string; _user_id: string }
