@@ -93,19 +93,19 @@ export default function Carteira() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-3">
+              <div className="bg-primary-foreground/10 backdrop-blur rounded-xl px-4 py-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <ArrowDownLeft className="w-4 h-4 text-emerald-300" />
-                  <span className="text-xs text-white/60">Recebido</span>
+                  <ArrowDownLeft className="w-4 h-4 text-success" />
+                  <span className="text-xs text-primary-foreground/60">Recebido</span>
                 </div>
                 <p className="text-lg font-bold font-mono">
                   {showBalance ? formatCurrency(received) : '••••'}
                 </p>
               </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-3">
+              <div className="bg-primary-foreground/10 backdrop-blur rounded-xl px-4 py-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <ArrowUpRight className="w-4 h-4 text-orange-300" />
-                  <span className="text-xs text-white/60">Enviado</span>
+                  <ArrowUpRight className="w-4 h-4 text-warning" />
+                  <span className="text-xs text-primary-foreground/60">Enviado</span>
                 </div>
                 <p className="text-lg font-bold font-mono">
                   {showBalance ? formatCurrency(sent) : '••••'}
