@@ -31,6 +31,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Perfil = lazy(() => import("./pages/Perfil"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
+const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -168,6 +169,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Perfil />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notificacoes"
+              element={
+                <ProtectedRoute>
+                  <Notificacoes />
                 </ProtectedRoute>
               }
             />
