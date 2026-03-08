@@ -286,14 +286,17 @@ export default function Clientes() {
                         <Label className="text-sm font-semibold flex items-center gap-2">
                           <FileText className="w-4 h-4 text-primary" /> NIF *
                         </Label>
-                        <Input
+                         <Input
                           value={formData.nif}
-                          onChange={(e) => setFormData({ ...formData, nif: e.target.value.replace(/\D/g,'').slice(0,9) })}
+                          onChange={(e) => setFormData({ ...formData, nif: e.target.value.replace(/\D/g,'').slice(0,14) })}
                           placeholder="123456789"
-                          maxLength={9}
+                          maxLength={14}
                           className="form-input h-11 border-border/60 font-mono tracking-widest"
                           required
                         />
+                        {formData.nif && formData.nif.length < 9 && (
+                          <p className="text-xs text-destructive mt-1">NIF deve ter pelo menos 9 dígitos</p>
+                        )}
                       </div>
                       <div className="grid gap-2">
                         <Label className="text-sm font-semibold flex items-center gap-2">
