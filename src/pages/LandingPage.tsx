@@ -1279,6 +1279,103 @@ export default function LandingPage() {
             </div>
           </section>
 
+          {/* ── FINTECH PAYMENTS SECTION ── */}
+          <section className="py-24 relative overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-primary/5 rounded-full blur-[140px]" />
+            </div>
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <FadeIn direction="up">
+                <div className="text-center mb-16">
+                  <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
+                    <Banknote className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-bold">Pagamentos Integrados</span>
+                  </div>
+                  <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5 leading-tight">
+                    Fature e <span className="shimmer-text">cobre</span><br />sem sair da plataforma
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Multicaixa Express, links de pagamento com QR code e carteira digital — tudo integrado na sua faturação.
+                  </p>
+                </div>
+              </FadeIn>
+
+              <div className="grid md:grid-cols-3 gap-6 mb-12">
+                {[
+                  { icon: CreditCard, t: 'Multicaixa Express', d: 'Gere referências EMIS directamente na fatura. O cliente paga e a confirmação é automática.', badge: 'Integrado' },
+                  { icon: Link2, t: 'Links de Pagamento', d: 'Crie links com QR code e partilhe via WhatsApp. O cliente paga sem instalar nada.', badge: 'QR Code' },
+                  { icon: Wallet, t: 'Carteira Digital', d: 'Receba pagamentos na sua carteira Faktura. Visualize saldo, transacções e faça transferências.', badge: 'Tempo Real' },
+                ].map(({ icon: I, t, d, badge }, i) => (
+                  <FadeIn key={i} delay={i * 120} direction="up">
+                    <div className="ec bg-card border-2 border-border/50 rounded-2xl p-8 group hover:border-primary/30 h-full relative overflow-hidden">
+                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
+                      <div className="flex items-start justify-between mb-5">
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                          <I className="w-7 h-7 text-primary" />
+                        </div>
+                        <span className="text-xs font-black bg-primary/10 text-primary px-3 py-1 rounded-full">{badge}</span>
+                      </div>
+                      <h3 className="text-xl font-black mb-3">{t}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
+                    </div>
+                  </FadeIn>
+                ))}
+              </div>
+
+              {/* Payment flow demo */}
+              <FadeIn direction="up" delay={200}>
+                <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+                  <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+                  <div className="relative grid lg:grid-cols-2 gap-10 items-center z-10">
+                    <div>
+                      <div className="inline-flex items-center gap-2 bg-primary/15 rounded-full px-4 py-1.5 mb-4">
+                        <Zap className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-bold text-accent-foreground">Fluxo de Pagamento</span>
+                      </div>
+                      <h3 className="text-3xl font-black text-accent-foreground mb-4">Da fatura ao pagamento em 3 passos</h3>
+                      <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">Emita a fatura, gere uma referência Multicaixa ou link de pagamento, e receba automaticamente.</p>
+                      <div className="space-y-4">
+                        {[
+                          { s: '01', t: 'Emita a fatura', d: 'Crie a fatura normalmente com todos os dados fiscais.' },
+                          { s: '02', t: 'Gere o link ou referência', d: 'Multicaixa Express ou link de pagamento com QR code.' },
+                          { s: '03', t: 'Receba o pagamento', d: 'Confirmação automática e fatura marcada como paga.' },
+                        ].map(({ s, t, d }) => (
+                          <div key={s} className="flex items-start gap-4">
+                            <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-black text-primary">{s}</span>
+                            </div>
+                            <div>
+                              <p className="font-bold text-accent-foreground text-sm">{t}</p>
+                              <p className="text-xs text-accent-foreground/50">{d}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-accent-foreground/5 rounded-2xl p-6 border border-accent-foreground/10">
+                      <div className="space-y-4">
+                        <div className="bg-accent-foreground/5 rounded-xl p-4 border border-accent-foreground/10">
+                          <p className="text-xs text-accent-foreground/40 font-semibold uppercase tracking-wider">Referência Multicaixa</p>
+                          <p className="text-2xl font-black text-primary mt-1 font-mono tracking-widest">123 456 789</p>
+                          <p className="text-xs text-accent-foreground/40 mt-1">Entidade: 11234 · Expira em 60 min</p>
+                        </div>
+                        <div className="bg-accent-foreground/5 rounded-xl p-4 border border-accent-foreground/10">
+                          <p className="text-xs text-accent-foreground/40 font-semibold uppercase tracking-wider">Valor a Pagar</p>
+                          <p className="text-3xl font-black text-accent-foreground mt-1">25.000 <span className="text-lg text-accent-foreground/40">Kz</span></p>
+                        </div>
+                        <div className="flex items-center gap-2 text-primary text-sm font-bold">
+                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                          Aguardando pagamento...
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
+            </div>
+          </section>
+
           {/* ── STATS BAND ── */}
           <section className="py-10 border-b border-border/30">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
