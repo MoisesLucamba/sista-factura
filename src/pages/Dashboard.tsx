@@ -6,6 +6,8 @@ import { TopClients } from '@/components/dashboard/TopClients';
 import { useDashboardStats, useFaturas } from '@/hooks/useFaturas';
 import { ReferralDashboard } from '@/components/referral/ReferralDashboard';
 import { useClientes } from '@/hooks/useClientes';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import {
   Banknote,
