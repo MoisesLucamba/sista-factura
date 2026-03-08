@@ -7,7 +7,7 @@ import {
   Wallet, Repeat, MessageSquare, Smartphone, Mail, Code2, Webhook,
   Target, Heart, Coffee, Laptop, Briefcase, MapPin, BookOpen,
   AlertTriangle, Server, Key, RefreshCw, Lock, Eye, UserCheck,
-  Bell, Phone, ExternalLink,
+  Bell, Phone, ExternalLink, CreditCard, Link2, Banknote,
 } from 'lucide-react';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
