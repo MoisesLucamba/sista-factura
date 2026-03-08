@@ -402,7 +402,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="flex items-center gap-2 h-10 px-2 hover:bg-primary-foreground/20 transition-colors"
+                className="flex items-center gap-2 h-10 px-2 hover:bg-muted transition-colors"
               >
                 <Avatar className="w-8 h-8 border-2 border-primary/20">
                   <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-sm font-bold">
