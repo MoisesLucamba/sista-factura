@@ -165,7 +165,7 @@ export default function Pagamentos() {
                     </div>
                     <p className="font-semibold mb-1">Nenhum link de pagamento</p>
                     <p className="text-sm text-muted-foreground mb-4">Crie links para receber pagamentos dos seus clientes.</p>
-                    <Button className="gradient-fintech border-0 text-primary-foreground">
+                    <Button className="gradient-fintech border-0 text-primary-foreground" onClick={() => setCreateDialogOpen(true)}>
                       <Plus className="w-4 h-4 mr-2" /> Criar Primeiro Link
                     </Button>
                   </div>
