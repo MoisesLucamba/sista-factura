@@ -44,6 +44,7 @@ export function Sidebar() {
   const [search, setSearch]           = useState('');
   const [searchOpen, setSearchOpen]   = useState(false);
   const location = useLocation();
+  const { role } = useAuth();
 
   /* Close search on nav */
   useEffect(() => { setSearch(''); setSearchOpen(false); }, [location.pathname]);
