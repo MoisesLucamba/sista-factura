@@ -279,6 +279,8 @@ export default function Pagamentos() {
             </Card>
           </TabsContent>
         </Tabs>
+        <CreatePaymentLinkDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+        <PaymentLinkDetails linkCode={detailsCode} open={!!detailsCode} onOpenChange={(open) => !open && setDetailsCode(null)} />
       </div>
     </MainLayout>
   );
