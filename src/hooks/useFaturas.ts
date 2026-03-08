@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { Cliente } from './useClientes';
 import type { Produto } from './useProdutos';
+import { generateDocumentHash, signDocumentHash, buildAgtQrPayload } from '@/lib/invoice-signing';
 
 export interface ItemFatura {
   id: string;
