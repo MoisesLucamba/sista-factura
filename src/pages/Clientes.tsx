@@ -214,15 +214,31 @@ export default function Clientes() {
               </div>
             </div>
 
-            {/* CTA */}
-            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) { setEditingCliente(null); resetForm(); } }}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="btn-primary font-bold shadow-xl shadow-primary/20 group">
-                  <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                  Novo Cliente
-                  <ArrowUpRight className="w-4 h-4 ml-1.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  exportToCSV(
+                    clientes.map(c => ({ nome: c.nome, nif: c.nif, tipo: c.tipo, email: c.email || '', telefone: c.telefone || '', endereco: c.endereco })),
+                    [{ key: 'nome', label: 'Nome' }, { key: 'nif', label: 'NIF' }, { key: 'tipo', label: 'Tipo' }, { key: 'email', label: 'Email' }, { key: 'telefone', label: 'Telefone' }, { key: 'endereco', label: 'Endereço' }],
+                    'clientes'
+                  );
+                  toast.success('CSV exportado!');
+                }}
+                className="border-border/60"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Exportar
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) { setEditingCliente(null); resetForm(); } }}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="btn-primary font-bold shadow-xl shadow-primary/20 group">
+                    <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                    Novo Cliente
+                    <ArrowUpRight className="w-4 h-4 ml-1.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                  </Button>
+                </DialogTrigger>
 
               {/* ── Dialog ── */}
               <DialogContent className="sm:max-w-[560px] max-h-[92vh] overflow-y-auto">
