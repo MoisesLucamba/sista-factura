@@ -72,11 +72,19 @@ export default function Dashboard() {
   const { data: stats, isLoading: loadingStats } = useDashboardStats();
   const { data: faturas = [] } = useFaturas();
   const { data: clientes = [] } = useClientes();
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   const faturasVencidas = faturas.filter(
     (f) => f.estado === 'emitida' && new Date(f.data_vencimento) < new Date()
   ).length;
+
+  // Auto-mark overdue invoices on load
+  useEffect(() => {
+    if (user?.id) {
+      supabase.rpc('mark_overdue_invoices', { _user_id: user.id }).then(() => {});
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
