@@ -214,7 +214,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-primary/95 backdrop-blur supports-[backdrop-filter]:bg-primary/90 border-b border-primary/80 shadow-sm">
+    <header className="sticky top-0 z-40 h-16 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 border-b border-border shadow-sm">
       <div className="flex items-center justify-between h-full px-4 lg:px-6">
         {/* Search */}
         <div className="flex-1 max-w-xl">
