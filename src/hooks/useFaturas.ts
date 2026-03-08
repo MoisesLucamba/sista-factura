@@ -264,6 +264,12 @@ export function useDashboardStats() {
       const firstDayOfMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
       const firstDayOfYear = `${currentYear}-01-01`;
 
+      // Previous month
+      const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+      const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+      const firstDayPrevMonth = `${prevYear}-${String(prevMonth).padStart(2, '0')}-01`;
+      const lastDayPrevMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+
       // Get all faturas
       const { data: faturas, error } = await supabase
         .from('faturas')
@@ -287,16 +293,25 @@ export function useDashboardStats() {
       ).length;
 
       const faturasMes = faturasArray.filter(f => f.data_emissao >= firstDayOfMonth);
+      const faturasMesAnterior = faturasArray.filter(f => f.data_emissao >= firstDayPrevMonth && f.data_emissao < lastDayPrevMonth);
       const faturasAno = faturasArray.filter(f => f.data_emissao >= firstDayOfYear);
 
       const faturacaoMensal = faturasMes.reduce((sum, f) => sum + Number(f.total), 0);
+      const faturacaoMesAnterior = faturasMesAnterior.reduce((sum, f) => sum + Number(f.total), 0);
       const faturacaoAnual = faturasAno.reduce((sum, f) => sum + Number(f.total), 0);
       const ivaMensal = faturasMes.reduce((sum, f) => sum + Number(f.total_iva), 0);
       const ivaAnual = faturasAno.reduce((sum, f) => sum + Number(f.total_iva), 0);
 
+      // Trend calculation
+      const trendPercentage = faturacaoMesAnterior > 0
+        ? Math.round(((faturacaoMensal - faturacaoMesAnterior) / faturacaoMesAnterior) * 100)
+        : faturacaoMensal > 0 ? 100 : 0;
+
       return {
         faturacaoMensal,
         faturacaoAnual,
+        faturacaoMesAnterior,
+        trendPercentage,
         ivaMensal,
         ivaAnual,
         totalClientes: totalClientes || 0,
