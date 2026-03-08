@@ -405,6 +405,9 @@ export async function generateInvoicePDF(
     sz(7); N(); tc(MUTED);
     doc.text('Digitalize para validar este documento', ML + QR_SIZE + 5, QR_TOP + 14);
     doc.text(`Fatura: ${fatura.numero}`, ML + QR_SIZE + 5, QR_TOP + 20);
+    if (fatura.signature_hash) {
+      doc.text(`Hash: ${fatura.signature_hash.substring(0, 8).toUpperCase()}...`, ML + QR_SIZE + 5, QR_TOP + 26);
+    }
   } catch { /* skip */ }
 
   /* ════════════════════════════════════════════════════════════
