@@ -9,9 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Truck, Building2, Phone, Mail, Pencil, Trash2, Loader2, PackageCheck, Filter, X } from 'lucide-react';
+import { Plus, Search, Truck, Building2, Phone, Mail, Pencil, Trash2, Loader2, PackageCheck, Filter, X, Download } from 'lucide-react';
 import { useFornecedores, useCreateFornecedor, useUpdateFornecedor, useDeleteFornecedor, type Fornecedor, type FornecedorInput } from '@/hooks/useFornecedores';
 import { Skeleton } from '@/components/ui/skeleton';
+import { exportToCSV } from '@/lib/csv-export';
+import { toast } from 'sonner';
 
 const TIPOS_FORNECEDOR = ['Tecnologia', 'Material de Escritório', 'Transporte', 'Alimentação', 'Serviços', 'Outros'];
 
