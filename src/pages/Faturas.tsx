@@ -22,7 +22,7 @@ import {
   FileText, XCircle, CheckCircle, Loader2, Send,
   TrendingUp, ArrowUpRight, X, AlertCircle, Calendar,
   DollarSign, RefreshCw, Activity, Sparkles, ChevronDown,
-  Receipt, Filter,
+  Receipt, Filter, Copy, Edit,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -33,7 +33,7 @@ import {
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { SendInvoiceDialog } from '@/components/faturas/SendInvoiceDialog';
 
@@ -75,6 +75,7 @@ export default function Faturas() {
   const { data: agtConfig } = useAgtConfig();
   const updateEstado   = useUpdateFaturaEstado();
   const convertProforma = useConvertProforma();
+  const navigate = useNavigate();
 
   const [searchTerm,       setSearchTerm]       = useState('');
   const [estadoFilter,     setEstadoFilter]      = useState<string>('all');
@@ -515,6 +516,19 @@ export default function Faturas() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setSendDialogFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
                                   <Send className="w-4 h-4 text-muted-foreground" /> Enviar ao Cliente
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  // Store fatura data in sessionStorage for duplication
+                                  sessionStorage.setItem('duplicar_fatura', JSON.stringify({
+                                    tipo: fatura.tipo,
+                                    cliente_id: fatura.cliente_id,
+                                    observacoes: fatura.observacoes,
+                                    metodo_pagamento: fatura.metodo_pagamento,
+                                  }));
+                                  navigate('/faturas/nova');
+                                  toast.info('Fatura duplicada — preencha os itens');
+                                }} className="rounded-lg gap-2 cursor-pointer">
+                                  <Copy className="w-4 h-4 text-muted-foreground" /> Duplicar Fatura
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {fatura.tipo === 'proforma' && fatura.estado === 'emitida' && (

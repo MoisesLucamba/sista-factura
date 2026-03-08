@@ -22,6 +22,7 @@ import {
   useDeleteCliente, type Cliente, type ClienteInput,
 } from '@/hooks/useClientes';
 import { formatNIF } from '@/lib/format';
+import { exportToCSV } from '@/lib/csv-export';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Plus, Search, MoreVertical, Edit, Trash2, FileText,
@@ -213,15 +214,31 @@ export default function Clientes() {
               </div>
             </div>
 
-            {/* CTA */}
-            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) { setEditingCliente(null); resetForm(); } }}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="btn-primary font-bold shadow-xl shadow-primary/20 group">
-                  <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                  Novo Cliente
-                  <ArrowUpRight className="w-4 h-4 ml-1.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  exportToCSV(
+                    clientes.map(c => ({ nome: c.nome, nif: c.nif, tipo: c.tipo, email: c.email || '', telefone: c.telefone || '', endereco: c.endereco })),
+                    [{ key: 'nome', label: 'Nome' }, { key: 'nif', label: 'NIF' }, { key: 'tipo', label: 'Tipo' }, { key: 'email', label: 'Email' }, { key: 'telefone', label: 'Telefone' }, { key: 'endereco', label: 'Endereço' }],
+                    'clientes'
+                  );
+                  toast.success('CSV exportado!');
+                }}
+                className="border-border/60"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Exportar
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) { setEditingCliente(null); resetForm(); } }}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="btn-primary font-bold shadow-xl shadow-primary/20 group">
+                    <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                    Novo Cliente
+                    <ArrowUpRight className="w-4 h-4 ml-1.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                  </Button>
+                </DialogTrigger>
 
               {/* ── Dialog ── */}
               <DialogContent className="sm:max-w-[560px] max-h-[92vh] overflow-y-auto">
@@ -285,14 +302,17 @@ export default function Clientes() {
                         <Label className="text-sm font-semibold flex items-center gap-2">
                           <FileText className="w-4 h-4 text-primary" /> NIF *
                         </Label>
-                        <Input
+                         <Input
                           value={formData.nif}
-                          onChange={(e) => setFormData({ ...formData, nif: e.target.value.replace(/\D/g,'').slice(0,9) })}
+                          onChange={(e) => setFormData({ ...formData, nif: e.target.value.replace(/\D/g,'').slice(0,14) })}
                           placeholder="123456789"
-                          maxLength={9}
+                          maxLength={14}
                           className="form-input h-11 border-border/60 font-mono tracking-widest"
                           required
                         />
+                        {formData.nif && formData.nif.length < 9 && (
+                          <p className="text-xs text-destructive mt-1">NIF deve ter pelo menos 9 dígitos</p>
+                        )}
                       </div>
                       <div className="grid gap-2">
                         <Label className="text-sm font-semibold flex items-center gap-2">
@@ -382,6 +402,7 @@ export default function Clientes() {
                 </form>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
         </div>
       </FadeUp>

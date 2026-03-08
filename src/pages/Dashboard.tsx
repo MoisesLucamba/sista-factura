@@ -6,6 +6,8 @@ import { TopClients } from '@/components/dashboard/TopClients';
 import { useDashboardStats, useFaturas } from '@/hooks/useFaturas';
 import { ReferralDashboard } from '@/components/referral/ReferralDashboard';
 import { useClientes } from '@/hooks/useClientes';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency, formatNumber } from '@/lib/format';
 import {
   Banknote,
@@ -70,11 +72,19 @@ export default function Dashboard() {
   const { data: stats, isLoading: loadingStats } = useDashboardStats();
   const { data: faturas = [] } = useFaturas();
   const { data: clientes = [] } = useClientes();
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   const faturasVencidas = faturas.filter(
     (f) => f.estado === 'emitida' && new Date(f.data_vencimento) < new Date()
   ).length;
+
+  // Auto-mark overdue invoices on load
+  useEffect(() => {
+    if (user?.id) {
+      supabase.rpc('mark_overdue_invoices', { _user_id: user.id }).then(() => {});
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -108,14 +118,13 @@ export default function Dashboard() {
     );
   }
 
-  const statItems: Array<{ title: string; value: string; subtitle?: string; icon: any; variant: 'default' | 'primary' | 'success' | 'warning' | 'danger'; trend?: string; trendUp?: boolean }> = [
+  const statItems: Array<{ title: string; value: string; subtitle?: string; icon: any; variant: 'default' | 'primary' | 'success' | 'warning' | 'danger'; trend?: { value: number; isPositive: boolean } }> = [
     {
       title: 'Faturação Mensal',
       value: formatCurrency(stats?.faturacaoMensal || 0),
       icon: Banknote,
       variant: 'primary',
-      trend: '+12%',
-      trendUp: true,
+      trend: stats?.trendPercentage !== undefined ? { value: Math.abs(stats.trendPercentage), isPositive: stats.trendPercentage >= 0 } : undefined,
     },
     {
       title: 'IVA a Entregar',
@@ -130,7 +139,6 @@ export default function Dashboard() {
       subtitle: `${stats?.faturasPendentes || 0} pendentes`,
       icon: FileText,
       variant: 'success',
-      trend: `${stats?.faturasPendentes || 0} pendentes`,
     },
     {
       title: 'Total Clientes',
@@ -290,6 +298,7 @@ export default function Dashboard() {
               subtitle={item.subtitle}
               icon={item.icon}
               variant={item.variant}
+              trend={item.trend}
             />
           </div>
         ))}

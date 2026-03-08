@@ -53,6 +53,7 @@ export default function Registar() {
     setError(null);
     if (!nome.trim()) { setError('O nome é obrigatório.'); return; }
     if (!nif.trim()) { setError('O NIF é obrigatório.'); return; }
+    if (nif.replace(/\D/g, '').length < 9) { setError('O NIF deve ter pelo menos 9 dígitos.'); return; }
     if (!telefone.trim()) { setError('O telefone é obrigatório.'); return; }
     if (password !== confirmPassword) { setError('As palavras-passe não coincidem.'); return; }
     if (password.length < 6) { setError('A palavra-passe deve ter pelo menos 6 caracteres.'); return; }

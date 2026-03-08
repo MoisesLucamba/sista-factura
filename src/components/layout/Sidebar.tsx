@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, FileText, Users, Package,
@@ -43,6 +44,7 @@ export function Sidebar() {
   const [search, setSearch]           = useState('');
   const [searchOpen, setSearchOpen]   = useState(false);
   const location = useLocation();
+  const { role } = useAuth();
 
   /* Close search on nav */
   useEffect(() => { setSearch(''); setSearchOpen(false); }, [location.pathname]);
@@ -51,9 +53,11 @@ export function Sidebar() {
   const filteredMain = mainNavItems.filter(i =>
     !search || i.label.toLowerCase().includes(search.toLowerCase())
   );
-  const filteredSecondary = secondaryNavItems.filter(i =>
-    !search || i.label.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredSecondary = secondaryNavItems.filter(i => {
+    // Hide Admin for non-admin users
+    if (i.href === '/admin' && role !== 'admin') return false;
+    return !search || i.label.toLowerCase().includes(search.toLowerCase());
+  });
 
   /* ── NavLink ─────────────────────────────────────── */
   const NavLink = ({ item }: { item: NavItem }) => {

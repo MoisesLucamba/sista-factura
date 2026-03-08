@@ -29,8 +29,9 @@ import { formatCurrency, formatNumber } from '@/lib/format';
 import {
   Plus, Search, MoreVertical, Edit, Trash2, Package, Wrench,
   AlertTriangle, Loader2, Box, DollarSign, Hash, X, AlertCircle,
-  TrendingDown, ShieldCheck, Leaf, Stethoscope, Zap,
+  TrendingDown, ShieldCheck, Leaf, Stethoscope, Zap, Download,
 } from 'lucide-react';
+import { exportToCSV } from '@/lib/csv-export';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -238,16 +239,33 @@ export default function Produtos() {
             </div>
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={open => {
-            setDialogOpen(open);
-            if (!open) { setEditing(null); resetForm(); }
-          }}>
-            <DialogTrigger asChild>
-              <Button size="lg" className="gradient-primary border-0 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transition-all duration-200 text-white font-semibold rounded-xl group">
-                <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                Novo Item
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-white/20 text-white hover:bg-white/10"
+              onClick={() => {
+                exportToCSV(
+                  produtos.map(p => ({ codigo: p.codigo, nome: p.nome, tipo: p.tipo, preco: p.preco_unitario, unidade: p.unidade, taxa_iva: p.taxa_iva, stock: p.stock ?? '', stock_min: p.stock_minimo ?? '' })),
+                  [{ key: 'codigo', label: 'Código' }, { key: 'nome', label: 'Nome' }, { key: 'tipo', label: 'Tipo' }, { key: 'preco', label: 'Preço' }, { key: 'unidade', label: 'Unidade' }, { key: 'taxa_iva', label: 'IVA %' }, { key: 'stock', label: 'Stock' }, { key: 'stock_min', label: 'Stock Mín.' }],
+                  'produtos'
+                );
+                toast.success('CSV exportado!');
+              }}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exportar
+            </Button>
+            <Dialog open={dialogOpen} onOpenChange={open => {
+              setDialogOpen(open);
+              if (!open) { setEditing(null); resetForm(); }
+            }}>
+              <DialogTrigger asChild>
+                <Button size="lg" className="gradient-primary border-0 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-105 transition-all duration-200 text-white font-semibold rounded-xl group">
+                  <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                  Novo Item
+                </Button>
+              </DialogTrigger>
 
             <DialogContent className="sm:max-w-[580px] max-h-[92vh] overflow-y-auto rounded-2xl border border-border/50 shadow-2xl p-0">
               <form onSubmit={handleSubmit}>
@@ -485,7 +503,8 @@ export default function Produtos() {
                 </DialogFooter>
               </form>
             </DialogContent>
-          </Dialog>
+           </Dialog>
+          </div>
         </div>
       </div>
 

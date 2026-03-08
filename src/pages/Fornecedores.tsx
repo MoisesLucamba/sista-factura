@@ -9,9 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Truck, Building2, Phone, Mail, Pencil, Trash2, Loader2, PackageCheck, Filter, X } from 'lucide-react';
+import { Plus, Search, Truck, Building2, Phone, Mail, Pencil, Trash2, Loader2, PackageCheck, Filter, X, Download } from 'lucide-react';
 import { useFornecedores, useCreateFornecedor, useUpdateFornecedor, useDeleteFornecedor, type Fornecedor, type FornecedorInput } from '@/hooks/useFornecedores';
 import { Skeleton } from '@/components/ui/skeleton';
+import { exportToCSV } from '@/lib/csv-export';
+import { toast } from 'sonner';
 
 const TIPOS_FORNECEDOR = ['Tecnologia', 'Material de Escritório', 'Transporte', 'Alimentação', 'Serviços', 'Outros'];
 
@@ -115,13 +117,30 @@ export default function Fornecedores() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Fornecedores</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Gerencie todos os fornecedores da empresa</p>
           </div>
-          <Button
-            onClick={openNew}
-            className="gap-2 self-start sm:self-auto rounded-xl h-10 px-4 shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Novo Fornecedor
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                exportToCSV(
+                  (fornecedores ?? []).map(f => ({ nome: f.nome, nif: f.nif, tipo: f.tipo, email: f.email || '', telefone: f.telefone || '', endereco: f.endereco })),
+                  [{ key: 'nome', label: 'Nome' }, { key: 'nif', label: 'NIF' }, { key: 'tipo', label: 'Tipo' }, { key: 'email', label: 'Email' }, { key: 'telefone', label: 'Telefone' }, { key: 'endereco', label: 'Endereço' }],
+                  'fornecedores'
+                );
+                toast.success('CSV exportado!');
+              }}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exportar
+            </Button>
+            <Button
+              onClick={openNew}
+              className="gap-2 self-start sm:self-auto rounded-xl h-10 px-4 shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Novo Fornecedor
+            </Button>
+          </div>
         </div>
 
         {/* ── KPI Cards ── */}

@@ -851,6 +851,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      mark_overdue_invoices: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "operador" | "contador" | "comprador"
