@@ -7,7 +7,6 @@ import {
   BarChart3, Settings, Building2, Truck,
   Receipt, Search, LogOut, ChevronLeft,
   ChevronRight, Bell, X, ShieldCheck,
-  Wallet, CreditCard,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,8 +24,6 @@ interface NavItem {
 const mainNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard',    href: '/dashboard'    },
   { icon: FileText,        label: 'Faturas',      href: '/faturas',     badge: 'novo' },
-  { icon: Wallet,          label: 'Carteira',     href: '/carteira'     },
-  { icon: CreditCard,      label: 'Pagamentos',   href: '/pagamentos'   },
   { icon: Users,           label: 'Clientes',     href: '/clientes'     },
   { icon: Truck,           label: 'Fornecedores', href: '/fornecedores' },
   { icon: Package,         label: 'Produtos',     href: '/produtos'     },
@@ -228,7 +225,7 @@ export function Sidebar() {
             {!collapsed && (
               <div className="flex flex-col leading-none min-w-0">
                 <span className="font-black text-[15px] tracking-tight text-sidebar-foreground leading-none">Faktura</span>
-                <span className="mt-[3px] text-[8.5px] font-bold uppercase tracking-[.2em] text-sidebar-primary/80">Fintech</span>
+                <span className="mt-[3px] text-[8.5px] font-bold uppercase tracking-[.2em] text-sidebar-primary/80">Angola</span>
               </div>
             )}
           </div>

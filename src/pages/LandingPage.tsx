@@ -4,10 +4,11 @@ import {
   ArrowRight, Zap, Shield, BarChart3, FileText, Users, Globe,
   CheckCircle, ChevronRight, Sparkles, Clock, Play, HelpCircle,
   TrendingUp, UserPlus, Building2, BadgeDollarSign, ScanLine,
-  Wallet, Repeat, MessageSquare, Smartphone, Mail, Code2, Webhook,
+  Repeat, MessageSquare, Smartphone, Mail, Code2, Webhook,
   Target, Heart, Coffee, Laptop, Briefcase, MapPin, BookOpen,
   AlertTriangle, Server, Key, RefreshCw, Lock, Eye, UserCheck,
   Bell, Phone, ExternalLink, CreditCard, Link2, Banknote,
+  ArrowLeftRight, ShieldCheck,
 } from 'lucide-react';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
@@ -82,9 +83,9 @@ const features = [
     detail: 'Cada documento gerado inclui os campos obrigatórios por lei: NIF do emitente e receptor, data, descrição dos bens/serviços, valor base, IVA aplicável e valor total. Armazenamento automático por 5+ anos.',
   },
   {
-    icon: Wallet, title: 'Carteira Digital',
-    description: 'Saldo interno para receber e enviar pagamentos entre utilizadores. Receba pagamentos de faturas directamente na sua carteira Faktura.',
-    detail: 'Gerencie o seu saldo, visualize transacções, faça transferências entre utilizadores e acompanhe todos os movimentos financeiros em tempo real.',
+    icon: ArrowLeftRight, title: 'Intermediação de Pagamentos',
+    description: 'Facilitamos pagamentos digitais seguros entre compradores e empresas. Coordenamos o fluxo de pagamento sem armazenar fundos — cada transacção é rastreada, validada e confirmada em tempo real.',
+    detail: 'A Faktura actua como intermediário digital: coordena a comunicação entre o pagador, o banco ou operador e a empresa emissora da fatura. Nunca detemos fundos — garantimos apenas que o pagamento chega correctamente ao destinatário e que a fatura é marcada como liquidada.',
   },
   {
     icon: CreditCard, title: 'Multicaixa Express',
@@ -94,7 +95,7 @@ const features = [
   {
     icon: Link2, title: 'Links de Pagamento',
     description: 'Gere links únicos com QR code para clientes pagarem faturas online. Partilhe via WhatsApp, SMS ou email com um clique.',
-    detail: 'Links com expiração configurável, limites de uso e rastreamento em tempo real. Veja quando o cliente abriu e pagou.',
+    detail: 'Links com expiração configurável, limites de uso e rastreamento em tempo real. Veja quando o cliente abriu e efectuou o pagamento.',
   },
   {
     icon: Shield, title: 'Conformidade AGT 100%',
@@ -120,14 +121,15 @@ const faqs = [
   { q: 'Quais tipos de documentos posso emitir?', a: 'Pode emitir Fatura (FT) — documento fiscal oficial; Recibo (RC) — comprovante de pagamento; Proforma (PRO) — documento não fiscal que antecipa valores; e Fatura-Recibo (FR) — documento híbrido. Todos incluem QR code, assinatura digital e são válidos perante a AGT.' },
   { q: 'O que é faturação electrónica em Angola?', a: 'É o processo legal de emissão, envio e armazenamento de faturas em formato digital, conforme as normas da AGT. Permite maior eficiência, segurança e conformidade fiscal — e é cada vez mais obrigatório para empresas angolanas.' },
   { q: 'Posso enviar documentos pelo WhatsApp?', a: 'Sim! Configure a integração WhatsApp Business em 2 minutos e os seus clientes recebem faturas instantaneamente no telemóvel. Também disponível por SMS e email.' },
-  { q: 'Como funciona o programa de ID de comprador?', a: 'O comprador regista-se gratuitamente e recebe um ID único (ex: M20XV). Ao fazer compras, partilha o ID — a empresa usa-o para preencher automaticamente os seus dados. Por cada fatura acima de 1.500 Kz emitida com o seu ID, recebe 50 Kz automaticamente na sua carteira Faktura.' },
+  { q: 'Como funciona o programa de ID de comprador?', a: 'O comprador regista-se gratuitamente e recebe um ID único (ex: M20XV). Ao fazer compras, partilha o ID — a empresa usa-o para preencher automaticamente os seus dados. Por cada fatura acima de 1.500 Kz emitida com o seu ID, recebe 50 Kz de recompensa automaticamente.' },
+  { q: 'A Faktura armazena ou detém os meus fundos?', a: 'Não. A Faktura actua exclusivamente como intermediário de pagamentos: coordenamos e validamos o fluxo de pagamento entre o comprador e a empresa, mas nunca detemos fundos. Todas as transacções passam pelos canais bancários e operadores habilitados (EMIS, Multicaixa Express), com rastreamento completo.' },
   { q: 'Quais planos estão disponíveis?', a: 'Básico (7.500 Kz/mês ou 20.250 Kz/trimestre): até 100 faturas, funcionalidades essenciais. Completo (10.000 Kz/mês ou 27.000 Kz/trimestre): faturas ilimitadas, multi-canal, relatórios avançados. Empresa: preço sob medida para grandes volumes. Poupe 10% em qualquer plano trimestral.' },
   { q: 'É obrigatório armazenar as faturas?', a: 'Sim. Todos os documentos devem ser armazenados digitalmente por pelo menos 5 anos, conforme a legislação fiscal angolana. A Faktura faz isso automaticamente em nuvem segura.' },
   { q: 'A plataforma serve qualquer tipo de negócio?', a: 'Sim. A Faktura é adaptável para micro, pequenas e médias empresas de qualquer sector em Angola — comércio, serviços, restauração, tecnologia, saúde, construção e muito mais.' },
   { q: 'Existe suporte técnico?', a: 'Sim! Suporte disponível 24/7 por chat, email e telefone. O plano Completo inclui suporte prioritário com tempo de resposta garantido.' },
 ];
 
-/* ─── Sub-page components (rendered inside main page via state) ── */
+/* ─── Sub-page components ── */
 
 function SubPageShell({ children, title }) {
   useEffect(() => { window.scrollTo(0,0); }, []);
@@ -150,8 +152,8 @@ const integrations = [
     { icon: Globe, name: 'ERCA Angola', desc: 'Sincronização com o sistema de registo fiscal angolano para grandes contribuintes.', status: 'Em breve' },
   ]},
   { category: 'Pagamentos', items: [
-    { icon: BarChart3, name: 'Multicaixa Express', desc: 'Aceite pagamentos por referência Multicaixa directamente na fatura. Confirmação automática.', status: 'Em breve' },
-    { icon: Zap, name: 'Unitel Money', desc: 'Integração com carteira móvel Unitel para pagamentos instantâneos por telemóvel.', status: 'Em breve' },
+    { icon: BarChart3, name: 'Multicaixa Express', desc: 'Intermediação de pagamentos por referência Multicaixa directamente na fatura. Confirmação automática via EMIS.', status: 'Em breve' },
+    { icon: Zap, name: 'Unitel Money', desc: 'Intermediação com carteira móvel Unitel para pagamentos instantâneos por telemóvel.', status: 'Em breve' },
     { icon: RefreshCw, name: 'Pagamentos Recorrentes', desc: 'Débito automático mensal para clientes com subscrições activas e serviços recorrentes.', status: 'Disponível' },
   ]},
   { category: 'Desenvolvimento', items: [
@@ -219,7 +221,7 @@ function PageIntegracoes() {
                 <span className="text-sm font-bold text-accent-foreground">Para Developers</span>
               </div>
               <h2 className="text-3xl font-black text-accent-foreground mb-4">Construa com a nossa API</h2>
-              <p className="text-accent-foreground/60 text-sm leading-relaxed">REST API completa, SDKs, webhooks e documentação interactiva. Integre faturação em qualquer sistema em horas, não semanas.</p>
+              <p className="text-accent-foreground/60 text-sm leading-relaxed">REST API completa, SDKs, webhooks e documentação interactiva. Integre faturação e intermediação de pagamentos em qualquer sistema em horas, não semanas.</p>
             </div>
             <div className="bg-accent-foreground/5 rounded-2xl p-6 border border-accent-foreground/10 font-mono text-sm">
               <p className="text-accent-foreground/40 mb-2"># Emitir fatura via API</p>
@@ -254,7 +256,7 @@ const milestones = [
   { year: '2022', t: 'Fundação', d: 'A Faktura nasceu em Luanda com a missão de modernizar a faturação em Angola.' },
   { year: '2023', t: 'Primeiro produto', d: 'Lançamento da plataforma com integração AGT e envio por WhatsApp.' },
   { year: '2024', t: 'Crescimento', d: 'Ultrapassámos 500 empresas activas e 50.000 faturas emitidas.' },
-  { year: '2025', t: 'Ecossistema', d: 'Lançamento do programa de compradores com ID único e recompensas por fatura.' },
+  { year: '2025', t: 'Ecossistema', d: 'Lançamento do programa de compradores com ID único e intermediação de pagamentos digitais seguros.' },
 ];
 
 function PageSobreNos() {
@@ -332,7 +334,7 @@ function PageSobreNos() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {teamMembers.map(({ name, role, init, color }) => (
               <div key={name} className="bg-card border border-border/50 rounded-2xl p-5 flex items-center gap-4 hover:border-primary/30 transition-all group">
-                <div className={`w-13 h-13 w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-black flex-shrink-0 ${color} group-hover:scale-110 transition-transform`}>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-black flex-shrink-0 ${color} group-hover:scale-110 transition-transform`}>
                   {init}
                 </div>
                 <div>
@@ -352,7 +354,7 @@ function PageSobreNos() {
 const blogPosts = [
   { cat: 'Faturação', tag: true, title: 'O que mudou na faturação electrónica em Angola em 2025', excerpt: 'A AGT reforçou os requisitos para emissão de faturas digitais. Veja o que mudou e como a Faktura já cumpre todos os novos critérios.', author: 'Equipa Faktura', date: '15 Jan 2025', read: '6 min', init: 'EF', c: 'bg-primary/15 text-primary' },
   { cat: 'Dicas', title: 'Como evitar os 5 erros mais comuns na emissão de faturas', excerpt: 'Erros simples podem causar problemas sérios com o fisco. Descubra quais são e como a Faktura os elimina automaticamente.', author: 'Carlos Mendes', date: '8 Jan 2025', read: '4 min', init: 'CM', c: 'bg-blue-100 text-blue-700' },
-  { cat: 'Produto', title: 'Novo: ID de comprador — ganhe 50 Kz por cada fatura', excerpt: 'Registe-se, partilhe o seu ID e receba automaticamente 50 Kz por cada compra faturada acima de 1.500 Kz.', author: 'Ana Ferreira', date: '2 Jan 2025', read: '3 min', init: 'AF', c: 'bg-purple-100 text-purple-700' },
+  { cat: 'Produto', title: 'Novo: ID de comprador — ganhe 50 Kz por cada fatura', excerpt: 'Registe-se, partilhe o seu ID e receba automaticamente 50 Kz de recompensa por cada compra faturada acima de 1.500 Kz.', author: 'Ana Ferreira', date: '2 Jan 2025', read: '3 min', init: 'AF', c: 'bg-purple-100 text-purple-700' },
   { cat: 'Negócio', title: 'Faturação recorrente: automatize cobranças mensais', excerpt: 'Se tem clientes com serviços mensais, a faturação recorrente da Faktura vai poupar horas de trabalho repetitivo.', author: 'Pedro Santos', date: '28 Dez 2024', read: '5 min', init: 'PS', c: 'bg-amber-100 text-amber-700' },
   { cat: 'Conformidade', title: 'Guia completo: NIF, IBAN e dados obrigatórios na fatura', excerpt: 'Saiba exactamente quais campos são legalmente obrigatórios e como preenchê-los correctamente.', author: 'Beatriz Neto', date: '20 Dez 2024', read: '7 min', init: 'BN', c: 'bg-teal-100 text-teal-700' },
   { cat: 'Integrações', title: 'Como enviar faturas pelo WhatsApp automaticamente', excerpt: 'Configure a integração WhatsApp Business em 2 minutos e os seus clientes recebem faturas no telemóvel.', author: 'Miguel Costa', date: '15 Dez 2024', read: '4 min', init: 'MC', c: 'bg-rose-100 text-rose-700' },
@@ -515,17 +517,18 @@ function PageCarreiras() {
 /* ══ TERMOS ══════════════════════════════════════════════ */
 const termosSections = [
   { t: '1. Aceitação dos Termos', c: 'Ao aceder ou utilizar a plataforma Faktura ("Serviço"), concorda em ficar vinculado a estes Termos de Uso. Se não concordar, não poderá aceder ao Serviço. Estes Termos aplicam-se a todos os utilizadores, incluindo empresas e compradores individuais registados.' },
-  { t: '2. Descrição do Serviço', c: 'A Faktura é uma plataforma de faturação electrónica que permite: emissão de faturas, recibos, proformas e faturas-recibo em conformidade com a AGT; gestão de clientes e histórico de transacções; envio automatizado por WhatsApp, SMS e email; programa de compradores com ID único e recompensas por fatura; e relatórios e análises financeiras.' },
+  { t: '2. Descrição do Serviço', c: 'A Faktura é uma plataforma de faturação electrónica que permite: emissão de faturas, recibos, proformas e faturas-recibo em conformidade com a AGT; gestão de clientes e histórico de transacções; envio automatizado por WhatsApp, SMS e email; intermediação de pagamentos digitais seguros entre compradores e empresas; programa de compradores com ID único e recompensas por fatura; e relatórios e análises financeiras.' },
   { t: '3. Conta de Utilizador', c: 'Para utilizar o Serviço, deve criar uma conta com informações verdadeiras e completas. É responsável pela confidencialidade das suas credenciais e por todas as actividades na sua conta. Deve notificar-nos imediatamente em caso de acesso não autorizado.' },
-  { t: '4. Programa de Compradores (ID de Compra)', c: 'Ao registar-se como comprador, receberá um ID único. Este ID permite que empresas utilizadoras da Faktura preencham automaticamente os seus dados em faturas, com autorização expressa. O comprador recebe 50 Kz por cada fatura emitida acima de 1.500 Kz com o seu ID. A Faktura pode alterar os valores com aviso prévio de 30 dias.' },
-  { t: '5. Obrigações do Utilizador', c: 'O utilizador compromete-se a: fornecer informações verídicas; usar o Serviço apenas para fins legais; não aceder a dados de outros utilizadores sem autorização; não emitir documentos falsos ou fraudulentos; manter a confidencialidade de dados de terceiros; e cumprir todas as obrigações fiscais.' },
-  { t: '6. Pagamentos e Subscrições', c: 'O Serviço é oferecido em planos de subscrição mensal ou trimestral. Os pagamentos são processados antecipadamente. Não são emitidos reembolsos por períodos parcialmente utilizados, salvo nos casos previstos na legislação angolana do consumidor. A Faktura pode alterar os preços com aviso prévio de 30 dias.' },
-  { t: '7. Conformidade Fiscal', c: 'A Faktura facilita a emissão de documentos fiscais em conformidade com a AGT, mas não substitui o aconselhamento de um contabilista certificado. O utilizador é o único responsável pela correcta classificação fiscal das suas transacções.' },
-  { t: '8. Propriedade Intelectual', c: 'O Serviço, incluindo software, design, textos e logótipos, é propriedade exclusiva da Faktura Angola Lda. e está protegido por legislação de propriedade intelectual. Os dados introduzidos pelo utilizador permanecem sua propriedade.' },
-  { t: '9. Limitação de Responsabilidade', c: 'Na máxima extensão permitida pela lei angolana, a Faktura não será responsável por danos indirectos, incidentais, especiais ou consequenciais resultantes do uso ou impossibilidade de uso do Serviço.' },
-  { t: '10. Rescisão', c: 'Pode cancelar a sua conta a qualquer momento, com efeito no final do período de subscrição pago. Após a rescisão, pode solicitar exportação dos seus dados no prazo de 90 dias.' },
-  { t: '11. Lei Aplicável', c: 'Estes Termos são regidos pela legislação da República de Angola. Qualquer litígio será submetido à jurisdição exclusiva dos tribunais angolanos competentes.' },
-  { t: '12. Contacto', c: 'Para questões sobre estes Termos, contacte: legal@faktura.ao | Luanda, Angola.' },
+  { t: '4. Intermediação de Pagamentos', c: 'A Faktura actua exclusivamente como intermediário de pagamentos digitais: facilita e coordena o fluxo de pagamento entre comprador e empresa, mas nunca detém ou armazena fundos. Todas as transacções são processadas pelos canais bancários e operadores habilitados (EMIS, Multicaixa Express). A Faktura não é uma instituição financeira nem emite instrumentos de pagamento.' },
+  { t: '5. Programa de Compradores (ID de Compra)', c: 'Ao registar-se como comprador, receberá um ID único. Este ID permite que empresas utilizadoras da Faktura preencham automaticamente os seus dados em faturas, com autorização expressa. O comprador recebe 50 Kz de recompensa por cada fatura emitida acima de 1.500 Kz com o seu ID. A Faktura pode alterar os valores com aviso prévio de 30 dias.' },
+  { t: '6. Obrigações do Utilizador', c: 'O utilizador compromete-se a: fornecer informações verídicas; usar o Serviço apenas para fins legais; não aceder a dados de outros utilizadores sem autorização; não emitir documentos falsos ou fraudulentos; manter a confidencialidade de dados de terceiros; e cumprir todas as obrigações fiscais.' },
+  { t: '7. Pagamentos e Subscrições', c: 'O Serviço é oferecido em planos de subscrição mensal ou trimestral. Os pagamentos são processados antecipadamente. Não são emitidos reembolsos por períodos parcialmente utilizados, salvo nos casos previstos na legislação angolana do consumidor. A Faktura pode alterar os preços com aviso prévio de 30 dias.' },
+  { t: '8. Conformidade Fiscal', c: 'A Faktura facilita a emissão de documentos fiscais em conformidade com a AGT, mas não substitui o aconselhamento de um contabilista certificado. O utilizador é o único responsável pela correcta classificação fiscal das suas transacções.' },
+  { t: '9. Propriedade Intelectual', c: 'O Serviço, incluindo software, design, textos e logótipos, é propriedade exclusiva da Faktura Angola Lda. e está protegido por legislação de propriedade intelectual. Os dados introduzidos pelo utilizador permanecem sua propriedade.' },
+  { t: '10. Limitação de Responsabilidade', c: 'Na máxima extensão permitida pela lei angolana, a Faktura não será responsável por danos indirectos, incidentais, especiais ou consequenciais resultantes do uso ou impossibilidade de uso do Serviço.' },
+  { t: '11. Rescisão', c: 'Pode cancelar a sua conta a qualquer momento, com efeito no final do período de subscrição pago. Após a rescisão, pode solicitar exportação dos seus dados no prazo de 90 dias.' },
+  { t: '12. Lei Aplicável', c: 'Estes Termos são regidos pela legislação da República de Angola. Qualquer litígio será submetido à jurisdição exclusiva dos tribunais angolanos competentes.' },
+  { t: '13. Contacto', c: 'Para questões sobre estes Termos, contacte: legal@faktura.ao | Luanda, Angola.' },
 ];
 
 function PageTermos() {
@@ -571,9 +574,9 @@ function PageTermos() {
 const privSections = [
   { t: '1. Responsavel pelo Tratamento', c: 'A Faktura Angola Lda. é o responsável pelo tratamento dos seus dados pessoais, com sede em Luanda, Angola. Contacto: privacidade@faktura.ao' },
   { t: '2. Dados que Recolhemos', c: 'Dados de conta: nome completo, email, telefone, NIF. Dados de utilizacao: faturas emitidas, historico de sessoes, IP e dispositivo. Dados de compradores: nome parcialmente visivel, NIF e telefone mascarados, historico de faturas associadas ao ID.' },
-  { t: '3. Como Usamos os Seus Dados', c: 'Para prestar o servico de faturacao; cumprir obrigacoes legais e fiscais (AGT); comunicar sobre a sua conta; melhorar a plataforma; processar recompensas do programa de compradores; prevenir fraude e garantir seguranca.' },
+  { t: '3. Como Usamos os Seus Dados', c: 'Para prestar o servico de faturacao e intermediacao de pagamentos; cumprir obrigacoes legais e fiscais (AGT); comunicar sobre a sua conta; melhorar a plataforma; processar recompensas do programa de compradores; prevenir fraude e garantir seguranca.' },
   { t: '4. Base Legal', c: 'Execucao do contrato (prestar o servico); obrigacao legal (AGT); consentimento (marketing e programa de compradores); interesse legitimo (seguranca e prevencao de fraude).' },
-  { t: '5. Partilha de Dados', c: 'Nao vendemos os seus dados. Partilhamos apenas com parceiros essenciais ao servico, a AGT quando legalmente obrigatorio, e no programa de compradores com dados mascarados e com consentimento explicito.' },
+  { t: '5. Partilha de Dados', c: 'Nao vendemos os seus dados. Partilhamos apenas com parceiros essenciais ao servico (ex: EMIS para processamento de pagamentos), a AGT quando legalmente obrigatorio, e no programa de compradores com dados mascarados e com consentimento explicito.' },
   { t: '6. Retencao de Dados', c: 'Conservamos os dados pelo tempo necessario para o servico e obrigacoes fiscais (minimo 5 anos). Apos cancelamento da conta, os dados sao anonimizados ou eliminados em 90 dias.' },
   { t: '7. Os Seus Direitos', c: 'Tem direito a: acesso, rectificacao, eliminacao (sujeito a obrigacoes legais), portabilidade, oposicao a marketing, e retirar consentimento a qualquer momento. Contacto: privacidade@faktura.ao' },
   { t: '8. Seguranca', c: 'Encriptacao TLS/SSL em transito, AES-256 em repouso, controlo de acesso por funcoes (RBAC), monitorizacao continua e plano de resposta a incidentes. Em caso de violacao, sera notificado em 72 horas.' },
@@ -757,7 +760,7 @@ function PageSeguranca() {
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [activePage, setActivePage] = useState(null); // null = landing
+  const [activePage, setActivePage] = useState(null);
   const [expandedFeature, setExpandedFeature] = useState(null);
 
   useEffect(() => {
@@ -772,28 +775,11 @@ export default function LandingPage() {
     if (activePage) window.scrollTo(0, 0);
   }, [activePage]);
 
-  const navLinks = [
-    ['#features', 'Funcionalidades', null],
-    ['#ecosystem', 'Ecossistema', null],
-    ['#pricing', 'Precos', null],
-    ['#faq', 'FAQ', null],
-    ['integracoes', 'Integracoes', 'integracoes'],
-  ];
-
   const footerLinks = {
     'Produto': [['#features','Funcionalidades',null],['#pricing','Precos',null],['integracoes','Integracoes','integracoes']],
     'Empresa': [['sobre','Sobre Nos','sobre'],['blog','Blog','blog'],['carreiras','Carreiras','carreiras']],
     'Legal': [['termos','Termos de Uso','termos'],['privacidade','Privacidade','privacidade'],['seguranca','Seguranca','seguranca']],
   };
-
-  function NavLink({ label, page }) {
-    if (page) return (
-      <button onClick={() => setActivePage(page)} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{label}</button>
-    );
-    return (
-      <a href={"#"+label.toLowerCase()} onClick={() => setActivePage(null)} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{label}</a>
-    );
-  }
 
   function renderSubPage() {
     if (activePage === 'integracoes') return <PageIntegracoes />;
@@ -819,7 +805,6 @@ export default function LandingPage() {
         @keyframes slide-up { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
         @keyframes glow-pulse { 0%,100%{box-shadow:0 0 24px hsl(var(--primary)/.3)} 50%{box-shadow:0 0 60px hsl(var(--primary)/.6),0 0 120px hsl(var(--primary)/.15)} }
         @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-        @keyframes marquee-slow { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
         @keyframes bounce-subtle { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes fade-scale { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
         @keyframes lema-appear { 0%{opacity:0;transform:translateY(60px) scale(.9)} 60%{opacity:1;transform:translateY(-8px) scale(1.02)} 100%{transform:translateY(0) scale(1)} }
@@ -894,14 +879,12 @@ export default function LandingPage() {
 
         .page-transition { animation: fade-scale .4s cubic-bezier(.4,0,.2,1) both; }
 
-        /* ══ HERO ══════════════════════════════════════════════ */
         .hero-wrap {
           position: relative;
           min-height: 100vh;
           display: grid;
           grid-template-rows: 1fr;
         }
-        /* A foto ocupa toda a grelha */
         .hero-photo {
           position: absolute; inset: 0;
           overflow: hidden;
@@ -912,7 +895,6 @@ export default function LandingPage() {
           object-position: center 30%;
           will-change: transform;
         }
-        /* Overlay em camadas: escurece topo e base, guarda centro */
         .hero-photo::after {
           content: '';
           position: absolute; inset: 0;
@@ -957,7 +939,6 @@ export default function LandingPage() {
         @keyframes mouse-scroll { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
         .mouse-scroll-dot { animation: mouse-scroll 2s ease-in-out infinite; }
 
-        /* ══ DASHBOARD SHOWCASE ══════════════════════════════════ */
         @keyframes rise-in {
           from { opacity:0; transform: translateY(60px) scale(.96); }
           to   { opacity:1; transform: translateY(0)   scale(1);    }
@@ -1031,15 +1012,12 @@ export default function LandingPage() {
         </div>
       ) : (
         <>
-          {/* ══ HERO — foto a 100vh com texto sobreposto ══ */}
+          {/* ══ HERO ══ */}
           <section className="hero-wrap">
-
-            {/* ── Foto a 100% altura ── */}
             <div className="hero-photo">
               <img src={heroBusiness} alt="Empresarios angolanos a trabalhar" />
             </div>
 
-            {/* ── Orb de cor interactivo ── */}
             <div className="absolute z-[5] pointer-events-none rounded-full"
               style={{
                 width: 700, height: 700,
@@ -1051,7 +1029,6 @@ export default function LandingPage() {
               }}
             />
 
-            {/* ── Grid decorativo ── */}
             <div className="absolute inset-0 z-[4] pointer-events-none opacity-[0.035]"
               style={{
                 backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)',
@@ -1059,19 +1036,15 @@ export default function LandingPage() {
               }}
             />
 
-            {/* ── Conteúdo do hero ── */}
             <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-
-              {/* Badge */}
               <div className="heroB mb-7">
                 <div className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-default">
                   <Sparkles className="w-4 h-4 text-white animate-pulse" />
-                 <span className="text-sm font-bold text-white tracking-wide">Faturação + Pagamentos — Tudo numa só plataforma</span>
+                  <span className="text-sm font-bold text-white tracking-wide">Faturação + Pagamentos Digitais Seguros — Tudo numa só plataforma</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 </div>
               </div>
 
-              {/* Título */}
               <div className="max-w-3xl mb-7">
                 <h1 className="font-black tracking-tight text-white"
                   style={{ fontSize: 'clamp(2.8rem, 7.5vw, 7rem)', lineHeight: 0.88, letterSpacing: '-0.02em' }}>
@@ -1091,14 +1064,12 @@ export default function LandingPage() {
                 </h1>
               </div>
 
-              {/* Subtítulo */}
               <p className="heroS text-white/75 max-w-2xl mb-10 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
-                Emita faturas, gere links de pagamento, aceite Multicaixa Express e gerencie a sua carteira digital —
-                a fintech de faturação feita para Angola.
+                Emita faturas, gere links de pagamento, aceite Multicaixa Express e processe pagamentos digitais com total segurança —
+                a plataforma de faturação e intermediação de pagamentos feita para Angola.
               </p>
 
-              {/* CTAs */}
               <div className="heroC flex flex-col sm:flex-row items-start gap-4 mb-12">
                 <Link to="/registar">
                   <Button size="lg" className="h-14 px-10 text-lg font-black shadow-2xl shadow-primary/50 btn-glow hover:scale-[1.04] transition-all group gap-2.5">
@@ -1115,13 +1086,12 @@ export default function LandingPage() {
                 </a>
               </div>
 
-              {/* Stats vidro fosco */}
               <div className="heroSt flex flex-wrap gap-3">
                 {[
-                  { icon: Users,     v: '500+',   l: 'Empresas activas'  },
-                  { icon: FileText,  v: '50.000+', l: 'Faturas emitidas' },
-                  { icon: TrendingUp,v: '99%',    l: 'Uptime garantido'  },
-                  { icon: Clock,     v: '24/7',   l: 'Suporte incluído'  },
+                  { icon: Users,      v: '500+',   l: 'Empresas activas'       },
+                  { icon: FileText,   v: '50.000+', l: 'Faturas emitidas'       },
+                  { icon: TrendingUp, v: '99%',    l: 'Uptime garantido'        },
+                  { icon: Clock,      v: '24/7',   l: 'Suporte incluído'        },
                 ].map(({ icon: I, v, l }, i) => (
                   <div key={i} className="glass-stat rounded-2xl px-4 py-3 flex items-center gap-3 cursor-default">
                     <div className="w-8 h-8 rounded-lg bg-white/12 flex items-center justify-center flex-shrink-0">
@@ -1136,7 +1106,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* ── Floating badges (desktop) ── */}
+            {/* Floating badges */}
             <div className="af2 absolute right-10 top-[28%] z-20 float-badge rounded-2xl px-4 py-3 hidden xl:flex items-center gap-3 border border-white/15">
               <div className="relative pulse-ring w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
                 <CheckCircle className="w-5 h-5 text-primary" />
@@ -1157,17 +1127,17 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {/* ── Badge actualizado: pagamento intermediado, não carteira ── */}
             <div className="af absolute right-14 bottom-[30%] z-20 float-badge rounded-xl px-3 py-2.5 hidden xl:flex items-center gap-3 border border-white/15">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <BadgeDollarSign className="w-4 h-4 text-primary" />
+                <ShieldCheck className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="text-xs font-bold text-foreground">+50 Kz creditados</p>
-                <p className="text-[11px] text-muted-foreground">ID M20XV · agora mesmo</p>
+                <p className="text-xs font-bold text-foreground">Pagamento confirmado</p>
+                <p className="text-[11px] text-muted-foreground">ID M20XV · Multicaixa</p>
               </div>
             </div>
 
-            {/* ── Scroll indicator ── */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
               <div className="w-6 h-10 rounded-full border-2 border-white/25 flex items-start justify-center pt-1.5">
                 <div className="w-1.5 h-2.5 rounded-full bg-white/60 mouse-scroll-dot" />
@@ -1175,10 +1145,8 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* ══ PLATAFORMA SHOWCASE — secção própria e imponente ══ */}
+          {/* ══ PLATAFORMA SHOWCASE ══ */}
           <section id="plataforma" className="relative py-28 overflow-hidden">
-
-            {/* Decoração de fundo */}
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
@@ -1189,8 +1157,6 @@ export default function LandingPage() {
             </div>
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-              {/* Cabeçalho */}
               <FadeIn direction="up">
                 <div className="text-center mb-14">
                   <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
@@ -1202,26 +1168,22 @@ export default function LandingPage() {
                     <span className="shimmer-text">num só ecrã</span>
                   </h2>
                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                    Dashboard intuitivo com métricas em tempo real, gestão de faturas, clientes e muito mais —
+                    Dashboard intuitivo com métricas em tempo real, gestão de faturas, clientes e pagamentos —
                     desenhado especificamente para o mercado angolano.
                   </p>
                 </div>
               </FadeIn>
 
-              {/* Tags */}
               <FadeIn direction="up" delay={80}>
                 <div className="flex flex-wrap justify-center gap-2.5 mb-14">
-                  {['Faturas em segundos','Multicaixa Express','Links de Pagamento','Carteira Digital','Conformidade AGT','Reconciliação Bancária','WhatsApp nativo','QR Code','API REST','ID Comprador'].map((tag) => (
+                  {['Faturas em segundos','Multicaixa Express','Links de Pagamento','Pagamentos Intermediados','Conformidade AGT','Reconciliação Bancária','WhatsApp nativo','QR Code','API REST','ID Comprador'].map((tag) => (
                     <span key={tag} className="tag-pill text-sm font-semibold px-4 py-2 rounded-full cursor-default">{tag}</span>
                   ))}
                 </div>
               </FadeIn>
 
-              {/* ── IMAGEM DO DASHBOARD — destaque máximo ── */}
               <div className="dash-rise">
                 <div className="dash-frame group cursor-default">
-
-                  {/* Barra de browser */}
                   <div className="browser-bar px-5 py-3 flex items-center gap-4">
                     <div className="flex gap-1.5 flex-shrink-0">
                       <div className="w-3 h-3 rounded-full bg-red-400" />
@@ -1241,27 +1203,23 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Screenshot */}
                   <div className="relative overflow-hidden">
                     <img
                       src={dashboardPreview}
                       alt="Dashboard Faktura — plataforma completa de faturação angolana"
                       className="w-full h-auto block group-hover:scale-[1.012] transition-transform duration-700 ease-out"
                     />
-                    {/* Gradiente suave na base */}
                     <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-background/30 to-transparent pointer-events-none" />
-                    {/* Linha superior de brilho */}
                     <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
                   </div>
                 </div>
               </div>
 
-              {/* 3 cards abaixo da imagem */}
               <div className="grid md:grid-cols-3 gap-5 mt-14">
                 {[
-                  { icon: Zap,      t: 'Configure em 2 minutos',  d: 'Sem instalações, sem burocracia. Abra a conta e emita a primeira fatura ainda hoje — totalmente grátis.' },
-                  { icon: Shield,   t: '100% Legal e Certificado', d: 'Cada documento cumpre os requisitos da AGT. Assinatura digital e QR code incluídos automaticamente.' },
-                  { icon: BarChart3,t: 'Crescimento visível',      d: 'Veja a evolução da sua faturação em tempo real com gráficos interactivos e alertas automáticos.' },
+                  { icon: Zap,       t: 'Configure em 2 minutos',  d: 'Sem instalações, sem burocracia. Abra a conta e emita a primeira fatura ainda hoje — totalmente grátis.' },
+                  { icon: Shield,    t: '100% Legal e Certificado', d: 'Cada documento cumpre os requisitos da AGT. Assinatura digital e QR code incluídos automaticamente.' },
+                  { icon: BarChart3, t: 'Crescimento visível',      d: 'Veja a evolução da sua faturação em tempo real com gráficos interactivos e alertas automáticos.' },
                 ].map(({ icon: I, t, d }, i) => (
                   <FadeIn key={i} delay={i * 100} direction="up">
                     <div className="bg-card border border-border/50 rounded-2xl p-6 flex items-start gap-4 hover:border-primary/35 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/6 transition-all duration-300 group">
@@ -1279,7 +1237,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* ── FINTECH PAYMENTS SECTION ── */}
+          {/* ── PAGAMENTOS SECTION (sem referência a carteira digital) ── */}
           <section className="py-24 relative overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-primary/5 rounded-full blur-[140px]" />
@@ -1289,22 +1247,22 @@ export default function LandingPage() {
                 <div className="text-center mb-16">
                   <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
                     <Banknote className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-bold">Pagamentos Integrados</span>
+                    <span className="text-sm font-bold">Pagamentos Digitais Seguros</span>
                   </div>
                   <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5 leading-tight">
-                    Fature e <span className="shimmer-text">cobre</span><br />sem sair da plataforma
+                    Intermediamos o pagamento<br /><span className="shimmer-text">com total segurança</span>
                   </h2>
                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                    Multicaixa Express, links de pagamento com QR code e carteira digital — tudo integrado na sua faturação.
+                    Coordenamos pagamentos entre comprador e empresa via Multicaixa Express e links digitais — sem armazenar fundos, com rastreamento completo em tempo real.
                   </p>
                 </div>
               </FadeIn>
 
               <div className="grid md:grid-cols-3 gap-6 mb-12">
                 {[
-                  { icon: CreditCard, t: 'Multicaixa Express', d: 'Gere referências EMIS directamente na fatura. O cliente paga e a confirmação é automática.', badge: 'Integrado' },
-                  { icon: Link2, t: 'Links de Pagamento', d: 'Crie links com QR code e partilhe via WhatsApp. O cliente paga sem instalar nada.', badge: 'QR Code' },
-                  { icon: Wallet, t: 'Carteira Digital', d: 'Receba pagamentos na sua carteira Faktura. Visualize saldo, transacções e faça transferências.', badge: 'Tempo Real' },
+                  { icon: CreditCard,    t: 'Multicaixa Express',         d: 'Coordenamos a geração de referências EMIS directamente na fatura. O cliente paga e a confirmação é automática.', badge: 'EMIS' },
+                  { icon: Link2,         t: 'Links de Pagamento',          d: 'Criamos links com QR code que direcionam o pagamento de forma segura. O cliente paga sem instalar nada.', badge: 'QR Code' },
+                  { icon: ArrowLeftRight,t: 'Rastreamento de Transacções', d: 'Cada pagamento intermediado é registado, auditado e confirmado. Visibilidade total do estado de cada fatura.', badge: 'Tempo Real' },
                 ].map(({ icon: I, t, d, badge }, i) => (
                   <FadeIn key={i} delay={i * 120} direction="up">
                     <div className="ec bg-card border-2 border-border/50 rounded-2xl p-8 group hover:border-primary/30 h-full relative overflow-hidden">
@@ -1322,6 +1280,21 @@ export default function LandingPage() {
                 ))}
               </div>
 
+              {/* Aviso importante: não detemos fundos */}
+              <FadeIn direction="up" delay={150}>
+                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 mb-10 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <ShieldCheck className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-bold mb-1">Transparência total: a Faktura não detém fundos</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Actuamos exclusivamente como intermediário digital. Todos os pagamentos fluem directamente pelos canais bancários e operadores habilitados (EMIS, Multicaixa Express) — nunca passam pelo nosso balanço. Garantimos o rastreamento, a confirmação e a correspondência com a fatura.
+                    </p>
+                  </div>
+                </div>
+              </FadeIn>
+
               {/* Payment flow demo */}
               <FadeIn direction="up" delay={200}>
                 <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden">
@@ -1331,15 +1304,15 @@ export default function LandingPage() {
                     <div>
                       <div className="inline-flex items-center gap-2 bg-primary/15 rounded-full px-4 py-1.5 mb-4">
                         <Zap className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-bold text-accent-foreground">Fluxo de Pagamento</span>
+                        <span className="text-sm font-bold text-accent-foreground">Fluxo de Intermediação</span>
                       </div>
-                      <h3 className="text-3xl font-black text-accent-foreground mb-4">Da fatura ao pagamento em 3 passos</h3>
-                      <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">Emita a fatura, gere uma referência Multicaixa ou link de pagamento, e receba automaticamente.</p>
+                      <h3 className="text-3xl font-black text-accent-foreground mb-4">Da fatura ao pagamento confirmado em 3 passos</h3>
+                      <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">Emita a fatura, gere uma referência Multicaixa ou link de pagamento, e receba a confirmação automaticamente — sem tomar posse dos fundos.</p>
                       <div className="space-y-4">
                         {[
-                          { s: '01', t: 'Emita a fatura', d: 'Crie a fatura normalmente com todos os dados fiscais.' },
-                          { s: '02', t: 'Gere o link ou referência', d: 'Multicaixa Express ou link de pagamento com QR code.' },
-                          { s: '03', t: 'Receba o pagamento', d: 'Confirmação automática e fatura marcada como paga.' },
+                          { s: '01', t: 'Emita a fatura',                d: 'Crie a fatura com todos os dados fiscais e do comprador.' },
+                          { s: '02', t: 'Gere o link ou referência',     d: 'Multicaixa Express ou link de pagamento com QR code.' },
+                          { s: '03', t: 'Confirmação automática',        d: 'O pagamento é processado pelo banco/operador — a Faktura regista e fecha a fatura.' },
                         ].map(({ s, t, d }) => (
                           <div key={s} className="flex items-start gap-4">
                             <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -1366,7 +1339,7 @@ export default function LandingPage() {
                         </div>
                         <div className="flex items-center gap-2 text-primary text-sm font-bold">
                           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                          Aguardando pagamento...
+                          Aguardando confirmação do banco...
                         </div>
                       </div>
                     </div>
@@ -1397,9 +1370,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* ████████████████████████████████████████████
-               LEMA SECTION — COM A FAKTURA TODOS FACTURAM
-             ████████████████████████████████████████████ */}
+          {/* ════ LEMA SECTION ════ */}
           <section className="lema-section py-24 lg:py-36">
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               <div className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
@@ -1431,14 +1402,14 @@ export default function LandingPage() {
 
               <div className="lema-sub">
                 <p className="text-white/70 text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed mb-12">
-                  Empresas emitem faturas mais depressa. Compradores ganham por cada compra. Um ecossistema onde toda a gente beneficia — da mercearia do bairro ao supermercado.
+                  Empresas emitem faturas mais depressa. Compradores ganham por cada compra. Pagamentos fluem com segurança — um ecossistema onde toda a gente beneficia.
                 </p>
 
                 <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
                   {[
-                    { icon: Building2, t: 'Para Empresas', d: 'Emita faturas em segundos com dados pre-preenchidos. Zero erros, maxima conformidade AGT.', color: 'bg-white/15' },
-                    { icon: UserPlus, t: 'Para Compradores', d: 'Registe-se gratuitamente, partilhe o seu ID e ganhe 50 Kz automaticamente por cada fatura.', color: 'bg-white/20' },
-                    { icon: Globe, t: 'Para Angola', d: 'Cada fatura emitida fortalece a economia formal e contribui para um pais mais transparente.', color: 'bg-white/15' },
+                    { icon: Building2,     t: 'Para Empresas',    d: 'Emita faturas em segundos com dados pre-preenchidos. Zero erros, maxima conformidade AGT.', color: 'bg-white/15' },
+                    { icon: UserPlus,      t: 'Para Compradores', d: 'Registe-se gratuitamente, partilhe o seu ID e ganhe 50 Kz de recompensa por cada fatura acima de 1.500 Kz.', color: 'bg-white/20' },
+                    { icon: ShieldCheck,   t: 'Com Segurança',    d: 'Pagamentos intermediados sem armazenamento de fundos. Total transparência e rastreabilidade.', color: 'bg-white/15' },
                   ].map(({icon:I,t,d,color},i) => (
                     <div key={i} className={`${color} backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-left hover:bg-white/25 transition-all hover:-translate-y-1 group`}>
                       <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-4 group-hover:bg-white/30 transition-colors">
@@ -1465,7 +1436,6 @@ export default function LandingPage() {
               </div>
             </div>
           </section>
-          {/* ████████████████████████████████████████████ */}
 
           {/* ── ECOSSISTEMA ── */}
           <section id="ecosystem" className="py-28 relative overflow-hidden bg-muted/20">
@@ -1509,7 +1479,7 @@ export default function LandingPage() {
                     <div className="bg-primary/8 border border-primary/20 rounded-2xl p-5 mb-6 flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0"><BadgeDollarSign className="w-6 h-6 text-primary" /></div>
                       <div>
-                        <p className="text-xl font-black">50 Kz por fatura</p>
+                        <p className="text-xl font-black">50 Kz de recompensa por fatura</p>
                         <p className="text-sm text-muted-foreground">automaticamente em cada fatura acima de <strong className="text-foreground">1.500 Kz</strong></p>
                       </div>
                     </div>
@@ -1567,10 +1537,10 @@ export default function LandingPage() {
               </FadeIn>
               <div className="grid md:grid-cols-4 gap-6 mb-16">
                 {[
-                  {Ico:UserPlus,s:'01',t:'Crie a sua conta',d:'Registe-se gratuitamente e receba o seu ID unico de comprador.'},
-                  {Ico:ScanLine,s:'02',t:'Partilhe o seu ID',d:'Ao fazer compras, informe o seu ID ao vendedor. Ex: M20XV.'},
-                  {Ico:FileText,s:'03',t:'A fatura e emitida',d:'A empresa usa o seu ID para preencher os dados automaticamente.'},
-                  {Ico:Wallet,s:'04',t:'Receba os seus 50 Kz',d:'Por cada fatura acima de 1.500 Kz, 50 Kz sao creditados automaticamente.'},
+                  {Ico:UserPlus,  s:'01',t:'Crie a sua conta',    d:'Registe-se gratuitamente e receba o seu ID unico de comprador.'},
+                  {Ico:ScanLine,  s:'02',t:'Partilhe o seu ID',   d:'Ao fazer compras, informe o seu ID ao vendedor. Ex: M20XV.'},
+                  {Ico:FileText,  s:'03',t:'A fatura e emitida',  d:'A empresa usa o seu ID para preencher os dados automaticamente.'},
+                  {Ico:BadgeDollarSign,s:'04',t:'Receba a recompensa',d:'Por cada fatura acima de 1.500 Kz, recebe 50 Kz de recompensa automaticamente.'},
                 ].map(({Ico,s,t,d},i) => (
                   <FadeIn key={i} delay={i*100} direction="up">
                     <div className="ec group bg-card border border-border/50 rounded-2xl p-6 text-center hover:border-primary/30 h-full relative">
@@ -1595,10 +1565,10 @@ export default function LandingPage() {
                     <div>
                       <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-4">
                         <Repeat className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-bold">Exemplo de ganhos</span>
+                        <span className="text-sm font-bold">Exemplo de recompensas</span>
                       </div>
                       <h3 className="text-3xl font-black mb-4">Quanto pode ganhar<br />por mes?</h3>
-                      <p className="text-muted-foreground leading-relaxed">Cada vez que fizer uma compra acima de 1.500 Kz numa empresa que usa a Faktura, recebe automaticamente <strong className="text-foreground">50 Kz</strong>. Quanto mais comprar, mais ganha.</p>
+                      <p className="text-muted-foreground leading-relaxed">Cada vez que fizer uma compra acima de 1.500 Kz numa empresa que usa a Faktura, recebe automaticamente <strong className="text-foreground">50 Kz</strong> de recompensa. Quanto mais comprar, mais ganha.</p>
                     </div>
                     <div className="space-y-4">
                       {([{f:10,t:500,l:'Compras ocasionais'},{f:30,t:1500,l:'Compras regulares'},{f:60,t:3000,l:'Comprador activo'}] as const).map(({f,t,l},i) => (
@@ -1615,7 +1585,7 @@ export default function LandingPage() {
                       ))}
                       <div className="bg-primary/8 border border-primary/20 rounded-xl p-4 flex items-center gap-3">
                         <BadgeDollarSign className="w-5 h-5 text-primary flex-shrink-0" />
-                        <p className="text-sm text-muted-foreground">Os ganhos sao acumulados automaticamente na sua carteira Faktura.</p>
+                        <p className="text-sm text-muted-foreground">As recompensas sao creditadas automaticamente e podem ser levantadas via Multicaixa Express.</p>
                       </div>
                     </div>
                   </div>
@@ -1745,7 +1715,7 @@ export default function LandingPage() {
               <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                 {[
                   { name:'Basico', price:'7.500', trim:'20.250', features:['Ate 100 faturas/mes','Faturas, Recibos e Proformas','Gestao de clientes','Dashboard basico','Envio por email','Suporte por email'], popular:false },
-                  { name:'Completo', price:'10.000', trim:'27.000', features:['Faturas ilimitadas','Todos os tipos de documentos','Multi-canal (WhatsApp, SMS, Email)','Relatorios avancados','Conformidade AGT total','Suporte prioritario'], popular:true },
+                  { name:'Completo', price:'10.000', trim:'27.000', features:['Faturas ilimitadas','Todos os tipos de documentos','Multi-canal (WhatsApp, SMS, Email)','Intermediacao de pagamentos','Relatorios avancados','Suporte prioritario'], popular:true },
                   { name:'Empresa', price:null, trim:null, features:['Tudo do Completo','Multi-empresa','API dedicada','Gestor de conta dedicado','SLA personalizado'], popular:false },
                 ].map((p,i) => (
                   <FadeIn key={i} delay={i*120} direction="up">
@@ -1798,7 +1768,7 @@ export default function LandingPage() {
                     <HelpCircle className="w-4 h-4 text-primary" /><span className="text-sm font-bold">FAQ</span>
                   </div>
                   <h2 className="text-4xl lg:text-5xl font-black mb-4">Perguntas <span className="shimmer-text">Frequentes</span></h2>
-                  <p className="text-lg text-muted-foreground">Tudo que precisa saber sobre faturacao em Angola.</p>
+                  <p className="text-lg text-muted-foreground">Tudo que precisa saber sobre faturacao e pagamentos em Angola.</p>
                 </div>
               </FadeIn>
               <FadeIn direction="up" delay={150}>
@@ -1816,13 +1786,11 @@ export default function LandingPage() {
         </>
       )}
 
-      {/* ── FOOTER ── (always visible) */}
+      {/* ── FOOTER ── */}
       <footer className="bg-accent text-accent-foreground py-16 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <div className="absolute top-0 right-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-          {/* Lema footer */}
           <div className="text-center mb-12 py-6 border-b border-accent-foreground/10">
             <p className="text-2xl lg:text-3xl font-black text-accent-foreground/80 tracking-tight">
               Com a Faktura, <span className="text-primary">todos facturam.</span>
@@ -1834,7 +1802,7 @@ export default function LandingPage() {
               <button onClick={() => setActivePage(null)}>
                 <img src={logoFaktura} alt="Faktura" className="h-10 object-contain brightness-0 invert mb-4" />
               </button>
-              <p className="text-sm text-accent-foreground/50 leading-relaxed">A plataforma de faturação e pagamentos mais moderna de Angola.</p>
+              <p className="text-sm text-accent-foreground/50 leading-relaxed">A plataforma de faturação e intermediação de pagamentos digitais de Angola.</p>
               <div className="flex gap-3 mt-4">
                 <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Phone className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
                 <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Mail className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
