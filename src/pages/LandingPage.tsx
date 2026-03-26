@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/accordion';
 import { useState, useEffect, useRef } from 'react';
 import logoFaktura from '@/assets/logo-faktura.png';
+
+
 import heroBusiness from '@/assets/hero-business.jpg';
 import dashboardPreview from '@/assets/dashboard-preview.png';
 import logoOrbislink from '@/assets/logos/orbislink.png';
@@ -93,7 +95,7 @@ const features = [
     detail: 'Integração com o sistema EMIS para gerar referências de pagamento. O cliente paga no Multicaixa Express e a fatura é marcada como paga automaticamente.',
   },
   {
-    icon: Link2, title: 'Links de Pagamento',
+    icon: Link2, title: 'Links de Pagamento em Segundos',
     description: 'Gere links únicos com QR code para clientes pagarem faturas online. Partilhe via WhatsApp, SMS ou email com um clique.',
     detail: 'Links com expiração configurável, limites de uso e rastreamento em tempo real. Veja quando o cliente abriu e efectuou o pagamento.',
   },
