@@ -15,8 +15,6 @@ import {
 } from '@/components/ui/accordion';
 import { useState, useEffect, useRef } from 'react';
 import logoFaktura from '@/assets/logo-faktura.png';
-
-
 import heroBusiness from '@/assets/hero-business.jpg';
 import dashboardPreview from '@/assets/dashboard-preview.png';
 import logoOrbislink from '@/assets/logos/orbislink.png';
@@ -41,14 +39,14 @@ function useInView(threshold = 0.15): [React.RefObject<any>, boolean] {
   return [ref, visible];
 }
 
-function AnimatedCounter({ value }) {
+function AnimatedCounter({ value }: { value: string }) {
   const [count, setCount] = useState(0);
   const [ref, visible] = useInView(0.5);
   const num = parseInt(value.replace(/\D/g, '')) || 0;
   useEffect(() => {
     if (!visible) return;
     let start = 0;
-    const step = (ts) => {
+    const step = (ts: number) => {
       if (!start) start = ts;
       const p = Math.min((ts - start) / 1800, 1);
       setCount(Math.floor((1 - Math.pow(1 - p, 3)) * num));
@@ -60,7 +58,12 @@ function AnimatedCounter({ value }) {
   return <span ref={ref}>{d}</span>;
 }
 
-function FadeIn({ children, delay = 0, direction = 'up', className = '' }) {
+function FadeIn({ children, delay = 0, direction = 'up', className = '' }: {
+  children: React.ReactNode;
+  delay?: number;
+  direction?: 'up' | 'left' | 'right' | 'down';
+  className?: string;
+}) {
   const [ref, visible] = useInView();
   const t = direction === 'up' ? 'translateY(36px)' : direction === 'left' ? 'translateX(-36px)' : direction === 'right' ? 'translateX(36px)' : 'translateY(-36px)';
   return (
@@ -109,6 +112,16 @@ const features = [
     description: 'Reconcilie pagamentos bancários com faturas automaticamente. Compare extractos bancários com documentos emitidos num só ecrã.',
     detail: 'Carregue extractos bancários e o sistema identifica automaticamente quais faturas foram pagas. Reduza horas de trabalho manual a minutos.',
   },
+  {
+    icon: MapPin, title: 'Faturação por Proximidade',
+    description: 'Quando o cliente entra na sua loja, a Faktura detecta-o automaticamente via Bluetooth/NFC e pré-carrega os seus dados — pronto para faturar antes de chegar ao caixa.',
+    detail: 'Tecnologia BLE (Bluetooth Low Energy) e NFC integrada. O comprador activa a funcionalidade na app e autoriza a detecção. A empresa vê o cliente a aproximar-se e a fatura é pré-preenchida em segundos. Ideal para lojas, restaurantes e postos de combustível.',
+  },
+  {
+    icon: ScanLine, title: 'Auto-Faturação no Caixa',
+    description: 'Chega de perder minutos nos supermercados. O cliente lê o QR da compra com o telemóvel e confirma a auto-faturação — a fatura é emitida automaticamente, sem intervenção do operador.',
+    detail: 'O operador imprime ou exibe o QR da compra. O cliente abre a app Faktura, aponta o telemóvel e confirma. A fatura é emitida em conformidade AGT, enviada por WhatsApp/email e a fila avança. Zero burocracia, experiência moderna.',
+  },
 ];
 
 const clientLogos = [
@@ -132,9 +145,8 @@ const faqs = [
 ];
 
 /* ─── Sub-page components ── */
-
-function SubPageShell({ children, title }) {
-  useEffect(() => { window.scrollTo(0,0); }, []);
+function SubPageShell({ children }: { children: React.ReactNode }) {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   return (
     <div className="min-h-screen pt-24 pb-24">
       {children}
@@ -142,31 +154,273 @@ function SubPageShell({ children, title }) {
   );
 }
 
+/* ══ AUTO-FATURAÇÃO & PROXIMIDADE ══ */
+function SectionAutoFaturacao() {
+  return (
+    <section id="autofaturacao" className="py-28 relative overflow-hidden bg-muted/20">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-primary/4 rounded-full blur-[130px]" />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1.5px, transparent 1.5px)', backgroundSize: '56px 56px' }} />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <FadeIn direction="up">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
+              <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+              <span className="text-sm font-bold">Inovação Angolana</span>
+            </div>
+            <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5 leading-tight">
+              Chega de filas.<br />
+              <span className="shimmer-text">A fatura vem ter consigo.</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Faturação por proximidade e auto-faturação com QR — duas formas de tornar o acto de comprar e faturar instantâneo, sem burocracia.
+            </p>
+          </div>
+        </FadeIn>
+
+        {/* ── DOIS CARDS PRINCIPAIS ── */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-16">
+
+          {/* Card 1 — Proximidade */}
+          <FadeIn direction="left" delay={100}>
+            <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+
+              <div className="flex items-center gap-4 mb-7">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                  <MapPin className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-0.5">Novo</p>
+                  <h3 className="text-2xl font-black">Faturação por Proximidade</h3>
+                </div>
+              </div>
+
+              <p className="text-muted-foreground leading-relaxed mb-7 text-sm">
+                Quando o cliente com ID Faktura entra na sua loja, o sistema detecta-o automaticamente via <strong className="text-foreground">Bluetooth / NFC</strong> e pré-carrega os seus dados fiscais — a fatura está pronta antes de chegar ao caixa.
+              </p>
+
+              <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7 space-y-3">
+                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-3">Como funciona</p>
+                {[
+                  { s: '01', t: 'Cliente entra na loja', d: 'App Faktura detecta o beacon BLE da loja', icon: MapPin },
+                  { s: '02', t: 'Dados pré-carregados', d: 'NIF, nome e contacto prontos em <2 segundos', icon: Zap },
+                  { s: '03', t: 'Operador confirma', d: 'Um toque e a fatura é emitida — sem digitar nada', icon: CheckCircle },
+                ].map(({ s, t, d, icon: Ico }) => (
+                  <div key={s} className="flex items-center gap-3 bg-card rounded-xl p-3 border border-border/40">
+                    <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
+                      <Ico className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold leading-tight">{t}</p>
+                      <p className="text-xs text-muted-foreground">{d}</p>
+                    </div>
+                    <span className="text-xs font-black text-primary/40">{s}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-7">
+                {['Bluetooth Low Energy', 'NFC', 'Sem app do cliente aberta', 'Lojas · Restaurantes · Postos'].map(t => (
+                  <span key={t} className="text-xs bg-primary/8 border border-primary/20 text-primary font-semibold px-3 py-1 rounded-full">{t}</span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl p-4">
+                <Clock className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="text-sm text-muted-foreground"><strong className="text-foreground">Redução de 80%</strong> no tempo de preenchimento de dados no caixa.</p>
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* Card 2 — Auto-Faturação QR */}
+          <FadeIn direction="right" delay={200}>
+            <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
+              <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+
+              <div className="flex items-center gap-4 mb-7">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                  <ScanLine className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-0.5">Novo</p>
+                  <h3 className="text-2xl font-black">Auto-Faturação no Caixa</h3>
+                </div>
+              </div>
+
+              <p className="text-muted-foreground leading-relaxed mb-7 text-sm">
+                Chega de perder minutos nos supermercados. O operador apresenta o <strong className="text-foreground">QR da compra</strong> — o cliente aponta o telemóvel, confirma, e a fatura é emitida automaticamente em conformidade AGT. Sem filas. Sem espera.
+              </p>
+
+              <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7">
+                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-4">Experiência no caixa</p>
+                <div className="grid grid-cols-3 gap-3 items-center">
+                  <div className="text-center">
+                    <div className="w-full aspect-square bg-card border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center mb-2 relative overflow-hidden group-hover:border-primary/60 transition-colors">
+                      <div className="absolute inset-2 grid grid-cols-5 grid-rows-5 gap-0.5 opacity-40">
+                        {Array.from({ length: 25 }).map((_, i) => (
+                          <div key={i} className={`rounded-[1px] ${[0, 1, 5, 6, 2, 10, 12, 14, 18, 20, 23, 24, 19].includes(i) ? 'bg-primary' : 'bg-transparent'}`} />
+                        ))}
+                      </div>
+                      <ScanLine className="w-7 h-7 text-primary relative z-10" />
+                    </div>
+                    <p className="text-xs font-semibold text-muted-foreground">QR da compra</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <ArrowRight className="w-4 h-4 text-primary" />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center font-medium">cliente lê com a app</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-full aspect-square bg-primary/10 border-2 border-primary/30 rounded-xl flex flex-col items-center justify-center mb-2 gap-1">
+                      <CheckCircle className="w-6 h-6 text-primary" />
+                      <p className="text-[9px] font-black text-primary">FT 2025/1285</p>
+                    </div>
+                    <p className="text-xs font-semibold text-muted-foreground">Fatura emitida</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2 text-primary text-xs font-bold">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  Tempo médio: 4 segundos
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-7">
+                {['Supermercados', 'Farmácias', 'Postos de combustível', 'Restauração', 'Zero papel'].map(t => (
+                  <span key={t} className="text-xs bg-primary/8 border border-primary/20 text-primary font-semibold px-3 py-1 rounded-full">{t}</span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl p-4">
+                <Users className="w-5 h-5 text-primary flex-shrink-0" />
+                <p className="text-sm text-muted-foreground"><strong className="text-foreground">Fila anda 3× mais rápido</strong> — operador não precisa digitar nenhum dado do cliente.</p>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+
+        {/* ── COMPARAÇÃO ANTES / DEPOIS ── */}
+        <FadeIn direction="up" delay={150}>
+          <div className="bg-card border border-border/50 rounded-3xl p-8 lg:p-12 relative overflow-hidden mb-10">
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+            <h3 className="text-2xl font-black text-center mb-10">Antes vs Depois da Faktura</h3>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full px-4 py-1.5 mb-5 text-sm font-bold">
+                  <AlertTriangle className="w-4 h-4" /> Antes — Processo tradicional
+                </div>
+                <div className="space-y-3">
+                  {[
+                    'Cliente chega ao caixa e diz o NIF verbalmente',
+                    'Operador digita o NIF e espera validação',
+                    'Digita o nome manualmente — erros frequentes',
+                    'Emite a fatura — 3 a 5 minutos por cliente',
+                    'Fila acumula, clientes frustram-se',
+                  ].map((x, i) => (
+                    <div key={i} className="flex items-start gap-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 rounded-xl px-4 py-3">
+                      <span className="w-5 h-5 rounded-full bg-red-200 dark:bg-red-800/40 text-red-600 dark:text-red-400 text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">✕</span>
+                      <p className="text-sm text-muted-foreground">{x}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 mb-5 text-sm font-bold">
+                  <CheckCircle className="w-4 h-4" /> Depois — Com a Faktura
+                </div>
+                <div className="space-y-3">
+                  {[
+                    'App detecta o cliente por proximidade automaticamente',
+                    'Dados pré-carregados — NIF, nome, contacto',
+                    'Ou: cliente lê o QR da compra em 4 segundos',
+                    'Fatura emitida e enviada por WhatsApp — <10 seg',
+                    'Fila anda 3× mais rápido, experiência moderna',
+                  ].map((x, i) => (
+                    <div key={i} className="flex items-start gap-3 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3">
+                      <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-muted-foreground">{x}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </FadeIn>
+
+        {/* ── CTA SECÇÃO ── */}
+        <FadeIn direction="up" delay={200}>
+          <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden text-center">
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+            <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 bg-primary/15 rounded-full px-4 py-1.5 mb-4">
+                <ScanLine className="w-4 h-4 text-primary" />
+                <span className="text-sm font-bold text-accent-foreground">Em breve — Lista de espera aberta</span>
+              </div>
+              <h3 className="text-3xl lg:text-4xl font-black text-accent-foreground mb-4">
+                Seja o primeiro a ter<br />auto-faturação no seu negócio
+              </h3>
+              <p className="text-accent-foreground/60 text-sm leading-relaxed max-w-xl mx-auto mb-8">
+                Faturação por proximidade e auto-faturação QR chegam em breve à Faktura. Registe o seu interesse e seja notificado em primeiro lugar.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/registar">
+                  <Button size="lg" className="h-13 px-10 font-black shadow-2xl shadow-primary/40 btn-glow hover:scale-105 transition-all gap-2">
+                    Entrar na lista de espera <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <Button size="lg" variant="outline" className="h-13 px-8 font-bold border-2 border-accent-foreground/20 text-accent-foreground hover:bg-accent-foreground/5 transition-all gap-2">
+                  Saber mais <ChevronRight className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
 /* ══ INTEGRAÇÕES ══════════════════════════════════════════ */
 const integrations = [
-  { category: 'Comunicação', items: [
-    { icon: MessageSquare, name: 'WhatsApp Business', desc: 'Envie faturas e recibos directamente para o WhatsApp. Confirmação de leitura em tempo real.', status: 'Disponível' },
-    { icon: Smartphone, name: 'SMS Angola', desc: 'Notificações automáticas via SMS para qualquer número angolano. Taxa de entrega >98%.', status: 'Disponível' },
-    { icon: Mail, name: 'Email', desc: 'Envio por email com templates profissionais personalizáveis com a sua marca.', status: 'Disponível' },
-  ]},
-  { category: 'Fiscal & Governo', items: [
-    { icon: Shield, name: 'AGT — Portal e-Fatura', desc: 'Integração directa com o portal fiscal da AGT para validação e submissão automática.', status: 'Disponível' },
-    { icon: Globe, name: 'ERCA Angola', desc: 'Sincronização com o sistema de registo fiscal angolano para grandes contribuintes.', status: 'Em breve' },
-  ]},
-  { category: 'Pagamentos', items: [
-    { icon: BarChart3, name: 'Multicaixa Express', desc: 'Intermediação de pagamentos por referência Multicaixa directamente na fatura. Confirmação automática via EMIS.', status: 'Em breve' },
-    { icon: Zap, name: 'Unitel Money', desc: 'Intermediação com carteira móvel Unitel para pagamentos instantâneos por telemóvel.', status: 'Em breve' },
-    { icon: RefreshCw, name: 'Pagamentos Recorrentes', desc: 'Débito automático mensal para clientes com subscrições activas e serviços recorrentes.', status: 'Disponível' },
-  ]},
-  { category: 'Desenvolvimento', items: [
-    { icon: Code2, name: 'REST API', desc: 'API completa com documentação detalhada para integrar a Faktura em qualquer sistema.', status: 'Disponível' },
-    { icon: Webhook, name: 'Webhooks', desc: 'Notificações em tempo real sobre qualquer evento: fatura emitida, paga, enviada.', status: 'Disponível' },
-  ]},
+  {
+    category: 'Comunicação', items: [
+      { icon: MessageSquare, name: 'WhatsApp Business', desc: 'Envie faturas e recibos directamente para o WhatsApp. Confirmação de leitura em tempo real.', status: 'Disponível' },
+      { icon: Smartphone, name: 'SMS Angola', desc: 'Notificações automáticas via SMS para qualquer número angolano. Taxa de entrega >98%.', status: 'Disponível' },
+      { icon: Mail, name: 'Email', desc: 'Envio por email com templates profissionais personalizáveis com a sua marca.', status: 'Disponível' },
+    ]
+  },
+  {
+    category: 'Fiscal & Governo', items: [
+      { icon: Shield, name: 'AGT — Portal e-Fatura', desc: 'Integração directa com o portal fiscal da AGT para validação e submissão automática.', status: 'Disponível' },
+      { icon: Globe, name: 'ERCA Angola', desc: 'Sincronização com o sistema de registo fiscal angolano para grandes contribuintes.', status: 'Em breve' },
+    ]
+  },
+  {
+    category: 'Pagamentos', items: [
+      { icon: BarChart3, name: 'Multicaixa Express', desc: 'Intermediação de pagamentos por referência Multicaixa directamente na fatura. Confirmação automática via EMIS.', status: 'Em breve' },
+      { icon: Zap, name: 'Unitel Money', desc: 'Intermediação com carteira móvel Unitel para pagamentos instantâneos por telemóvel.', status: 'Em breve' },
+      { icon: RefreshCw, name: 'Pagamentos Recorrentes', desc: 'Débito automático mensal para clientes com subscrições activas e serviços recorrentes.', status: 'Disponível' },
+    ]
+  },
+  {
+    category: 'Desenvolvimento', items: [
+      { icon: Code2, name: 'REST API', desc: 'API completa com documentação detalhada para integrar a Faktura em qualquer sistema.', status: 'Disponível' },
+      { icon: Webhook, name: 'Webhooks', desc: 'Notificações em tempo real sobre qualquer evento: fatura emitida, paga, enviada.', status: 'Disponível' },
+    ]
+  },
 ];
 
 function PageIntegracoes() {
   return (
-    <SubPageShell title="Integrações">
+    <SubPageShell>
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[100px]" />
@@ -199,7 +453,7 @@ function PageIntegracoes() {
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                       <Icon className="w-6 h-6 text-primary" />
                     </div>
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${status === 'Disponível' ? 'bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${status === 'Disponível' ? 'bg-primary/15 text-primary' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
                       {status}
                     </span>
                   </div>
@@ -263,7 +517,7 @@ const milestones = [
 
 function PageSobreNos() {
   return (
-    <SubPageShell title="Sobre Nós">
+    <SubPageShell>
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[100px]" />
@@ -293,7 +547,12 @@ function PageSobreNos() {
               <p className="text-muted-foreground leading-relaxed text-sm">Combinamos tecnologia moderna com profundo conhecimento da legislação angolana para criar uma plataforma que protege o seu negócio e liberta o seu tempo.</p>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {([{v:'500+',l:'Empresas activas',I:Users},{v:'50K+',l:'Faturas emitidas',I:FileText},{v:'99%',l:'Uptime garantido',I:TrendingUp},{v:'2022',l:'Fundada em Luanda',I:Heart}] as const).map(({v,l,I},i) => (
+              {([
+                { v: '500+', l: 'Empresas activas', I: Users },
+                { v: '50K+', l: 'Faturas emitidas', I: FileText },
+                { v: '99%', l: 'Uptime garantido', I: TrendingUp },
+                { v: '2022', l: 'Fundada em Luanda', I: Heart },
+              ] as const).map(({ v, l, I }, i) => (
                 <div key={i} className="bg-card border border-border/50 rounded-2xl p-5 text-center group hover:border-primary/30 transition-all">
                   <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
                     <I className="w-4 h-4 text-primary" />
@@ -361,11 +620,18 @@ const blogPosts = [
   { cat: 'Conformidade', title: 'Guia completo: NIF, IBAN e dados obrigatórios na fatura', excerpt: 'Saiba exactamente quais campos são legalmente obrigatórios e como preenchê-los correctamente.', author: 'Beatriz Neto', date: '20 Dez 2024', read: '7 min', init: 'BN', c: 'bg-teal-100 text-teal-700' },
   { cat: 'Integrações', title: 'Como enviar faturas pelo WhatsApp automaticamente', excerpt: 'Configure a integração WhatsApp Business em 2 minutos e os seus clientes recebem faturas no telemóvel.', author: 'Miguel Costa', date: '15 Dez 2024', read: '4 min', init: 'MC', c: 'bg-rose-100 text-rose-700' },
 ];
-const catColors = { Faturação:'bg-primary/10 text-primary', Dicas:'bg-blue-100 text-blue-700', Produto:'bg-purple-100 text-purple-700', Negócio:'bg-amber-100 text-amber-700', Conformidade:'bg-teal-100 text-teal-700', Integrações:'bg-amber-100 text-amber-700' };
+const catColors: Record<string, string> = {
+  'Faturação': 'bg-primary/10 text-primary',
+  'Dicas': 'bg-blue-100 text-blue-700',
+  'Produto': 'bg-purple-100 text-purple-700',
+  'Negócio': 'bg-amber-100 text-amber-700',
+  'Conformidade': 'bg-teal-100 text-teal-700',
+  'Integrações': 'bg-amber-100 text-amber-700',
+};
 
 function PageBlog() {
   return (
-    <SubPageShell title="Blog">
+    <SubPageShell>
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
@@ -409,7 +675,7 @@ function PageBlog() {
           {blogPosts.slice(1).map((p) => (
             <div key={p.title} className="bg-card border border-border/50 rounded-2xl p-6 flex flex-col group cursor-pointer hover:border-primary/25 hover:-translate-y-1 hover:shadow-lg transition-all">
               <div className="flex items-center justify-between mb-3">
-                <span className={`text-xs font-bold px-3 py-1 rounded-full ${catColors[p.cat]}`}>{p.cat}</span>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full ${catColors[p.cat] || 'bg-muted text-muted-foreground'}`}>{p.cat}</span>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="w-3 h-3" />{p.read}</div>
               </div>
               <h3 className="font-bold text-lg mb-2 flex-1 group-hover:text-primary transition-colors leading-snug">{p.title}</h3>
@@ -440,15 +706,15 @@ const perks2 = [
   { icon: Zap, t: 'Stack moderno', d: 'React, Node, Supabase, Postgres.' },
 ];
 const jobs = [
-  { title: 'Engenheiro(a) Full-Stack', dept: 'Engineering', loc: 'Luanda / Remoto', tags: ['React','TypeScript','Node.js'], desc: 'Construa funcionalidades que milhares de empresas angolanas usam todos os dias.', c: 'bg-blue-100 text-blue-700' },
-  { title: 'Product Designer', dept: 'Design', loc: 'Luanda / Remoto', tags: ['Figma','UX Research'], desc: 'Desenhe experiências que tornam a faturação simples para qualquer empresário.', c: 'bg-purple-100 text-purple-700' },
-  { title: 'Account Executive', dept: 'Sales', loc: 'Luanda', tags: ['B2B','CRM'], desc: 'Apresente a Faktura a empresas e ajude-as a modernizar a sua faturação.', c: 'bg-amber-100 text-amber-700' },
-  { title: 'Customer Success Manager', dept: 'Operations', loc: 'Luanda / Remoto', tags: ['Suporte','Onboarding'], desc: 'Garanta que os clientes tiram o máximo da plataforma.', c: 'bg-amber-100 text-amber-700' },
+  { title: 'Engenheiro(a) Full-Stack', dept: 'Engineering', loc: 'Luanda / Remoto', tags: ['React', 'TypeScript', 'Node.js'], desc: 'Construa funcionalidades que milhares de empresas angolanas usam todos os dias.', c: 'bg-blue-100 text-blue-700' },
+  { title: 'Product Designer', dept: 'Design', loc: 'Luanda / Remoto', tags: ['Figma', 'UX Research'], desc: 'Desenhe experiências que tornam a faturação simples para qualquer empresário.', c: 'bg-purple-100 text-purple-700' },
+  { title: 'Account Executive', dept: 'Sales', loc: 'Luanda', tags: ['B2B', 'CRM'], desc: 'Apresente a Faktura a empresas e ajude-as a modernizar a sua faturação.', c: 'bg-amber-100 text-amber-700' },
+  { title: 'Customer Success Manager', dept: 'Operations', loc: 'Luanda / Remoto', tags: ['Suporte', 'Onboarding'], desc: 'Garanta que os clientes tiram o máximo da plataforma.', c: 'bg-amber-100 text-amber-700' },
 ];
 
 function PageCarreiras() {
   return (
-    <SubPageShell title="Carreiras">
+    <SubPageShell>
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[100px]" />
@@ -535,7 +801,7 @@ const termosSections = [
 
 function PageTermos() {
   return (
-    <SubPageShell title="Termos">
+    <SubPageShell>
       <section className="relative py-20 overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
@@ -553,14 +819,14 @@ function PageTermos() {
         <div className="bg-muted/40 border border-border/50 rounded-2xl p-5 mb-10">
           <p className="text-xs font-bold mb-3 text-muted-foreground uppercase tracking-wider">Indice</p>
           <ul className="space-y-1.5">
-            {termosSections.map(({t}) => (
-              <li key={t}><a href={"#t-"+t.replace(/[^a-z0-9]/gi,'-').toLowerCase()} className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium">{t}</a></li>
+            {termosSections.map(({ t }) => (
+              <li key={t}><a href={"#t-" + t.replace(/[^a-z0-9]/gi, '-').toLowerCase()} className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium">{t}</a></li>
             ))}
           </ul>
         </div>
         <div className="space-y-8">
           {termosSections.map(({ t, c }) => (
-            <div key={t} id={"t-"+t.replace(/[^a-z0-9]/gi,'-').toLowerCase()} className="scroll-mt-24">
+            <div key={t} id={"t-" + t.replace(/[^a-z0-9]/gi, '-').toLowerCase()} className="scroll-mt-24">
               <h2 className="text-xl font-black mb-3">{t}</h2>
               <p className="text-muted-foreground text-sm leading-relaxed">{c}</p>
               <div className="mt-7 h-px bg-border/40" />
@@ -584,7 +850,6 @@ const privSections = [
   { t: '8. Seguranca', c: 'Encriptacao TLS/SSL em transito, AES-256 em repouso, controlo de acesso por funcoes (RBAC), monitorizacao continua e plano de resposta a incidentes. Em caso de violacao, sera notificado em 72 horas.' },
   { t: '9. Cookies e Alteracoes', c: 'Usamos cookies essenciais para autenticacao e cookies analiticos com consentimento. Alteracoes a esta politica sao comunicadas por email com 15 dias de antecedencia. Contacto: privacidade@faktura.ao' },
 ];
-
 const privHighlights = [
   { icon: Eye, t: 'Transparencia total', d: 'Sabemos que dados recolhemos e dizemo-lo claramente.' },
   { icon: Lock, t: 'Dados encriptados', d: 'TLS e AES-256 em todos os dados.' },
@@ -594,7 +859,7 @@ const privHighlights = [
 
 function PagePrivacidade() {
   return (
-    <SubPageShell title="Privacidade">
+    <SubPageShell>
       <section className="relative py-20 overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
@@ -610,7 +875,7 @@ function PagePrivacidade() {
       </section>
       <section className="py-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {privHighlights.map(({icon:I,t,d}) => (
+          {privHighlights.map(({ icon: I, t, d }) => (
             <div key={t} className="bg-card border border-border/50 rounded-2xl p-5 text-center group hover:border-primary/25 transition-all">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
                 <I className="w-5 h-5 text-primary" />
@@ -658,7 +923,7 @@ const secPractices = [
 
 function PageSeguranca() {
   return (
-    <SubPageShell title="Seguranca">
+    <SubPageShell>
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[100px]" />
@@ -676,10 +941,10 @@ function PageSeguranca() {
         </div>
       </section>
 
-      <section className="py-4 bg-primary/5 dark:bg-primary/10 border-y border-primary/20 dark:border-primary/20">
+      <section className="py-4 bg-primary/5 dark:bg-primary/10 border-y border-primary/20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-          <span className="text-sm font-bold text-primary dark:text-primary">Todos os sistemas operacionais</span>
+          <span className="text-sm font-bold text-primary">Todos os sistemas operacionais</span>
           <span className="text-sm text-primary/60">— Uptime 99.9% nos ultimos 90 dias</span>
         </div>
       </section>
@@ -762,12 +1027,12 @@ function PageSeguranca() {
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [activePage, setActivePage] = useState(null);
-  const [expandedFeature, setExpandedFeature] = useState(null);
+  const [activePage, setActivePage] = useState<string | null>(null);
+  const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
-    const onMouse = (e) => setMousePos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
+    const onMouse = (e: MouseEvent) => setMousePos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
     window.addEventListener('scroll', onScroll);
     window.addEventListener('mousemove', onMouse);
     return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('mousemove', onMouse); };
@@ -777,10 +1042,10 @@ export default function LandingPage() {
     if (activePage) window.scrollTo(0, 0);
   }, [activePage]);
 
-  const footerLinks = {
-    'Produto': [['#features','Funcionalidades',null],['#pricing','Precos',null],['integracoes','Integracoes','integracoes']],
-    'Empresa': [['sobre','Sobre Nos','sobre'],['blog','Blog','blog'],['carreiras','Carreiras','carreiras']],
-    'Legal': [['termos','Termos de Uso','termos'],['privacidade','Privacidade','privacidade'],['seguranca','Seguranca','seguranca']],
+  const footerLinks: Record<string, [string, string, string | null][]> = {
+    'Produto': [['#features', 'Funcionalidades', null], ['#pricing', 'Precos', null], ['integracoes', 'Integracoes', 'integracoes']],
+    'Empresa': [['sobre', 'Sobre Nos', 'sobre'], ['blog', 'Blog', 'blog'], ['carreiras', 'Carreiras', 'carreiras']],
+    'Legal': [['termos', 'Termos de Uso', 'termos'], ['privacidade', 'Privacidade', 'privacidade'], ['seguranca', 'Seguranca', 'seguranca']],
   };
 
   function renderSubPage() {
@@ -993,11 +1258,11 @@ export default function LandingPage() {
                   <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Inicio
                 </button>
               ) : (
-                [['features','Funcionalidades'],['ecosystem','Ecossistema'],['pricing','Precos'],['faq','FAQ']].map(([h,l]) => (
-                  <a key={h} href={"#"+h} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{l}</a>
+                [['features', 'Funcionalidades'], ['ecosystem', 'Ecossistema'], ['pricing', 'Precos'], ['faq', 'FAQ']].map(([h, l]) => (
+                  <a key={h} href={"#" + h} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{l}</a>
                 ))
               )}
-              <button onClick={() => setActivePage('integracoes')} className={`nav-link text-sm font-semibold transition-colors ${activePage==='integracoes' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>Integracoes</button>
+              <button onClick={() => setActivePage('integracoes')} className={`nav-link text-sm font-semibold transition-colors ${activePage === 'integracoes' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>Integracoes</button>
             </div>
             <div className="flex items-center gap-3">
               <Link to="/login"><Button variant="ghost" className="font-semibold hover:bg-primary/10">Entrar</Button></Link>
@@ -1090,10 +1355,10 @@ export default function LandingPage() {
 
               <div className="heroSt flex flex-wrap gap-3">
                 {[
-                  { icon: Users,      v: '500+',   l: 'Empresas activas'       },
-                  { icon: FileText,   v: '50.000+', l: 'Faturas emitidas'       },
-                  { icon: TrendingUp, v: '99%',    l: 'Uptime garantido'        },
-                  { icon: Clock,      v: '24/7',   l: 'Suporte incluído'        },
+                  { icon: Users, v: '500+', l: 'Empresas activas' },
+                  { icon: FileText, v: '50.000+', l: 'Faturas emitidas' },
+                  { icon: TrendingUp, v: '99%', l: 'Uptime garantido' },
+                  { icon: Clock, v: '24/7', l: 'Suporte incluído' },
                 ].map(({ icon: I, v, l }, i) => (
                   <div key={i} className="glass-stat rounded-2xl px-4 py-3 flex items-center gap-3 cursor-default">
                     <div className="w-8 h-8 rounded-lg bg-white/12 flex items-center justify-center flex-shrink-0">
@@ -1129,7 +1394,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* ── Badge actualizado: pagamento intermediado, não carteira ── */}
             <div className="af absolute right-14 bottom-[30%] z-20 float-badge rounded-xl px-3 py-2.5 hidden xl:flex items-center gap-3 border border-white/15">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <ShieldCheck className="w-4 h-4 text-primary" />
@@ -1178,7 +1442,7 @@ export default function LandingPage() {
 
               <FadeIn direction="up" delay={80}>
                 <div className="flex flex-wrap justify-center gap-2.5 mb-14">
-                  {['Faturas em segundos','Multicaixa Express','Links de Pagamento','Pagamentos Intermediados','Conformidade AGT','Reconciliação Bancária','WhatsApp nativo','QR Code','API REST','ID Comprador'].map((tag) => (
+                  {['Faturas em segundos', 'Multicaixa Express', 'Links de Pagamento', 'Pagamentos Intermediados', 'Conformidade AGT', 'Reconciliação Bancária', 'WhatsApp nativo', 'QR Code', 'API REST', 'ID Comprador'].map((tag) => (
                     <span key={tag} className="tag-pill text-sm font-semibold px-4 py-2 rounded-full cursor-default">{tag}</span>
                   ))}
                 </div>
@@ -1219,9 +1483,9 @@ export default function LandingPage() {
 
               <div className="grid md:grid-cols-3 gap-5 mt-14">
                 {[
-                  { icon: Zap,       t: 'Configure em 2 minutos',  d: 'Sem instalações, sem burocracia. Abra a conta e emita a primeira fatura ainda hoje — totalmente grátis.' },
-                  { icon: Shield,    t: '100% Legal e Certificado', d: 'Cada documento cumpre os requisitos da AGT. Assinatura digital e QR code incluídos automaticamente.' },
-                  { icon: BarChart3, t: 'Crescimento visível',      d: 'Veja a evolução da sua faturação em tempo real com gráficos interactivos e alertas automáticos.' },
+                  { icon: Zap, t: 'Configure em 2 minutos', d: 'Sem instalações, sem burocracia. Abra a conta e emita a primeira fatura ainda hoje — totalmente grátis.' },
+                  { icon: Shield, t: '100% Legal e Certificado', d: 'Cada documento cumpre os requisitos da AGT. Assinatura digital e QR code incluídos automaticamente.' },
+                  { icon: BarChart3, t: 'Crescimento visível', d: 'Veja a evolução da sua faturação em tempo real com gráficos interactivos e alertas automáticos.' },
                 ].map(({ icon: I, t, d }, i) => (
                   <FadeIn key={i} delay={i * 100} direction="up">
                     <div className="bg-card border border-border/50 rounded-2xl p-6 flex items-start gap-4 hover:border-primary/35 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/6 transition-all duration-300 group">
@@ -1239,7 +1503,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* ── PAGAMENTOS SECTION (sem referência a carteira digital) ── */}
+          {/* ── PAGAMENTOS SECTION ── */}
           <section className="py-24 relative overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-primary/5 rounded-full blur-[140px]" />
@@ -1262,9 +1526,9 @@ export default function LandingPage() {
 
               <div className="grid md:grid-cols-3 gap-6 mb-12">
                 {[
-                  { icon: CreditCard,    t: 'Multicaixa Express',         d: 'Coordenamos a geração de referências EMIS directamente na fatura. O cliente paga e a confirmação é automática.', badge: 'EMIS' },
-                  { icon: Link2,         t: 'Links de Pagamento',          d: 'Criamos links com QR code que direcionam o pagamento de forma segura. O cliente paga sem instalar nada.', badge: 'QR Code' },
-                  { icon: ArrowLeftRight,t: 'Rastreamento de Transacções', d: 'Cada pagamento intermediado é registado, auditado e confirmado. Visibilidade total do estado de cada fatura.', badge: 'Tempo Real' },
+                  { icon: CreditCard, t: 'Multicaixa Express', d: 'Coordenamos a geração de referências EMIS directamente na fatura. O cliente paga e a confirmação é automática.', badge: 'EMIS' },
+                  { icon: Link2, t: 'Links de Pagamento', d: 'Criamos links com QR code que direcionam o pagamento de forma segura. O cliente paga sem instalar nada.', badge: 'QR Code' },
+                  { icon: ArrowLeftRight, t: 'Rastreamento de Transacções', d: 'Cada pagamento intermediado é registado, auditado e confirmado. Visibilidade total do estado de cada fatura.', badge: 'Tempo Real' },
                 ].map(({ icon: I, t, d, badge }, i) => (
                   <FadeIn key={i} delay={i * 120} direction="up">
                     <div className="ec bg-card border-2 border-border/50 rounded-2xl p-8 group hover:border-primary/30 h-full relative overflow-hidden">
@@ -1282,7 +1546,6 @@ export default function LandingPage() {
                 ))}
               </div>
 
-              {/* Aviso importante: não detemos fundos */}
               <FadeIn direction="up" delay={150}>
                 <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 mb-10 flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -1297,7 +1560,6 @@ export default function LandingPage() {
                 </div>
               </FadeIn>
 
-              {/* Payment flow demo */}
               <FadeIn direction="up" delay={200}>
                 <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden">
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
@@ -1312,9 +1574,9 @@ export default function LandingPage() {
                       <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">Emita a fatura, gere uma referência Multicaixa ou link de pagamento, e receba a confirmação automaticamente — sem tomar posse dos fundos.</p>
                       <div className="space-y-4">
                         {[
-                          { s: '01', t: 'Emita a fatura',                d: 'Crie a fatura com todos os dados fiscais e do comprador.' },
-                          { s: '02', t: 'Gere o link ou referência',     d: 'Multicaixa Express ou link de pagamento com QR code.' },
-                          { s: '03', t: 'Confirmação automática',        d: 'O pagamento é processado pelo banco/operador — a Faktura regista e fecha a fatura.' },
+                          { s: '01', t: 'Emita a fatura', d: 'Crie a fatura com todos os dados fiscais e do comprador.' },
+                          { s: '02', t: 'Gere o link ou referência', d: 'Multicaixa Express ou link de pagamento com QR code.' },
+                          { s: '03', t: 'Confirmação automática', d: 'O pagamento é processado pelo banco/operador — a Faktura regista e fecha a fatura.' },
                         ].map(({ s, t, d }) => (
                           <div key={s} className="flex items-start gap-4">
                             <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -1355,19 +1617,22 @@ export default function LandingPage() {
           <section className="py-10 border-b border-border/30">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((s,i) => { const I = s.icon; return (
-                  <FadeIn key={i} delay={i*80} direction="up">
-                    <div className="flex items-center gap-3 bg-card border border-border/40 rounded-2xl px-5 py-4 hover:border-primary/30 hover:-translate-y-0.5 transition-all group cursor-default">
-                      <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                        <I className="w-4 h-4 text-primary" />
+                {stats.map((s, i) => {
+                  const I = s.icon;
+                  return (
+                    <FadeIn key={i} delay={i * 80} direction="up">
+                      <div className="flex items-center gap-3 bg-card border border-border/40 rounded-2xl px-5 py-4 hover:border-primary/30 hover:-translate-y-0.5 transition-all group cursor-default">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                          <I className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-black tabular-nums leading-none"><AnimatedCounter value={s.value} /></div>
+                          <div className="text-xs text-muted-foreground font-semibold mt-0.5 leading-tight">{s.label}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-xl font-black tabular-nums leading-none"><AnimatedCounter value={s.value} /></div>
-                        <div className="text-xs text-muted-foreground font-semibold mt-0.5 leading-tight">{s.label}</div>
-                      </div>
-                    </div>
-                  </FadeIn>
-                ); })}
+                    </FadeIn>
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -1377,10 +1642,10 @@ export default function LandingPage() {
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               <div className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
               <div className="absolute -bottom-20 -right-20 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-              <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage:'radial-gradient(circle, rgba(255,255,255,1) 1.5px, transparent 1.5px)', backgroundSize:'48px 48px' }} />
+              <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1.5px, transparent 1.5px)', backgroundSize: '48px 48px' }} />
               <div className="absolute bottom-0 left-0 right-0 ticker-wrap py-4 border-t border-white/10">
                 <div className="ticker-inner">
-                  {[...Array(8)].map((_,i) => (
+                  {[...Array(8)].map((_, i) => (
                     <span key={i} className="text-white/15 font-black text-5xl uppercase tracking-widest mx-12 select-none">
                       Com a Faktura, todos facturam.
                     </span>
@@ -1409,10 +1674,10 @@ export default function LandingPage() {
 
                 <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
                   {[
-                    { icon: Building2,     t: 'Para Empresas',    d: 'Emita faturas em segundos com dados pre-preenchidos. Zero erros, maxima conformidade AGT.', color: 'bg-white/15' },
-                    { icon: UserPlus,      t: 'Para Compradores', d: 'Registe-se gratuitamente, partilhe o seu ID e ganhe 50 Kz de recompensa por cada fatura acima de 1.500 Kz.', color: 'bg-white/20' },
-                    { icon: ShieldCheck,   t: 'Com Segurança',    d: 'Pagamentos intermediados sem armazenamento de fundos. Total transparência e rastreabilidade.', color: 'bg-white/15' },
-                  ].map(({icon:I,t,d,color},i) => (
+                    { icon: Building2, t: 'Para Empresas', d: 'Emita faturas em segundos com dados pre-preenchidos. Zero erros, maxima conformidade AGT.', color: 'bg-white/15' },
+                    { icon: UserPlus, t: 'Para Compradores', d: 'Registe-se gratuitamente, partilhe o seu ID e ganhe 50 Kz de recompensa por cada fatura acima de 1.500 Kz.', color: 'bg-white/20' },
+                    { icon: ShieldCheck, t: 'Com Segurança', d: 'Pagamentos intermediados sem armazenamento de fundos. Total transparência e rastreabilidade.', color: 'bg-white/15' },
+                  ].map(({ icon: I, t, d, color }, i) => (
                     <div key={i} className={`${color} backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-left hover:bg-white/25 transition-all hover:-translate-y-1 group`}>
                       <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-4 group-hover:bg-white/30 transition-colors">
                         <I className="w-5 h-5 text-white" />
@@ -1445,7 +1710,7 @@ export default function LandingPage() {
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-primary/4 rounded-full blur-[120px]" />
-              <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage:'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)', backgroundSize:'48px 48px' }} />
+              <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
             </div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <FadeIn direction="up">
@@ -1486,7 +1751,7 @@ export default function LandingPage() {
                       </div>
                     </div>
                     <ul className="space-y-3 mb-7">
-                      {['Cadastro gratuito e imediato','ID unico gerado automaticamente','Privacidade garantida — dados parcialmente mascarados','Historico de faturas sempre disponivel','Transparencia total sobre o uso dos seus dados'].map((x,i) => (
+                      {['Cadastro gratuito e imediato', 'ID unico gerado automaticamente', 'Privacidade garantida — dados parcialmente mascarados', 'Historico de faturas sempre disponivel', 'Transparencia total sobre o uso dos seus dados'].map((x, i) => (
                         <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
                           <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />{x}
                         </li>
@@ -1511,16 +1776,16 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7 space-y-3">
                       <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">Como funciona na pratica</p>
-                      {[['1','Cliente informa o seu ID','Ex: M20XV'],['2','Insere o ID na Faktura','Pesquisa instantanea'],['3','Dados preenchidos automaticamente','Nome, NIF, contacto'],['4','Fatura emitida e enviada','WhatsApp, SMS ou email']].map(([s,t,b]) => (
+                      {[['1', 'Cliente informa o seu ID', 'Ex: M20XV'], ['2', 'Insere o ID na Faktura', 'Pesquisa instantanea'], ['3', 'Dados preenchidos automaticamente', 'Nome, NIF, contacto'], ['4', 'Fatura emitida e enviada', 'WhatsApp, SMS ou email']].map(([s, t, b]) => (
                         <div key={s} className="flex items-center gap-3">
                           <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-xs font-black text-primary">{s}</span></div>
                           <div className="flex-1 min-w-0"><span className="text-sm font-semibold">{t}</span><span className="text-xs text-muted-foreground ml-2">{b}</span></div>
-                          {s!=='4' ? <ChevronRight className="w-3 h-3 text-muted-foreground/40" /> : <CheckCircle className="w-4 h-4 text-primary" />}
+                          {s !== '4' ? <ChevronRight className="w-3 h-3 text-muted-foreground/40" /> : <CheckCircle className="w-4 h-4 text-primary" />}
                         </div>
                       ))}
                     </div>
                     <ul className="space-y-3 mb-7">
-                      {['Base activa de compradores pre-cadastrados','Preenchimento automatico — zero digitacao manual','Reducao drastica de erros fiscais','Dados padronizados e validados','Historico completo de faturacao por cliente'].map((x,i) => (
+                      {['Base activa de compradores pre-cadastrados', 'Preenchimento automatico — zero digitacao manual', 'Reducao drastica de erros fiscais', 'Dados padronizados e validados', 'Historico completo de faturacao por cliente'].map((x, i) => (
                         <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
                           <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />{x}
                         </li>
@@ -1539,17 +1804,17 @@ export default function LandingPage() {
               </FadeIn>
               <div className="grid md:grid-cols-4 gap-6 mb-16">
                 {[
-                  {Ico:UserPlus,  s:'01',t:'Crie a sua conta',    d:'Registe-se gratuitamente e receba o seu ID unico de comprador.'},
-                  {Ico:ScanLine,  s:'02',t:'Partilhe o seu ID',   d:'Ao fazer compras, informe o seu ID ao vendedor. Ex: M20XV.'},
-                  {Ico:FileText,  s:'03',t:'A fatura e emitida',  d:'A empresa usa o seu ID para preencher os dados automaticamente.'},
-                  {Ico:BadgeDollarSign,s:'04',t:'Receba a recompensa',d:'Por cada fatura acima de 1.500 Kz, recebe 50 Kz de recompensa automaticamente.'},
-                ].map(({Ico,s,t,d},i) => (
-                  <FadeIn key={i} delay={i*100} direction="up">
+                  { Ico: UserPlus, s: '01', t: 'Crie a sua conta', d: 'Registe-se gratuitamente e receba o seu ID unico de comprador.' },
+                  { Ico: ScanLine, s: '02', t: 'Partilhe o seu ID', d: 'Ao fazer compras, informe o seu ID ao vendedor. Ex: M20XV.' },
+                  { Ico: FileText, s: '03', t: 'A fatura e emitida', d: 'A empresa usa o seu ID para preencher os dados automaticamente.' },
+                  { Ico: BadgeDollarSign, s: '04', t: 'Receba a recompensa', d: 'Por cada fatura acima de 1.500 Kz, recebe 50 Kz de recompensa automaticamente.' },
+                ].map(({ Ico, s, t, d }, i) => (
+                  <FadeIn key={i} delay={i * 100} direction="up">
                     <div className="ec group bg-card border border-border/50 rounded-2xl p-6 text-center hover:border-primary/30 h-full relative">
-                      {i<3 && <div className="hidden md:block absolute top-8 left-[calc(100%-1px)] w-6 h-px bg-gradient-to-r from-primary/30 to-primary/10 z-10" />}
+                      {i < 3 && <div className="hidden md:block absolute top-8 left-[calc(100%-1px)] w-6 h-px bg-gradient-to-r from-primary/30 to-primary/10 z-10" />}
                       <div className="relative w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 group-hover:bg-primary/20 transition-colors">
                         <Ico className="w-7 h-7 text-primary" />
-                        <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center">{i+1}</span>
+                        <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center">{i + 1}</span>
                       </div>
                       <p className="text-xs font-bold text-primary/60 uppercase tracking-widest mb-2">{s}</p>
                       <h4 className="font-bold text-base mb-2">{t}</h4>
@@ -1573,14 +1838,18 @@ export default function LandingPage() {
                       <p className="text-muted-foreground leading-relaxed">Cada vez que fizer uma compra acima de 1.500 Kz numa empresa que usa a Faktura, recebe automaticamente <strong className="text-foreground">50 Kz</strong> de recompensa. Quanto mais comprar, mais ganha.</p>
                     </div>
                     <div className="space-y-4">
-                      {([{f:10,t:500,l:'Compras ocasionais'},{f:30,t:1500,l:'Compras regulares'},{f:60,t:3000,l:'Comprador activo'}] as const).map(({f,t,l},i) => (
+                      {[
+                        { f: 10, t: 500, l: 'Compras ocasionais' },
+                        { f: 30, t: 1500, l: 'Compras regulares' },
+                        { f: 60, t: 3000, l: 'Comprador activo' },
+                      ].map(({ f, t, l }, i) => (
                         <div key={i} className="bg-muted/50 rounded-xl p-4">
                           <div className="flex items-center justify-between mb-1.5">
                             <span className="text-sm font-semibold">{l}</span>
                             <span className="text-sm font-black text-primary">{t} Kz/mes</span>
                           </div>
                           <div className="h-2 bg-border rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width:`${(f/60)*100}%` }} />
+                            <div className="h-full bg-primary rounded-full" style={{ width: `${(f / 60) * 100}%` }} />
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">{f} faturas x 50 Kz</p>
                         </div>
@@ -1596,9 +1865,12 @@ export default function LandingPage() {
             </div>
           </section>
 
+          {/* ── AUTO-FATURAÇÃO SECTION ── */}
+          <SectionAutoFaturacao />
+
           {/* ── FEATURES ── */}
           <section id="features" className="py-24 bg-muted/30 relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage:'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)', backgroundSize:'40px 40px' }} />
+            <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
                 <FadeIn direction="left">
@@ -1622,7 +1894,7 @@ export default function LandingPage() {
                   const I = f.icon;
                   const open = expandedFeature === i;
                   return (
-                    <FadeIn key={i} delay={i*80} direction="up">
+                    <FadeIn key={i} delay={i * 80} direction="up">
                       <div
                         className={`fc group bg-card rounded-2xl p-8 border cursor-pointer h-full flex flex-col ${open ? 'border-primary/50 shadow-xl shadow-primary/10' : 'border-border/50 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/8'}`}
                         onClick={() => setExpandedFeature(open ? null : i)}
@@ -1655,7 +1927,7 @@ export default function LandingPage() {
                 <div className="relative bg-accent rounded-3xl p-12 lg:p-20 overflow-hidden">
                   <div className="absolute top-0 right-0 w-96 h-96 bg-primary/15 rounded-full blur-3xl af2" />
                   <div className="absolute bottom-0 left-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl af" />
-                  <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage:'linear-gradient(hsl(var(--primary)) 1px,transparent 1px),linear-gradient(90deg,hsl(var(--primary)) 1px,transparent 1px)', backgroundSize:'60px 60px' }} />
+                  <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(hsl(var(--primary)) 1px,transparent 1px),linear-gradient(90deg,hsl(var(--primary)) 1px,transparent 1px)', backgroundSize: '60px 60px' }} />
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
                   <div className="relative z-10 text-center">
                     <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 rounded-full px-5 py-2 mb-6">
@@ -1689,7 +1961,7 @@ export default function LandingPage() {
               <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-muted/80 to-transparent z-10 pointer-events-none" />
               <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-muted/80 to-transparent z-10 pointer-events-none" />
               <div className="flex asx w-max gap-6 hover:[animation-play-state:paused]">
-                {[...clientLogos,...clientLogos,...clientLogos,...clientLogos].map((c,i) => (
+                {[...clientLogos, ...clientLogos, ...clientLogos, ...clientLogos].map((c, i) => (
                   <div key={i} className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm flex items-center justify-center h-24 w-52 flex-shrink-0 hover:border-primary/30 hover:shadow-lg transition-all group">
                     <img src={c.logo} alt={c.name} className="max-h-14 max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110" />
                   </div>
@@ -1716,11 +1988,11 @@ export default function LandingPage() {
               </FadeIn>
               <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                 {[
-                  { name:'Basico', price:'7.500', trim:'20.250', features:['Ate 100 faturas/mes','Faturas, Recibos e Proformas','Gestao de clientes','Dashboard basico','Envio por email','Suporte por email'], popular:false },
-                  { name:'Completo', price:'10.000', trim:'27.000', features:['Faturas ilimitadas','Todos os tipos de documentos','Multi-canal (WhatsApp, SMS, Email)','Intermediacao de pagamentos','Relatorios avancados','Suporte prioritario'], popular:true },
-                  { name:'Empresa', price:null, trim:null, features:['Tudo do Completo','Multi-empresa','API dedicada','Gestor de conta dedicado','SLA personalizado'], popular:false },
-                ].map((p,i) => (
-                  <FadeIn key={i} delay={i*120} direction="up">
+                  { name: 'Basico', price: '7.500', trim: '20.250', features: ['Ate 100 faturas/mes', 'Faturas, Recibos e Proformas', 'Gestao de clientes', 'Dashboard basico', 'Envio por email', 'Suporte por email'], popular: false },
+                  { name: 'Completo', price: '10.000', trim: '27.000', features: ['Faturas ilimitadas', 'Todos os tipos de documentos', 'Multi-canal (WhatsApp, SMS, Email)', 'Intermediacao de pagamentos', 'Relatorios avancados', 'Suporte prioritario'], popular: true },
+                  { name: 'Empresa', price: null, trim: null, features: ['Tudo do Completo', 'Multi-empresa', 'API dedicada', 'Gestor de conta dedicado', 'SLA personalizado'], popular: false },
+                ].map((p, i) => (
+                  <FadeIn key={i} delay={i * 120} direction="up">
                     <div className={`pc rounded-2xl p-8 border-2 h-full flex flex-col ${p.popular ? 'border-primary shadow-2xl shadow-primary/15 ag relative' : 'border-border/50 bg-card hover:border-primary/20 hover:shadow-xl'}`}>
                       {p.popular && (
                         <>
@@ -1740,7 +2012,7 @@ export default function LandingPage() {
                         )}
                       </div>
                       <ul className="space-y-3 mb-8 flex-1">
-                        {p.features.map((x,j) => (
+                        {p.features.map((x, j) => (
                           <li key={j} className="flex items-center gap-2.5 text-sm">
                             <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />{x}
                           </li>
@@ -1750,8 +2022,8 @@ export default function LandingPage() {
                         {p.popular
                           ? <Button className="w-full h-12 font-bold shadow-lg shadow-primary/25 btn-glow hover:scale-105 transition-all">Escolher Completo</Button>
                           : p.price
-                          ? <Button variant="outline" className="w-full h-12 font-bold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all">Comecar Agora</Button>
-                          : <Button variant="outline" className="w-full h-12 font-bold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all">Contactar Vendas</Button>
+                            ? <Button variant="outline" className="w-full h-12 font-bold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all">Comecar Agora</Button>
+                            : <Button variant="outline" className="w-full h-12 font-bold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all">Contactar Vendas</Button>
                         }
                       </Link>
                     </div>
@@ -1775,7 +2047,7 @@ export default function LandingPage() {
               </FadeIn>
               <FadeIn direction="up" delay={150}>
                 <Accordion type="single" collapsible className="space-y-3">
-                  {faqs.map((f,i) => (
+                  {faqs.map((f, i) => (
                     <AccordionItem key={i} value={`item-${i}`} className="bg-card rounded-2xl border border-border/50 px-6 hover:border-primary/20 transition-colors overflow-hidden">
                       <AccordionTrigger className="text-left font-bold hover:no-underline py-5 hover:text-primary transition-colors">{f.q}</AccordionTrigger>
                       <AccordionContent className="text-muted-foreground pb-5 text-sm leading-relaxed">{f.a}</AccordionContent>
@@ -1822,7 +2094,7 @@ export default function LandingPage() {
                           {label} <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
                         </button>
                       ) : (
-                        <a href={"#"+label.toLowerCase().replace(/\s/g,'')} onClick={() => setActivePage(null)} className="text-accent-foreground/40 hover:text-primary transition-colors duration-200">{label}</a>
+                        <a href={"#" + label.toLowerCase().replace(/\s/g, '')} onClick={() => setActivePage(null)} className="text-accent-foreground/40 hover:text-primary transition-colors duration-200">{label}</a>
                       )}
                     </li>
                   ))}
