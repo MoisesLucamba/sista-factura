@@ -1280,6 +1280,9 @@ export default function LandingPage() {
       ) : (
         <>
           {/* ══ HERO ══ */}
+
+
+          
           <section className="hero-wrap">
             <div className="hero-photo">
               <img src={heroBusiness} alt="Empresarios angolanos a trabalhar" />
@@ -1763,6 +1766,8 @@ export default function LandingPage() {
                   </div>
                 </FadeIn>
 
+
+
                 {/* Empresas */}
                 <FadeIn direction="right" delay={200}>
                   <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
@@ -1864,6 +1869,28 @@ export default function LandingPage() {
               </FadeIn>
             </div>
           </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
           {/* ── AUTO-FATURAÇÃO SECTION ── */}
           <SectionAutoFaturacao />

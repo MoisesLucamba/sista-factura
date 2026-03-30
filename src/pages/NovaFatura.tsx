@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,10 +43,17 @@ import {
   Search,
   CheckCircle,
   CreditCard,
+  QrCode,
+  Camera,
+  X,
+  Download,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import QRCode from 'qrcode';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import React from 'react';
 
 type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'proforma';
 type TipoCliente = 'consumidor_final' | 'empresa';
@@ -64,6 +71,14 @@ interface ItemLocal {
   total: number;
 }
 
+interface ClienteDataFromQR {
+  nome: string;
+  nif: string;
+  endereco?: string;
+  email?: string;
+  telefone?: string;
+}
+
 export default function NovaFatura() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -72,6 +87,15 @@ export default function NovaFatura() {
   const createFatura = useCreateFatura();
   const createCliente = useCreateCliente();
   const { autoSend, isAutoSendEnabled } = useAutoSendInvoice();
+
+  // QR Code Scanner state
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [qrScannerActive, setQrScannerActive] = useState(false);
+  const qrScannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+  // QR Code Generator state
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
+  const qrCodeRef = useRef<HTMLDivElement>(null);
 
   const [tipo, setTipo] = useState<TipoDocumento>('fatura');
   const [tipoCliente, setTipoCliente] = useState<TipoCliente>('consumidor_final');
@@ -103,6 +127,96 @@ export default function NovaFatura() {
 
   const clienteSelecionado = clientes.find(c => c.id === clienteId);
   const isProforma = tipo === 'proforma';
+
+
+  // ============ QR CODE SCANNER FUNCTIONS ============
+  const initializeQRScanner = () => {
+    if (qrScannerRef.current) return;
+
+    const scanner = new Html5QrcodeScanner(
+      'qr-reader',
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      false
+    );
+
+    scanner.render(
+      (decodedText) => {
+        try {
+          // Tenta fazer parse do QR code como JSON com dados do cliente
+          const clienteData: ClienteDataFromQR = JSON.parse(decodedText);
+          
+          // Preenche os campos com os dados do cliente
+          if (clienteData.nome) setCfNome(clienteData.nome);
+          if (clienteData.nif) setCfNif(clienteData.nif);
+          if (clienteData.endereco) setCfEndereco(clienteData.endereco);
+
+          toast.success('Dados do cliente capturados com sucesso!');
+          setShowQRScanner(false);
+          scanner.clear();
+          qrScannerRef.current = null;
+          setQrScannerActive(false);
+        } catch {
+          // Se não for JSON, trata como texto simples (NIF ou ID)
+          toast.info(`QR Code lido: ${decodedText}`);
+        }
+      },
+      (error) => {
+        console.warn('QR Code scan error:', error);
+      }
+    );
+
+    qrScannerRef.current = scanner;
+    setQrScannerActive(true);
+  };
+
+  const stopQRScanner = () => {
+    if (qrScannerRef.current) {
+      qrScannerRef.current.clear();
+      qrScannerRef.current = null;
+    }
+    setQrScannerActive(false);
+    setShowQRScanner(false);
+  };
+
+  // ============ QR CODE GENERATOR FUNCTIONS ============
+  const generateQRCodeData = () => {
+    // Cria um objeto com os dados da fatura para o QR code
+    const qrData = {
+      tipo: tipo,
+      cliente: {
+        nome: cfNome || 'Consumidor Final',
+        nif: cfNif || '999999999',
+        endereco: cfEndereco || 'N/A',
+      },
+      itens: itens.map(item => ({
+        nome: item.produto_nome,
+        quantidade: item.quantidade,
+        preco: item.preco_unitario,
+      })),
+      totais: totais,
+      metodo_pagamento: metodoPagamento,
+      data_vencimento: dataVencimento,
+    };
+    return JSON.stringify(qrData);
+  };
+
+  const downloadQRCode = async () => {
+    try {
+      const qrData = generateQRCodeData();
+      const canvas = await QRCode.toCanvas(qrCodeRef.current, qrData, {
+        width: 256,
+        margin: 1,
+        errorCorrectionLevel: 'H',
+      });
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `fatura-qrcode-${new Date().getTime()}.png`;
+      link.click();
+    } catch (err) {
+      console.error('Erro ao descarregar QR Code:', err);
+      toast.error('Erro ao descarregar QR Code');
+    }
+  };
 
   const lookupBuyer = async () => {
     if (!fakturaIdInput.trim()) {
@@ -184,6 +298,20 @@ export default function NovaFatura() {
     const total = itens.reduce((acc, item) => acc + (item.total || 0), 0);
     return { subtotal, totalIva, total };
   }, [itens]);
+
+  // Render QR Code when showQRGenerator changes
+  React.useEffect(() => {
+    if (showQRGenerator && qrCodeRef.current && itens.length > 0) {
+      const qrData = generateQRCodeData();
+      QRCode.toCanvas(qrCodeRef.current, qrData, {
+        width: 256,
+        margin: 1,
+        errorCorrectionLevel: 'H',
+      }).catch((err) => {
+        console.error('Erro ao gerar QR Code:', err);
+      });
+    }
+  }, [showQRGenerator, itens, cfNome, cfNif, cfEndereco, totais, metodoPagamento, dataVencimento]);
 
   const handleSave = async () => {
     // Validate items
@@ -303,645 +431,590 @@ export default function NovaFatura() {
       }
       
       navigate('/faturas');
-    } catch (error) {
-      console.error('Error creating invoice:', error);
-      toast.error('Erro ao criar documento');
+    } catch {
+      toast.error('Erro ao criar fatura');
     }
   };
 
-  const tipoLabels: Record<TipoDocumento, string> = {
-    'fatura': 'Fatura',
-    'fatura-recibo': 'Fatura-Recibo',
-    'recibo': 'Recibo',
-    'nota-credito': 'Nota de Crédito',
-    'proforma': 'Fatura Proforma',
-  };
-
-  const isLoading = loadingClientes || loadingProdutos;
-
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </MainLayout>
-    );
-  }
-
-  const buttonLabel = isProforma ? 'Emitir Proforma' : 'Emitir Fatura';
-  const canSubmit = !createFatura.isPending && itens.length > 0;
-
   return (
     <MainLayout>
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+      <div className="container mx-auto py-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <Link to="/faturas">
-              <ArrowLeft className="w-5 h-5" />
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
             </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold font-display text-foreground">
-              {isProforma ? 'Nova Proforma' : 'Nova Fatura'}
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {isProforma ? 'Criar documento proforma (não fiscal)' : 'Criar novo documento fiscal'}
-            </p>
+            <div>
+              <h1 className="text-3xl font-display font-bold">Nova Fatura</h1>
+              <p className="text-muted-foreground">Crie uma nova fatura ou documento fiscal</p>
+            </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            className="gradient-primary border-0" 
-            onClick={handleSave}
-            disabled={!canSubmit}
-          >
-            {createFatura.isPending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4 mr-2" />
-            )}
-            {buttonLabel}
-          </Button>
-        </div>
-      </div>
 
-      {/* Proforma Warning */}
-      {isProforma && (
-        <div className="mb-6 p-4 rounded-lg border border-primary/30 bg-primary/10 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="font-semibold text-foreground">Documento Proforma</p>
-            <p className="text-sm text-muted-foreground">
-              Este documento NÃO é válido como documento fiscal. Utiliza numeração independente (PRO) e pode ser convertido em fatura oficial posteriormente.
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Document Type */}
-          <Card className="card-shadow">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-display flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
-                Informações do Documento
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Tipo de Documento *</Label>
-                  <Select value={tipo} onValueChange={(v: TipoDocumento) => setTipo(v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(tipoLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Número</Label>
-                  <Input 
-                    value={isProforma ? 'PRO/... (gerado automaticamente)' : 'Gerado automaticamente'}
-                    disabled
-                    className="font-mono bg-muted"
-                  />
-                </div>
+        {/* Tipo de Documento */}
+        <Card className="card-shadow">
+          <CardHeader>
+            <CardTitle className="text-lg font-display flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              Tipo de Documento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup value={tipo} onValueChange={(value) => setTipo(value as TipoDocumento)}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                {(['fatura', 'fatura-recibo', 'recibo', 'nota-credito', 'proforma'] as TipoDocumento[]).map((t) => (
+                  <div key={t} className="flex items-center space-x-2">
+                    <RadioGroupItem value={t} id={`tipo-${t}`} />
+                    <Label htmlFor={`tipo-${t}`} className="cursor-pointer capitalize">
+                      {t.replace('-', ' ')}
+                    </Label>
+                  </div>
+                ))}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Data de Emissão</Label>
-                  <Input 
-                    type="date" 
-                    value={new Date().toISOString().split('T')[0]}
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Data de Vencimento</Label>
-                  <Input 
-                    type="date" 
-                    value={dataVencimento}
-                    onChange={(e) => setDataVencimento(e.target.value)}
-                  />
-                </div>
-              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
 
-              {/* Nota de Crédito — Referência obrigatória */}
-              {tipo === 'nota-credito' && (
-                <div className="space-y-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5">
-                  <Label className="text-sm font-semibold flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-destructive" />
-                    Fatura de Referência (obrigatório) *
-                  </Label>
-                  <Input
-                    placeholder="Ex: FT/2026/000001"
-                    value={notaCreditoRef}
-                    onChange={(e) => setNotaCreditoRef(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    A AGT exige a referência ao documento original ao emitir uma nota de crédito.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Client Type Selection */}
-          <Card className="card-shadow">
-            <CardHeader className="pb-4">
+        {/* Cliente Section */}
+        <Card className="card-shadow">
+          <CardHeader>
+            <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-display flex items-center gap-2">
-                <User className="w-5 h-5 text-primary" />
+                <Building2 className="w-5 h-5 text-primary" />
                 Cliente
               </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Tipo de Cliente Radio */}
-              <div className="space-y-3">
-                <Label className="text-sm font-semibold">Tipo de Cliente *</Label>
-                <RadioGroup
-                  value={tipoCliente}
-                  onValueChange={(v: TipoCliente) => {
-                    setTipoCliente(v);
-                    setClienteId('');
-                  }}
-                  className="flex gap-4"
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowQRScanner(!showQRScanner)}
+                  className="gap-2"
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="consumidor_final" id="consumidor_final" />
-                    <Label htmlFor="consumidor_final" className="flex items-center gap-2 cursor-pointer">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      Consumidor Final
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="empresa" id="empresa" />
-                    <Label htmlFor="empresa" className="flex items-center gap-2 cursor-pointer">
-                      <Building2 className="w-4 h-4 text-muted-foreground" />
-                      Empresa
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              <Separator />
-
-              {/* Consumidor Final (B2C) */}
-              {tipoCliente === 'consumidor_final' && (
-                <div className="space-y-4 animate-fade-in">
-                  {/* Toggle: Manual vs Faktura ID */}
-                  <div className="flex gap-3">
-                    <Button
-                      variant={!useFakturaId ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => { setUseFakturaId(false); setBuyerData(null); }}
-                    >
-                      <User className="w-4 h-4 mr-1" />
-                      Dados manuais
-                    </Button>
-                    <Button
-                      variant={useFakturaId ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setUseFakturaId(true)}
-                    >
-                      <CreditCard className="w-4 h-4 mr-1" />
-                      ID Faktura
-                    </Button>
-                  </div>
-
-                  {useFakturaId ? (
-                    <div className="space-y-4">
-                      <p className="text-sm text-muted-foreground">
-                        Insira o ID Faktura do comprador para preencher automaticamente.
-                      </p>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Ex: FK-12345"
-                          value={fakturaIdInput}
-                          onChange={(e) => setFakturaIdInput(e.target.value.toUpperCase())}
-                          className="font-mono"
-                        />
-                        <Button onClick={lookupBuyer} disabled={lookingUpBuyer} size="default">
-                          {lookingUpBuyer ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                        </Button>
-                      </div>
-
-                      {buyerData && (
-                        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3 animate-fade-in">
-                          <div className="flex items-center gap-2 text-primary">
-                            <CheckCircle className="w-4 h-4" />
-                            <span className="text-sm font-bold">Comprador encontrado</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">Nome</Label>
-                              <Input value={buyerData.nome || ''} disabled className="bg-muted font-medium" />
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">NIF</Label>
-                              <Input value={buyerData.nif || 'N/A'} disabled className="bg-muted font-mono" />
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">Telefone</Label>
-                              <Input value={buyerData.telefone || 'N/A'} disabled className="bg-muted" />
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">Email</Label>
-                              <Input value={buyerData.email || 'N/A'} disabled className="bg-muted" />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-sm text-muted-foreground">
-                        Todos os campos são opcionais. Se não preencher, será usado "Consumidor Final".
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Nome (opcional)</Label>
-                          <Input
-                            placeholder="Consumidor Final"
-                            value={cfNome}
-                            onChange={(e) => setCfNome(e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>NIF (opcional)</Label>
-                          <Input
-                            placeholder="Deixar em branco"
-                            value={cfNif}
-                            onChange={(e) => setCfNif(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Endereço (opcional)</Label>
-                        <Input
-                          placeholder="Endereço do cliente"
-                          value={cfEndereco}
-                          onChange={(e) => setCfEndereco(e.target.value)}
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Empresa (B2B) */}
-              {tipoCliente === 'empresa' && (
-                <div className="space-y-4 animate-fade-in">
-                  <div className="flex gap-4">
-                    <Button
-                      variant={useExistingClient ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setUseExistingClient(true)}
-                    >
-                      Cliente existente
-                    </Button>
-                    <Button
-                      variant={!useExistingClient ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setUseExistingClient(false)}
-                    >
-                      Novo cliente
-                    </Button>
-                  </div>
-
-                  {useExistingClient ? (
-                    <div className="space-y-2">
-                      <Label>Selecionar Empresa *</Label>
-                      <Select value={clienteId} onValueChange={setClienteId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Escolha uma empresa..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clientes.filter(c => c.tipo === 'empresa').length === 0 ? (
-                            <div className="p-2 text-center text-muted-foreground text-sm">
-                              Nenhuma empresa cadastrada.
-                              <Link to="/clientes" className="block text-primary mt-1">
-                                Criar cliente
-                              </Link>
-                            </div>
-                          ) : (
-                            clientes.filter(c => c.tipo === 'empresa').map((cliente) => (
-                              <SelectItem key={cliente.id} value={cliente.id}>
-                                <div className="flex items-center gap-2">
-                                  <Building2 className="w-4 h-4 text-muted-foreground" />
-                                  <span>{cliente.nome}</span>
-                                  <span className="text-muted-foreground text-xs">
-                                    NIF: {cliente.nif}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-
-                      {clienteSelecionado && (
-                        <div className="bg-muted/50 rounded-lg p-4 space-y-2 animate-fade-in">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary">Empresa</Badge>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              NIF: {clienteSelecionado.nif}
-                            </span>
-                          </div>
-                          <p className="font-medium">{clienteSelecionado.nome}</p>
-                          <p className="text-sm text-muted-foreground">{clienteSelecionado.endereco}</p>
-                          {clienteSelecionado.email && (
-                            <p className="text-sm text-muted-foreground">{clienteSelecionado.email}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Nome da Empresa *</Label>
-                          <Input
-                            placeholder="Nome da empresa"
-                            value={b2bNome}
-                            onChange={(e) => setB2bNome(e.target.value)}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>NIF *</Label>
-                          <Input
-                            placeholder="NIF da empresa"
-                            value={b2bNif}
-                            onChange={(e) => setB2bNif(e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Endereço</Label>
-                        <Input
-                          placeholder="Endereço da empresa"
-                          value={b2bEndereco}
-                          onChange={(e) => setB2bEndereco(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Items */}
-          <Card className="card-shadow">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-display flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-primary" />
-                  Itens {isProforma ? 'da Proforma' : 'da Fatura'}
-                </CardTitle>
-                <Button size="sm" onClick={addItem}>
-                  <Plus className="w-4 h-4 mr-1" />
-                  Adicionar Item
+                  <QrCode className="w-4 h-4" />
+                  {showQRScanner ? 'Fechar Scanner' : 'Ler QR Code'}
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent>
-              {itens.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Calculator className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p>Nenhum item adicionado</p>
-                  <p className="text-sm">Clique em "Adicionar Item" para começar</p>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* QR Scanner Section */}
+            {showQRScanner && (
+              <div className="border border-dashed border-primary rounded-lg p-4 space-y-3 bg-primary/5 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Camera className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Leitor de QR Code</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={stopQRScanner}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="min-w-[200px]">Produto/Serviço</TableHead>
-                        <TableHead className="w-[100px]">Qtd.</TableHead>
-                        <TableHead className="w-[120px]">Preço</TableHead>
-                        <TableHead className="w-[80px]">Desc.</TableHead>
-                        <TableHead className="w-[80px]">IVA</TableHead>
-                        <TableHead className="w-[120px] text-right">Total</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
+                <div id="qr-reader" className="w-full"></div>
+                {!qrScannerActive && (
+                  <Button
+                    onClick={initializeQRScanner}
+                    className="w-full"
+                    size="sm"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Iniciar Scanner
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Tipo Cliente Selection */}
+            <div className="flex gap-4">
+              <Button
+                variant={tipoCliente === 'consumidor_final' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTipoCliente('consumidor_final')}
+              >
+                <User className="w-4 h-4 mr-1" />
+                Consumidor Final
+              </Button>
+              <Button
+                variant={tipoCliente === 'empresa' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTipoCliente('empresa')}
+              >
+                <Building2 className="w-4 h-4 mr-1" />
+                Empresa
+              </Button>
+            </div>
+
+            {/* Consumidor Final (B2C) */}
+            {tipoCliente === 'consumidor_final' && (
+              <div className="space-y-4 animate-fade-in">
+                <div className="flex gap-4">
+                  <Button
+                    variant={!useFakturaId ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => { setUseFakturaId(false); setBuyerData(null); }}
+                  >
+                    <User className="w-4 h-4 mr-1" />
+                    Dados manuais
+                  </Button>
+                  <Button
+                    variant={useFakturaId ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setUseFakturaId(true)}
+                  >
+                    <CreditCard className="w-4 h-4 mr-1" />
+                    ID Faktura
+                  </Button>
+                </div>
+
+                {useFakturaId ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Insira o ID Faktura do comprador para preencher automaticamente.
+                    </p>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Ex: FK-12345"
+                        value={fakturaIdInput}
+                        onChange={(e) => setFakturaIdInput(e.target.value.toUpperCase())}
+                        className="font-mono"
+                      />
+                      <Button onClick={lookupBuyer} disabled={lookingUpBuyer} size="default">
+                        {lookingUpBuyer ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                      </Button>
+                    </div>
+
+                    {buyerData && (
+                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3 animate-fade-in">
+                        <div className="flex items-center gap-2 text-primary">
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="text-sm font-bold">Comprador encontrado</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Nome</Label>
+                            <Input value={buyerData.nome || ''} disabled className="bg-muted font-medium" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">NIF</Label>
+                            <Input value={buyerData.nif || 'N/A'} disabled className="bg-muted font-mono" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Telefone</Label>
+                            <Input value={buyerData.telefone || 'N/A'} disabled className="bg-muted" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Email</Label>
+                            <Input value={buyerData.email || 'N/A'} disabled className="bg-muted" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Todos os campos são opcionais. Se não preencher, será usado "Consumidor Final".
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Nome (opcional)</Label>
+                        <Input
+                          placeholder="Consumidor Final"
+                          value={cfNome}
+                          onChange={(e) => setCfNome(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>NIF (opcional)</Label>
+                        <Input
+                          placeholder="Deixar em branco"
+                          value={cfNif}
+                          onChange={(e) => setCfNif(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Endereço (opcional)</Label>
+                      <Input
+                        placeholder="Endereço do cliente"
+                        value={cfEndereco}
+                        onChange={(e) => setCfEndereco(e.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Empresa (B2B) */}
+            {tipoCliente === 'empresa' && (
+              <div className="space-y-4 animate-fade-in">
+                <div className="flex gap-4">
+                  <Button
+                    variant={useExistingClient ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setUseExistingClient(true)}
+                  >
+                    Cliente existente
+                  </Button>
+                  <Button
+                    variant={!useExistingClient ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setUseExistingClient(false)}
+                  >
+                    Novo cliente
+                  </Button>
+                </div>
+
+                {useExistingClient ? (
+                  <div className="space-y-2">
+                    <Label>Selecionar Empresa *</Label>
+                    <Select value={clienteId} onValueChange={setClienteId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Escolha uma empresa..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clientes.filter(c => c.tipo === 'empresa').length === 0 ? (
+                          <div className="p-2 text-center text-muted-foreground text-sm">
+                            Nenhuma empresa cadastrada.
+                            <Link to="/clientes" className="block text-primary mt-1">
+                              Criar cliente
+                            </Link>
+                          </div>
+                        ) : (
+                          clientes.filter(c => c.tipo === 'empresa').map((cliente) => (
+                            <SelectItem key={cliente.id} value={cliente.id}>
+                              <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-muted-foreground" />
+                                <span>{cliente.nome}</span>
+                                <span className="text-muted-foreground text-xs">
+                                  NIF: {cliente.nif}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+
+                    {clienteSelecionado && (
+                      <div className="bg-muted/50 rounded-lg p-4 space-y-2 animate-fade-in">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">Empresa</Badge>
+                          <span className="font-mono text-sm text-muted-foreground">
+                            NIF: {clienteSelecionado.nif}
+                          </span>
+                        </div>
+                        <p className="font-medium">{clienteSelecionado.nome}</p>
+                        <p className="text-sm text-muted-foreground">{clienteSelecionado.endereco}</p>
+                        {clienteSelecionado.email && (
+                          <p className="text-sm text-muted-foreground">{clienteSelecionado.email}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Nome da Empresa *</Label>
+                        <Input
+                          placeholder="Nome da empresa"
+                          value={b2bNome}
+                          onChange={(e) => setB2bNome(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>NIF *</Label>
+                        <Input
+                          placeholder="NIF da empresa"
+                          value={b2bNif}
+                          onChange={(e) => setB2bNif(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Endereço</Label>
+                      <Input
+                        placeholder="Endereço da empresa"
+                        value={b2bEndereco}
+                        onChange={(e) => setB2bEndereco(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Items */}
+        <Card className="card-shadow">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-display flex items-center gap-2">
+                <Calculator className="w-5 h-5 text-primary" />
+                Itens {isProforma ? 'da Proforma' : 'da Fatura'}
+              </CardTitle>
+              <Button size="sm" onClick={addItem}>
+                <Plus className="w-4 h-4 mr-1" />
+                Adicionar Item
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {itens.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Calculator className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>Nenhum item adicionado</p>
+                <p className="text-sm">Clique em "Adicionar Item" para começar</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produto</TableHead>
+                      <TableHead className="text-right">Quantidade</TableHead>
+                      <TableHead className="text-right">Preço Unit.</TableHead>
+                      <TableHead className="text-right">Desconto %</TableHead>
+                      <TableHead className="text-right">IVA %</TableHead>
+                      <TableHead className="text-right">Subtotal</TableHead>
+                      <TableHead className="text-right">IVA</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {itens.map((item, index) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <Select value={item.produto_id} onValueChange={(value) => updateItem(index, 'produto_id', value)}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {produtos.map((p) => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.quantidade}
+                            onChange={(e) => updateItem(index, 'quantidade', parseFloat(e.target.value) || 0)}
+                            className="w-20 text-right"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.preco_unitario}
+                            onChange={(e) => updateItem(index, 'preco_unitario', parseFloat(e.target.value) || 0)}
+                            className="w-24 text-right"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={item.desconto}
+                            onChange={(e) => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
+                            className="w-20 text-right"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={item.taxa_iva}
+                            onChange={(e) => updateItem(index, 'taxa_iva', parseFloat(e.target.value) || 14)}
+                            className="w-20 text-right"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatCurrency(item.subtotal)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatCurrency(item.valor_iva)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-semibold">
+                          {formatCurrency(item.total)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeItem(index)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {itens.map((item, index) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <Select
-                              value={item.produto_id}
-                              onValueChange={(v) => updateItem(index, 'produto_id', v)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecionar..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {produtos.length === 0 ? (
-                                  <div className="p-2 text-center text-muted-foreground text-sm">
-                                    Nenhum produto cadastrado.
-                                    <Link to="/produtos" className="block text-primary mt-1">
-                                      Criar produto
-                                    </Link>
-                                  </div>
-                                ) : (
-                                  produtos.map((produto) => (
-                                    <SelectItem key={produto.id} value={produto.id}>
-                                      {produto.nome} - {formatCurrency(Number(produto.preco_unitario))}
-                                    </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min="1"
-                              value={item.quantidade}
-                              onChange={(e) => updateItem(index, 'quantidade', parseInt(e.target.value) || 0)}
-                              className="w-full"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={item.preco_unitario}
-                              onChange={(e) => updateItem(index, 'preco_unitario', parseFloat(e.target.value) || 0)}
-                              className="w-full"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="relative">
-                              <Input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={item.desconto}
-                                onChange={(e) => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
-                                className="w-full pr-6"
-                              />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                                %
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={item.taxa_iva.toString()}
-                              onValueChange={(v) => updateItem(index, 'taxa_iva', parseFloat(v))}
-                            >
-                              <SelectTrigger className="w-[90px] h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="14">14%</SelectItem>
-                                <SelectItem value="7">7%</SelectItem>
-                                <SelectItem value="5">5%</SelectItem>
-                                <SelectItem value="2">2%</SelectItem>
-                                <SelectItem value="0">0%</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {formatCurrency(item.total || 0)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => removeItem(index)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Totals */}
+        {itens.length > 0 && (
+          <Card className="card-shadow bg-primary/5 border-primary/20">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Subtotal</p>
+                  <p className="text-2xl font-bold font-mono">{formatCurrency(totais.subtotal)}</p>
                 </div>
-              )}
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">IVA Total</p>
+                  <p className="text-2xl font-bold font-mono text-orange-600">{formatCurrency(totais.totalIva)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Total</p>
+                  <p className="text-2xl font-bold font-mono text-primary">{formatCurrency(totais.total)}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
+        )}
 
-          {/* Payment Method & Observations */}
-          <Card className="card-shadow">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-display">Detalhes Adicionais</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        {/* Additional Info */}
+        <Card className="card-shadow">
+          <CardHeader>
+            <CardTitle className="text-lg font-display">Informações Adicionais</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Data de Vencimento</Label>
+                <Input
+                  type="date"
+                  value={dataVencimento}
+                  onChange={(e) => setDataVencimento(e.target.value)}
+                />
+              </div>
               <div className="space-y-2">
                 <Label>Método de Pagamento</Label>
                 <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecionar..." />
+                    <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Transferência Bancária">Transferência Bancária</SelectItem>
-                    <SelectItem value="Numerário">Numerário</SelectItem>
-                    <SelectItem value="Cheque">Cheque</SelectItem>
-                    <SelectItem value="Multicaixa">Multicaixa</SelectItem>
-                    <SelectItem value="Outro">Outro</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+                    <SelectItem value="cartao">Cartão de Crédito</SelectItem>
+                    <SelectItem value="cheque">Cheque</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {tipo === 'nota-credito' && (
               <div className="space-y-2">
-                <Label>Observações</Label>
-                <Textarea
-                  placeholder="Notas ou observações adicionais (opcional)"
-                  value={observacoes}
-                  onChange={(e) => setObservacoes(e.target.value)}
-                  rows={3}
+                <Label>Referência à Fatura Original *</Label>
+                <Input
+                  placeholder="Número da fatura original"
+                  value={notaCreditoRef}
+                  onChange={(e) => setNotaCreditoRef(e.target.value)}
                 />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
 
-        {/* Summary Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="card-shadow sticky top-24">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-display">Resumo</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">{formatCurrency(totais.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">IVA (14%)</span>
-                  <span className="font-medium text-primary">{formatCurrency(totais.totalIva)}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between">
-                  <span className="font-semibold">Total</span>
-                  <span className="text-2xl font-bold font-display">{formatCurrency(totais.total)}</span>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label>Observações</Label>
+              <Textarea
+                placeholder="Adicione observações ou notas adicionais..."
+                value={observacoes}
+                onChange={(e) => setObservacoes(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-              <Separator />
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Itens</span>
-                  <span>{itens.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tipo</span>
-                  <Badge variant={isProforma ? 'outline' : 'secondary'}>
-                    {tipoLabels[tipo]}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Cliente</span>
-                  <span className="text-right truncate max-w-[150px]">
-                    {tipoCliente === 'consumidor_final'
-                      ? (useFakturaId && buyerData ? buyerData.nome : (cfNome || 'Consumidor Final'))
-                      : (useExistingClient ? clienteSelecionado?.nome || '—' : b2bNome || '—')}
-                  </span>
-                </div>
-                {useFakturaId && buyerData && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">ID Faktura</span>
-                    <Badge variant="outline" className="font-mono text-xs">{fakturaIdInput}</Badge>
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <Button 
-                  className="w-full gradient-primary border-0" 
-                  onClick={handleSave}
-                  disabled={!canSubmit}
+        {/* QR Code Generator Section */}
+        {itens.length > 0 && (
+          <Card className="card-shadow border-primary/20 bg-primary/5">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-display flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-primary" />
+                  Gerar QR Code da Fatura
+                </CardTitle>
+                <Button
+                  variant={showQRGenerator ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowQRGenerator(!showQRGenerator)}
+                  className="gap-2"
                 >
-                  {createFatura.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4 mr-2" />
-                  )}
-                  {buttonLabel}
+                  <QrCode className="w-4 h-4" />
+                  {showQRGenerator ? 'Ocultar' : 'Mostrar'} QR Code
                 </Button>
               </div>
-            </CardContent>
+            </CardHeader>
+            {showQRGenerator && (
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  O QR Code contém os dados da fatura (cliente, itens, totais) e pode ser compartilhado com o cliente para leitura.
+                </p>
+                <div className="flex justify-center p-4 bg-white rounded-lg border border-dashed">
+                  <div ref={qrCodeRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {/* QR Code será renderizado aqui via canvas */}
+                  </div>
+                </div>
+                <Button
+                  onClick={downloadQRCode}
+                  className="w-full gap-2"
+                  variant="outline"
+                >
+                  <Download className="w-4 h-4" />
+                  Descarregar QR Code
+                </Button>
+              </CardContent>
+            )}
           </Card>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 justify-end">
+          <Link to="/faturas">
+            <Button variant="outline">Cancelar</Button>
+          </Link>
+          <Button
+            onClick={handleSave}
+            disabled={createFatura.isPending}
+            className="gap-2"
+          >
+            {createFatura.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
+            {isProforma ? 'Criar Proforma' : 'Criar Fatura'}
+          </Button>
         </div>
       </div>
     </MainLayout>
