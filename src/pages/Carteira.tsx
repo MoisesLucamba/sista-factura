@@ -136,6 +136,9 @@ export default function Carteira() {
           ))}
         </div>
 
+        {/* Merchant QR Code */}
+        <MerchantQRCode />
+
         {/* Recent Transactions */}
         <Card>
           <CardHeader>
