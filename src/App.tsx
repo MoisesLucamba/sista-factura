@@ -35,6 +35,8 @@ const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 const Carteira = lazy(() => import("./pages/Carteira"));
 const Pagamentos = lazy(() => import("./pages/Pagamentos"));
 const PagarLink = lazy(() => import("./pages/PagarLink"));
+const LojaMerchant = lazy(() => import("./pages/LojaMerchant"));
+const ScanComprador = lazy(() => import("./pages/ScanComprador"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
