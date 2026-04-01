@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { ReferralDashboard } from '@/components/referral/ReferralDashboard';
+import { BuyerQRCode } from '@/components/qr/BuyerQRCode';
 import { formatCurrency } from '@/lib/format';
 import { generateInvoicePDF } from '@/lib/pdf-generator';
 import type { Fatura } from '@/hooks/useFaturas';
