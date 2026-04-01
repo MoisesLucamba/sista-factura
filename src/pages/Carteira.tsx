@@ -12,6 +12,7 @@ import {
   ArrowRight, RefreshCw,
 } from 'lucide-react';
 import { useState } from 'react';
+import { MerchantQRCode } from '@/components/qr/MerchantQRCode';
 
 function useWalletData() {
   const { user } = useAuth();
