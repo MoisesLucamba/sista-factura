@@ -64,6 +64,8 @@ const App = () => (
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/pagar/:code" element={<PagarLink />} />
+            <Route path="/loja/:merchantId" element={<LojaMerchant />} />
+            <Route path="/scan/:fakturaId" element={<ScanComprador />} />
             <Route
               path="/aprovacao-pendente"
               element={
