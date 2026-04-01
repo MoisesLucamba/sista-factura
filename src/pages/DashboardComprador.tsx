@@ -400,6 +400,13 @@ export default function DashboardComprador() {
           ))}
         </div>
 
+        {/* Buyer QR Code */}
+        {wallet?.faktura_id && (
+          <div className="afu" style={{ animationDelay: '150ms' }}>
+            <BuyerQRCode fakturaId={wallet.faktura_id} buyerName={profile?.nome || ''} />
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="afu" style={{ animationDelay: '200ms' }}>
           <Tabs defaultValue="faturas" className="space-y-4">
