@@ -768,11 +768,15 @@ export type Database = {
       }
       produtos: {
         Row: {
+          barcode: string | null
+          categoria: string | null
           codigo: string
           created_at: string
           descricao: string | null
           id: string
+          imagem_url: string | null
           iva_incluido: boolean
+          marca: string | null
           nome: string
           preco_unitario: number
           stock: number | null
@@ -784,11 +788,15 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          barcode?: string | null
+          categoria?: string | null
           codigo: string
           created_at?: string
           descricao?: string | null
           id?: string
+          imagem_url?: string | null
           iva_incluido?: boolean
+          marca?: string | null
           nome: string
           preco_unitario: number
           stock?: number | null
@@ -800,11 +808,15 @@ export type Database = {
           user_id: string
         }
         Update: {
+          barcode?: string | null
+          categoria?: string | null
           codigo?: string
           created_at?: string
           descricao?: string | null
           id?: string
+          imagem_url?: string | null
           iva_incluido?: boolean
+          marca?: string | null
           nome?: string
           preco_unitario?: number
           stock?: number | null
