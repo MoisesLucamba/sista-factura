@@ -121,6 +121,7 @@ const FORM_INIT = {
   preco_unitario: '', unidade: 'unidade',
   iva_incluido: false, categoria_iva: 'geral' as CategoriaIva,
   stock: '', stock_minimo: '',
+  barcode: '', marca: '', categoria: '', imagem_url: '',
 };
 
 // ═══════════════════════════════════════════════════════════════
