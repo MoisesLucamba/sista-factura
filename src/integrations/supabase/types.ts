@@ -491,6 +491,51 @@ export type Database = {
         }
         Relationships: []
       }
+      host_stores: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          endereco: string
+          id: string
+          is_active: boolean
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          nome: string
+          raio_metros: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          endereco: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          nome: string
+          raio_metros?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          endereco?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          nome?: string
+          raio_metros?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoice_sends: {
         Row: {
           channel: Database["public"]["Enums"]["send_channel"]
@@ -918,6 +963,104 @@ export type Database = {
           user_type?: string
         }
         Relationships: []
+      }
+      revenue_splits: {
+        Row: {
+          created_at: string
+          host_percentage: number
+          host_store_id: string
+          id: string
+          is_active: boolean
+          sub_store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          host_percentage?: number
+          host_store_id: string
+          id?: string
+          is_active?: boolean
+          sub_store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          host_percentage?: number
+          host_store_id?: string
+          id?: string
+          is_active?: boolean
+          sub_store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_splits_host_store_id_fkey"
+            columns: ["host_store_id"]
+            isOneToOne: false
+            referencedRelation: "host_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_splits_sub_store_id_fkey"
+            columns: ["sub_store_id"]
+            isOneToOne: false
+            referencedRelation: "sub_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sub_stores: {
+        Row: {
+          approved: boolean
+          created_at: string
+          descricao: string | null
+          host_store_id: string
+          id: string
+          is_active: boolean
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved?: boolean
+          created_at?: string
+          descricao?: string | null
+          host_store_id: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved?: boolean
+          created_at?: string
+          descricao?: string | null
+          host_store_id?: string
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_stores_host_store_id_fkey"
+            columns: ["host_store_id"]
+            isOneToOne: false
+            referencedRelation: "host_stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
