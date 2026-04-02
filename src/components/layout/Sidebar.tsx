@@ -6,7 +6,7 @@ import {
   LayoutDashboard, FileText, Users, Package,
   BarChart3, Settings, Building2, Truck,
   Receipt, Search, LogOut, ChevronLeft,
-  ChevronRight, Bell, X, ShieldCheck,
+  ChevronRight, Bell, X, ShieldCheck, Store, MapPin,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
