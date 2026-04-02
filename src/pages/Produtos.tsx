@@ -199,6 +199,10 @@ export default function Produtos() {
       taxa_iva: taxa * 100,
       stock: form.tipo === 'produto' ? parseInt(form.stock) || undefined : undefined,
       stock_minimo: form.tipo === 'produto' ? parseInt(form.stock_minimo) || undefined : undefined,
+      barcode: form.barcode || undefined,
+      marca: form.marca || undefined,
+      imagem_url: form.imagem_url || undefined,
+      categoria: form.categoria || undefined,
     };
     try {
       if (editing) {
