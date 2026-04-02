@@ -148,7 +148,9 @@ export default function Produtos() {
     const s = search.toLowerCase();
     const matchSearch = p.nome.toLowerCase().includes(s) ||
       p.codigo.toLowerCase().includes(s) ||
-      p.descricao?.toLowerCase().includes(s);
+      p.descricao?.toLowerCase().includes(s) ||
+      (p as any).barcode?.toLowerCase().includes(s) ||
+      (p as any).marca?.toLowerCase().includes(s);
     return matchSearch && (tipoFilter === 'all' || p.tipo === tipoFilter);
   }), [produtos, search, tipoFilter]);
 
