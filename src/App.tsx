@@ -207,6 +207,23 @@ const App = () => (
               }
             />
             
+            <Route
+              path="/lojas"
+              element={
+                <ProtectedRoute>
+                  <HostStoreDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/directorio"
+              element={
+                <ProtectedRoute>
+                  <StoreDirectory />
+                </ProtectedRoute>
+              }
+            />
+            
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>

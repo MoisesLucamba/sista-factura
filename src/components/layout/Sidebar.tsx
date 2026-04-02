@@ -29,6 +29,8 @@ const mainNavItems: NavItem[] = [
   { icon: Package,         label: 'Produtos',     href: '/produtos'     },
   { icon: Receipt,         label: 'Documentos',   href: '/documentos'   },
   { icon: BarChart3,       label: 'Relatórios',   href: '/relatorios'   },
+  { icon: Store,           label: 'Lojas',        href: '/lojas'        },
+  { icon: MapPin,          label: 'Directório',   href: '/directorio'   },
 ];
 
 const secondaryNavItems: NavItem[] = [
