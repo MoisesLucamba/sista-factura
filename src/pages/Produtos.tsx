@@ -170,9 +170,24 @@ export default function Produtos() {
       unidade: p.unidade, iva_incluido: p.iva_incluido,
       categoria_iva: ((p as any).categoria_iva as CategoriaIva) ?? 'geral',
       stock: p.stock?.toString() || '', stock_minimo: p.stock_minimo?.toString() || '',
+      barcode: (p as any).barcode || '', marca: (p as any).marca || '',
+      categoria: (p as any).categoria || '', imagem_url: (p as any).imagem_url || '',
     });
     setDialogOpen(true);
   };
+
+  const handleBarcodeProduct = useCallback((product: OpenFoodFactsProduct | null) => {
+    if (product) {
+      setForm(f => ({
+        ...f,
+        nome: f.nome || product.name,
+        marca: product.brand,
+        categoria: product.category,
+        imagem_url: product.image_url || '',
+      }));
+      toast.success('Produto encontrado na base de dados global!');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
