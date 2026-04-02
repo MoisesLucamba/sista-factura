@@ -204,13 +204,15 @@ export default function NovaFatura() {
     try {
       const qrData = generateQRCodeData();
       if (qrCodeRef.current) {
-        await QRCode.toCanvas(qrCodeRef.current, qrData, {
+        // Create a temporary canvas element for QR generation
+        const tempCanvas = document.createElement('canvas');
+        await QRCode.toCanvas(tempCanvas, qrData, {
           width: 256,
           margin: 1,
           errorCorrectionLevel: 'H',
         });
         const link = document.createElement('a');
-        link.href = qrCodeRef.current.toDataURL('image/png');
+        link.href = tempCanvas.toDataURL('image/png');
         link.download = `fatura-qrcode-${new Date().getTime()}.png`;
         link.click();
       }
