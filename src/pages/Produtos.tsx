@@ -30,8 +30,9 @@ import {
   Plus, Search, MoreVertical, Edit, Trash2, Package, Wrench,
   AlertTriangle, Loader2, Box, DollarSign, Hash, X, AlertCircle,
   TrendingDown, ShieldCheck, Leaf, Stethoscope, Zap, Download,
-  Sparkles, BarChart3, Tag,
+  Sparkles, BarChart3, Tag, ScanBarcode,
 } from 'lucide-react';
+import { BarcodeInput, lookupBarcode, type OpenFoodFactsProduct } from '@/components/produtos/BarcodeScanner';
 import { exportToCSV } from '@/lib/csv-export';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
