@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,8 +30,9 @@ import {
   Plus, Search, MoreVertical, Edit, Trash2, Package, Wrench,
   AlertTriangle, Loader2, Box, DollarSign, Hash, X, AlertCircle,
   TrendingDown, ShieldCheck, Leaf, Stethoscope, Zap, Download,
-  Sparkles, BarChart3, Tag,
+  Sparkles, BarChart3, Tag, ScanBarcode,
 } from 'lucide-react';
+import { BarcodeInput, lookupBarcode, type OpenFoodFactsProduct } from '@/components/produtos/BarcodeScanner';
 import { exportToCSV } from '@/lib/csv-export';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -120,6 +121,7 @@ const FORM_INIT = {
   preco_unitario: '', unidade: 'unidade',
   iva_incluido: false, categoria_iva: 'geral' as CategoriaIva,
   stock: '', stock_minimo: '',
+  barcode: '', marca: '', categoria: '', imagem_url: '',
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -146,7 +148,9 @@ export default function Produtos() {
     const s = search.toLowerCase();
     const matchSearch = p.nome.toLowerCase().includes(s) ||
       p.codigo.toLowerCase().includes(s) ||
-      p.descricao?.toLowerCase().includes(s);
+      p.descricao?.toLowerCase().includes(s) ||
+      (p as any).barcode?.toLowerCase().includes(s) ||
+      (p as any).marca?.toLowerCase().includes(s);
     return matchSearch && (tipoFilter === 'all' || p.tipo === tipoFilter);
   }), [produtos, search, tipoFilter]);
 
@@ -168,9 +172,24 @@ export default function Produtos() {
       unidade: p.unidade, iva_incluido: p.iva_incluido,
       categoria_iva: ((p as any).categoria_iva as CategoriaIva) ?? 'geral',
       stock: p.stock?.toString() || '', stock_minimo: p.stock_minimo?.toString() || '',
+      barcode: (p as any).barcode || '', marca: (p as any).marca || '',
+      categoria: (p as any).categoria || '', imagem_url: (p as any).imagem_url || '',
     });
     setDialogOpen(true);
   };
+
+  const handleBarcodeProduct = useCallback((product: OpenFoodFactsProduct | null) => {
+    if (product) {
+      setForm(f => ({
+        ...f,
+        nome: f.nome || product.name,
+        marca: product.brand,
+        categoria: product.category,
+        imagem_url: product.image_url || '',
+      }));
+      toast.success('Produto encontrado na base de dados global!');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,6 +201,10 @@ export default function Produtos() {
       taxa_iva: taxa * 100,
       stock: form.tipo === 'produto' ? parseInt(form.stock) || undefined : undefined,
       stock_minimo: form.tipo === 'produto' ? parseInt(form.stock_minimo) || undefined : undefined,
+      barcode: form.barcode || undefined,
+      marca: form.marca || undefined,
+      imagem_url: form.imagem_url || undefined,
+      categoria: form.categoria || undefined,
     };
     try {
       if (editing) {
@@ -383,6 +406,32 @@ export default function Produtos() {
                         ))}
                       </div>
                     </div>
+
+                    {/* ── Código de Barras ── */}
+                    {form.tipo === 'produto' && (
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                          <ScanBarcode className="w-3.5 h-3.5" /> Código de Barras
+                        </Label>
+                        <BarcodeInput
+                          value={form.barcode}
+                          onChange={(barcode) => setForm(f => ({ ...f, barcode }))}
+                          onProductFound={handleBarcodeProduct}
+                        />
+                        {form.imagem_url && (
+                          <div className="flex items-center gap-3 mt-1 p-2 rounded-lg bg-muted/50 border">
+                            <img src={form.imagem_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                            <div className="flex-1 min-w-0">
+                              {form.marca && <p className="text-xs font-semibold text-muted-foreground">{form.marca}</p>}
+                              {form.categoria && <p className="text-xs text-muted-foreground">{form.categoria}</p>}
+                            </div>
+                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setForm(f => ({ ...f, imagem_url: '', marca: '', categoria: '' }))}>
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* ── Código + Nome ── */}
                     <div className="grid grid-cols-3 gap-3">

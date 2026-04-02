@@ -203,15 +203,19 @@ export default function NovaFatura() {
   const downloadQRCode = async () => {
     try {
       const qrData = generateQRCodeData();
-      const canvas = await QRCode.toCanvas(qrCodeRef.current, qrData, {
-        width: 256,
-        margin: 1,
-        errorCorrectionLevel: 'H',
-      });
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = `fatura-qrcode-${new Date().getTime()}.png`;
-      link.click();
+      if (qrCodeRef.current) {
+        // Create a temporary canvas element for QR generation
+        const tempCanvas = document.createElement('canvas');
+        await QRCode.toCanvas(tempCanvas, qrData, {
+          width: 256,
+          margin: 1,
+          errorCorrectionLevel: 'H',
+        });
+        const link = document.createElement('a');
+        link.href = tempCanvas.toDataURL('image/png');
+        link.download = `fatura-qrcode-${new Date().getTime()}.png`;
+        link.click();
+      }
     } catch (err) {
       console.error('Erro ao descarregar QR Code:', err);
       toast.error('Erro ao descarregar QR Code');

@@ -16,6 +16,10 @@ export interface Produto {
   taxa_iva: number;
   stock?: number;
   stock_minimo?: number;
+  barcode?: string;
+  marca?: string;
+  imagem_url?: string;
+  categoria?: string;
   created_at: string;
   updated_at: string;
 }
