@@ -401,6 +401,32 @@ export default function Produtos() {
                       </div>
                     </div>
 
+                    {/* ── Código de Barras ── */}
+                    {form.tipo === 'produto' && (
+                      <div className="grid gap-1.5">
+                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                          <ScanBarcode className="w-3.5 h-3.5" /> Código de Barras
+                        </Label>
+                        <BarcodeInput
+                          value={form.barcode}
+                          onChange={(barcode) => setForm(f => ({ ...f, barcode }))}
+                          onProductFound={handleBarcodeProduct}
+                        />
+                        {form.imagem_url && (
+                          <div className="flex items-center gap-3 mt-1 p-2 rounded-lg bg-muted/50 border">
+                            <img src={form.imagem_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                            <div className="flex-1 min-w-0">
+                              {form.marca && <p className="text-xs font-semibold text-muted-foreground">{form.marca}</p>}
+                              {form.categoria && <p className="text-xs text-muted-foreground">{form.categoria}</p>}
+                            </div>
+                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setForm(f => ({ ...f, imagem_url: '', marca: '', categoria: '' }))}>
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* ── Código + Nome ── */}
                     <div className="grid grid-cols-3 gap-3">
                       <div className="grid gap-1.5">
