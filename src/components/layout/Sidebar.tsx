@@ -6,7 +6,7 @@ import {
   LayoutDashboard, FileText, Users, Package,
   BarChart3, Settings, Building2, Truck,
   Receipt, Search, LogOut, ChevronLeft,
-  ChevronRight, Bell, X, ShieldCheck, Store, MapPin,
+  ChevronRight, Bell, X, ShieldCheck, Store, MapPin, ScanLine,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +27,7 @@ const mainNavItems: NavItem[] = [
   { icon: Users,           label: 'Clientes',     href: '/clientes'     },
   { icon: Truck,           label: 'Fornecedores', href: '/fornecedores' },
   { icon: Package,         label: 'Produtos',     href: '/produtos'     },
+  { icon: ScanLine,        label: 'POS',          href: '/pos'          },
   { icon: Receipt,         label: 'Documentos',   href: '/documentos'   },
   { icon: BarChart3,       label: 'Relatórios',   href: '/relatorios'   },
   { icon: Store,           label: 'Lojas',        href: '/lojas'        },

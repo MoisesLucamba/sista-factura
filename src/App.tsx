@@ -39,6 +39,7 @@ const LojaMerchant = lazy(() => import("./pages/LojaMerchant"));
 const ScanComprador = lazy(() => import("./pages/ScanComprador"));
 const HostStoreDashboard = lazy(() => import("./pages/HostStoreDashboard"));
 const StoreDirectory = lazy(() => import("./pages/StoreDirectory"));
+const POS = lazy(() => import("./pages/POS"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -115,6 +116,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Faturas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pos"
+              element={
+                <ProtectedRoute>
+                  <POS />
                 </ProtectedRoute>
               }
             />
