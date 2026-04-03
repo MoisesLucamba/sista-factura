@@ -206,6 +206,57 @@ export type Database = {
           },
         ]
       }
+      buyer_expense_records: {
+        Row: {
+          barcode: string | null
+          buyer_user_id: string
+          categoria: string | null
+          created_at: string
+          faktura_merchant_user_id: string | null
+          id: string
+          is_faktura_merchant: boolean
+          marca: string | null
+          merchant_name: string | null
+          notes: string | null
+          preco: number
+          produto_nome: string
+          quantidade: number
+          total: number
+        }
+        Insert: {
+          barcode?: string | null
+          buyer_user_id: string
+          categoria?: string | null
+          created_at?: string
+          faktura_merchant_user_id?: string | null
+          id?: string
+          is_faktura_merchant?: boolean
+          marca?: string | null
+          merchant_name?: string | null
+          notes?: string | null
+          preco?: number
+          produto_nome: string
+          quantidade?: number
+          total?: number
+        }
+        Update: {
+          barcode?: string | null
+          buyer_user_id?: string
+          categoria?: string | null
+          created_at?: string
+          faktura_merchant_user_id?: string | null
+          id?: string
+          is_faktura_merchant?: boolean
+          marca?: string | null
+          merchant_name?: string | null
+          notes?: string | null
+          preco?: number
+          produto_nome?: string
+          quantidade?: number
+          total?: number
+        }
+        Relationships: []
+      }
       buyer_purchases: {
         Row: {
           buyer_user_id: string
@@ -1020,6 +1071,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shared_products: {
+        Row: {
+          avg_price: number
+          barcode: string
+          categoria: string | null
+          created_at: string
+          id: string
+          imagem_url: string | null
+          marca: string | null
+          max_price: number
+          merchant_count: number
+          min_price: number
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          avg_price?: number
+          barcode: string
+          categoria?: string | null
+          created_at?: string
+          id?: string
+          imagem_url?: string | null
+          marca?: string | null
+          max_price?: number
+          merchant_count?: number
+          min_price?: number
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          avg_price?: number
+          barcode?: string
+          categoria?: string | null
+          created_at?: string
+          id?: string
+          imagem_url?: string | null
+          marca?: string | null
+          max_price?: number
+          merchant_count?: number
+          min_price?: number
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       sub_stores: {
         Row: {
