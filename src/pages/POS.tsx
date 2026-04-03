@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  ScanLine, Trash2, Plus, Minus, ShoppingCart, Receipt, User,
+  ScanLine, Trash2, Plus, Minus, ShoppingCart, Receipt, User, Package,
   Search, Keyboard, Camera, UserCheck, Loader2, Printer, Download,
 } from 'lucide-react';
 import { useProdutos } from '@/hooks/useProdutos';
