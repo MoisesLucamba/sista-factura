@@ -40,6 +40,7 @@ const ScanComprador = lazy(() => import("./pages/ScanComprador"));
 const HostStoreDashboard = lazy(() => import("./pages/HostStoreDashboard"));
 const StoreDirectory = lazy(() => import("./pages/StoreDirectory"));
 const POS = lazy(() => import("./pages/POS"));
+const BuyerScanInvoice = lazy(() => import("./pages/BuyerScanInvoice"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
