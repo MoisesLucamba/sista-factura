@@ -57,6 +57,7 @@ interface InvoiceLinked {
 
 export default function DashboardComprador() {
   const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [invoices, setInvoices] = useState<InvoiceLinked[]>([]);
