@@ -120,6 +120,14 @@ const App = () => (
               }
             />
             <Route
+              path="/pos"
+              element={
+                <ProtectedRoute>
+                  <POS />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/faturas/nova"
               element={
                 <ProtectedRoute>
