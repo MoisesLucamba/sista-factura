@@ -234,6 +234,15 @@ const App = () => (
               }
             />
             
+            <Route
+              path="/scan-despesas"
+              element={
+                <ProtectedRoute allowedRoles={['comprador']}>
+                  <BuyerScanInvoice />
+                </ProtectedRoute>
+              }
+            />
+            
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
