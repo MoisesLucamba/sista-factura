@@ -24,6 +24,7 @@ import {
   Wallet, User, ShoppingBag, Star, LogOut, Copy, CheckCircle,
   Loader2, TrendingUp, Gift, Clock, FileText, Edit2, Save, X,
   Receipt, Eye, Calendar, ArrowUpRight, Shield, Download, Bell,
+  ScanLine,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoFaktura from '@/assets/logo-faktura.png';
