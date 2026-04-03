@@ -402,6 +402,23 @@ export default function DashboardComprador() {
           ))}
         </div>
 
+        {/* Scan & Invoice CTA */}
+        <div className="afu" style={{ animationDelay: '120ms' }}>
+          <Card className="border-primary/30 bg-gradient-to-r from-primary/10 via-transparent to-transparent cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate('/scan-despesas')}>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <ScanLine className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-sm">Scan & Fatura</h3>
+                <p className="text-xs text-muted-foreground">Digitalize códigos de barras para registar as suas despesas</p>
+              </div>
+              <ArrowUpRight className="w-5 h-5 text-primary" />
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Buyer QR Code */}
         {wallet?.faktura_id && (
           <div className="afu" style={{ animationDelay: '150ms' }}>
