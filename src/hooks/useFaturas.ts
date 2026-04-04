@@ -42,6 +42,8 @@ export interface Fatura {
   qr_code?: string;
   assinatura_digital?: string;
   signature_hash?: string;
+  buyer_user_id?: string;
+  buyer_faktura_id?: string;
   certificate_number?: string;
   itens?: ItemFatura[];
   created_at: string;
