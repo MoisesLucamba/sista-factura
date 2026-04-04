@@ -515,7 +515,7 @@ export default function Faturas() {
                                   {isDownloading === fatura.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 text-muted-foreground" />}
                                   Descarregar PDF
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer">
+                                <DropdownMenuItem onClick={() => setPrintFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
                                   <Printer className="w-4 h-4 text-muted-foreground" /> Imprimir
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setSendDialogFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
