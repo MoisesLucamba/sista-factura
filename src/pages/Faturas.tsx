@@ -37,6 +37,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { SendInvoiceDialog } from '@/components/faturas/SendInvoiceDialog';
 import { CreatePaymentLinkDialog } from '@/components/pagamentos/CreatePaymentLinkDialog';
+import { PrintInvoiceDialog } from '@/components/faturas/PrintInvoiceDialog';
 
 /* ─── Types ─────────────────────────────────────────── */
 type EstadoFatura   = 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
