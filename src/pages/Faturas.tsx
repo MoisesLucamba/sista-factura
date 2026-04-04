@@ -699,6 +699,9 @@ export default function Faturas() {
                       <CheckCircle className="w-4 h-4" /> Marcar Paga
                     </Button>
                   )}
+                  <Button variant="outline" className="rounded-xl gap-2" onClick={() => { setPrintFatura(selectedFatura); setSelectedFaturaId(null); }}>
+                    <Printer className="w-4 h-4" /> Imprimir
+                  </Button>
                   <Button className="rounded-xl btn-cta gap-2" onClick={(e) => handleDownloadPDF(e, selectedFatura)} disabled={isDownloading === selectedFatura.id}>
                     {isDownloading === selectedFatura.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                     Descarregar PDF
