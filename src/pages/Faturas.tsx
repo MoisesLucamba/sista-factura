@@ -725,6 +725,26 @@ export default function Faturas() {
         defaultDescription={paymentLinkFatura ? `Pagamento da ${paymentLinkFatura.numero}` : ''}
         faturaId={paymentLinkFatura?.id}
       />
+
+      {/* Print Dialog */}
+      <PrintInvoiceDialog
+        fatura={printFatura}
+        open={!!printFatura}
+        onOpenChange={(open) => !open && setPrintFatura(null)}
+        companyInfo={agtConfig ? {
+          nome_empresa: agtConfig.nome_empresa || undefined,
+          nif_produtor: agtConfig.nif_produtor || undefined,
+          endereco_empresa: agtConfig.endereco_empresa || undefined,
+          telefone: agtConfig.telefone || undefined,
+          email: agtConfig.email || undefined,
+          morada: agtConfig.morada || undefined,
+          cidade: agtConfig.cidade || undefined,
+          provincia: agtConfig.provincia || undefined,
+          alvara_comercial: agtConfig.alvara_comercial || undefined,
+          certificate_number: agtConfig.certificate_number || undefined,
+          logo_url: agtConfig.logo_url || undefined,
+        } : undefined}
+      />
     </MainLayout>
   );
 }
