@@ -37,6 +37,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { SendInvoiceDialog } from '@/components/faturas/SendInvoiceDialog';
 import { CreatePaymentLinkDialog } from '@/components/pagamentos/CreatePaymentLinkDialog';
+import { PrintInvoiceDialog } from '@/components/faturas/PrintInvoiceDialog';
 
 /* ─── Types ─────────────────────────────────────────── */
 type EstadoFatura   = 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
@@ -86,6 +87,7 @@ export default function Faturas() {
   const [sendDialogFatura, setSendDialogFatura]  = useState<Fatura | null>(null);
   const [showFilters,      setShowFilters]       = useState(false);
   const [paymentLinkFatura, setPaymentLinkFatura] = useState<Fatura | null>(null);
+  const [printFatura,      setPrintFatura]       = useState<Fatura | null>(null);
   const [hoveredRow,       setHoveredRow]        = useState<string | null>(null);
 
   const { data: selectedFatura } = useFatura(selectedFaturaId || '');
@@ -513,7 +515,7 @@ export default function Faturas() {
                                   {isDownloading === fatura.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 text-muted-foreground" />}
                                   Descarregar PDF
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer">
+                                <DropdownMenuItem onClick={() => setPrintFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
                                   <Printer className="w-4 h-4 text-muted-foreground" /> Imprimir
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => setSendDialogFatura(fatura)} className="rounded-lg gap-2 cursor-pointer">
@@ -697,6 +699,9 @@ export default function Faturas() {
                       <CheckCircle className="w-4 h-4" /> Marcar Paga
                     </Button>
                   )}
+                  <Button variant="outline" className="rounded-xl gap-2" onClick={() => { setPrintFatura(selectedFatura); setSelectedFaturaId(null); }}>
+                    <Printer className="w-4 h-4" /> Imprimir
+                  </Button>
                   <Button className="rounded-xl btn-cta gap-2" onClick={(e) => handleDownloadPDF(e, selectedFatura)} disabled={isDownloading === selectedFatura.id}>
                     {isDownloading === selectedFatura.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                     Descarregar PDF
@@ -722,6 +727,26 @@ export default function Faturas() {
         defaultAmount={paymentLinkFatura ? Number(paymentLinkFatura.total) : 0}
         defaultDescription={paymentLinkFatura ? `Pagamento da ${paymentLinkFatura.numero}` : ''}
         faturaId={paymentLinkFatura?.id}
+      />
+
+      {/* Print Dialog */}
+      <PrintInvoiceDialog
+        fatura={printFatura}
+        open={!!printFatura}
+        onOpenChange={(open) => !open && setPrintFatura(null)}
+        companyInfo={agtConfig ? {
+          nome_empresa: agtConfig.nome_empresa || undefined,
+          nif_produtor: agtConfig.nif_produtor || undefined,
+          endereco_empresa: agtConfig.endereco_empresa || undefined,
+          telefone: agtConfig.telefone || undefined,
+          email: agtConfig.email || undefined,
+          morada: agtConfig.morada || undefined,
+          cidade: agtConfig.cidade || undefined,
+          provincia: agtConfig.provincia || undefined,
+          alvara_comercial: agtConfig.alvara_comercial || undefined,
+          certificate_number: agtConfig.certificate_number || undefined,
+          logo_url: agtConfig.logo_url || undefined,
+        } : undefined}
       />
     </MainLayout>
   );
