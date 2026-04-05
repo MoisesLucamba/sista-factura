@@ -242,6 +242,17 @@ const App = () => (
                   <BuyerScanInvoice />
                 </ProtectedRoute>
               }
+              />
+            </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/gestao-stock"
+              element={
+                <ProtectedRoute>
+                  <GestaoStock />
+                </ProtectedRoute>
+              }
             />
             
             {/* Catch-all route */}

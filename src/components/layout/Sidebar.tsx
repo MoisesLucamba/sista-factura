@@ -28,6 +28,7 @@ const mainNavItems: NavItem[] = [
   { icon: Truck,           label: 'Fornecedores', href: '/fornecedores' },
   { icon: Package,         label: 'Produtos',     href: '/produtos'     },
   { icon: ScanLine,        label: 'POS',          href: '/pos'          },
+  { icon: Package,         label: 'Stock',        href: '/gestao-stock' },
   { icon: Receipt,         label: 'Documentos',   href: '/documentos'   },
   { icon: BarChart3,       label: 'Relatórios',   href: '/relatorios'   },
   { icon: Store,           label: 'Lojas',        href: '/lojas'        },
