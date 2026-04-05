@@ -133,6 +133,26 @@ export default function Produtos() {
   const createProduto = useCreateProduto();
   const updateProduto = useUpdateProduto();
   const deleteProduto = useDeleteProduto();
+  const { user } = useAuth();
+
+  // Shared product database — merchant count & price ranges
+  const { data: sharedProducts = [] } = useQuery({
+    queryKey: ['shared_products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shared_products')
+        .select('barcode, merchant_count, avg_price, min_price, max_price');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const sharedMap = useMemo(() => {
+    const m = new Map<string, typeof sharedProducts[0]>();
+    sharedProducts.forEach(sp => m.set(sp.barcode, sp));
+    return m;
+  }, [sharedProducts]);
 
   const [search, setSearch]         = useState('');
   const [tipoFilter, setTipoFilter] = useState('all');
