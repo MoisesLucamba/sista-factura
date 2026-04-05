@@ -242,9 +242,6 @@ const App = () => (
                   <BuyerScanInvoice />
                 </ProtectedRoute>
               }
-              />
-            </ProtectedRoute>
-              }
             />
             <Route
               path="/gestao-stock"
