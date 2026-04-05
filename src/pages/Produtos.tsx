@@ -839,13 +839,14 @@ export default function Produtos() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-amber-100 dark:border-amber-900/20
                   bg-amber-50/30 dark:bg-amber-950/10">
-                  {[
+                   {[
                     { label: 'Item', cls: 'pl-6' },
                     { label: 'Código', cls: '' },
                     { label: 'Preço', cls: 'text-right' },
                     { label: 'Categoria IVA', cls: 'text-center' },
                     { label: 'Taxa', cls: 'text-center' },
                     { label: 'Stock', cls: 'text-center hidden md:table-cell' },
+                    { label: 'Mercado', cls: 'text-center hidden lg:table-cell' },
                   ].map(({ label, cls }) => (
                     <TableHead key={label}
                       className={cn('text-[11px] font-bold uppercase tracking-widest text-muted-foreground', cls)}>
