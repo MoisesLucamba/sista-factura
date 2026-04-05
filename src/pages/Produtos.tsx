@@ -860,7 +860,7 @@ export default function Produtos() {
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-20">
+                    <TableCell colSpan={8} className="text-center py-20">
                       <div className="flex flex-col items-center gap-4">
                         <div className="w-20 h-20 rounded-3xl bg-amber-50 dark:bg-amber-950/30
                           border border-amber-200/60 dark:border-amber-800/30
