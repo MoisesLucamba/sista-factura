@@ -983,6 +983,25 @@ export default function Produtos() {
                         )}
                       </TableCell>
 
+                      {/* Mercado (shared product DB) */}
+                      <TableCell className="text-center hidden lg:table-cell">
+                        {produto.barcode && sharedMap.has(produto.barcode) ? (() => {
+                          const sp = sharedMap.get(produto.barcode)!;
+                          return (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                                {sp.merchant_count} vendedor{sp.merchant_count > 1 ? 'es' : ''}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                {formatCurrency(sp.min_price)} – {formatCurrency(sp.max_price)}
+                              </span>
+                            </div>
+                          );
+                        })() : (
+                          <span className="text-muted-foreground/30 text-base">—</span>
+                        )}
+                      </TableCell>
+
                       {/* Ações */}
                       <TableCell className="pr-4">
                         <DropdownMenu>
