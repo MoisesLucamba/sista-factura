@@ -1117,6 +1117,53 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_movements: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          produto_id: string
+          quantity_after: number
+          quantity_before: number
+          quantity_change: number
+          reference: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          produto_id: string
+          quantity_after?: number
+          quantity_before?: number
+          quantity_change?: number
+          reference?: string | null
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          produto_id?: string
+          quantity_after?: number
+          quantity_before?: number
+          quantity_change?: number
+          reference?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sub_stores: {
         Row: {
           approved: boolean
