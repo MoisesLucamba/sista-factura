@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ═══════════════════════════════════════════════════════════════
 // PALETA — Âmbar/Laranja Suave (substitui o azul escuro)
@@ -130,6 +133,26 @@ export default function Produtos() {
   const createProduto = useCreateProduto();
   const updateProduto = useUpdateProduto();
   const deleteProduto = useDeleteProduto();
+  const { user } = useAuth();
+
+  // Shared product database — merchant count & price ranges
+  const { data: sharedProducts = [] } = useQuery({
+    queryKey: ['shared_products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shared_products')
+        .select('barcode, merchant_count, avg_price, min_price, max_price');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const sharedMap = useMemo(() => {
+    const m = new Map<string, typeof sharedProducts[0]>();
+    sharedProducts.forEach(sp => m.set(sp.barcode, sp));
+    return m;
+  }, [sharedProducts]);
 
   const [search, setSearch]         = useState('');
   const [tipoFilter, setTipoFilter] = useState('all');
@@ -816,13 +839,14 @@ export default function Produtos() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-amber-100 dark:border-amber-900/20
                   bg-amber-50/30 dark:bg-amber-950/10">
-                  {[
+                   {[
                     { label: 'Item', cls: 'pl-6' },
                     { label: 'Código', cls: '' },
                     { label: 'Preço', cls: 'text-right' },
                     { label: 'Categoria IVA', cls: 'text-center' },
                     { label: 'Taxa', cls: 'text-center' },
                     { label: 'Stock', cls: 'text-center hidden md:table-cell' },
+                    { label: 'Mercado', cls: 'text-center hidden lg:table-cell' },
                   ].map(({ label, cls }) => (
                     <TableHead key={label}
                       className={cn('text-[11px] font-bold uppercase tracking-widest text-muted-foreground', cls)}>
@@ -836,7 +860,7 @@ export default function Produtos() {
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-20">
+                    <TableCell colSpan={8} className="text-center py-20">
                       <div className="flex flex-col items-center gap-4">
                         <div className="w-20 h-20 rounded-3xl bg-amber-50 dark:bg-amber-950/30
                           border border-amber-200/60 dark:border-amber-800/30
@@ -955,6 +979,25 @@ export default function Produtos() {
                             )}
                           </div>
                         ) : (
+                          <span className="text-muted-foreground/30 text-base">—</span>
+                        )}
+                      </TableCell>
+
+                      {/* Mercado (shared product DB) */}
+                      <TableCell className="text-center hidden lg:table-cell">
+                        {produto.barcode && sharedMap.has(produto.barcode) ? (() => {
+                          const sp = sharedMap.get(produto.barcode)!;
+                          return (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                                {sp.merchant_count} vendedor{sp.merchant_count > 1 ? 'es' : ''}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                {formatCurrency(sp.min_price)} – {formatCurrency(sp.max_price)}
+                              </span>
+                            </div>
+                          );
+                        })() : (
                           <span className="text-muted-foreground/30 text-base">—</span>
                         )}
                       </TableCell>
