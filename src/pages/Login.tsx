@@ -464,12 +464,21 @@ export default function Login() {
             </div>
           </form>
 
-          {/* Recover access link */}
-          <div className="fu-4 mt-5 text-center">
-            <Link to="/recuperar-senha"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium">
-              Esqueceste o código? <span className="text-primary font-semibold">Recuperar acesso</span>
-            </Link>
+          {/* Recover access links */}
+          <div className="fu-4 mt-5 text-center space-y-2">
+            <p className="text-sm text-muted-foreground font-medium">
+              Esqueceste o teu ID ou código?
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <Link to="/recuperar-senha"
+                className="inline-flex items-center justify-center gap-1.5 text-sm text-primary font-semibold hover:text-primary/80 transition-colors">
+                📧 Reenviar ID por Email
+              </Link>
+              <Link to="/recuperar-senha"
+                className="inline-flex items-center justify-center gap-1.5 text-sm text-primary font-semibold hover:text-primary/80 transition-colors">
+                📱 Reenviar ID por SMS
+              </Link>
+            </div>
           </div>
 
           <div className="fu-5 mt-4 text-center">

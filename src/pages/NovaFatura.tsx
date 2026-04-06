@@ -1,10 +1,12 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -12,51 +14,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useClientes, useCreateCliente } from '@/hooks/useClientes';
 import { useProdutos } from '@/hooks/useProdutos';
 import { useCreateFatura, type FaturaInput } from '@/hooks/useFaturas';
 import { useAutoSendInvoice } from '@/hooks/useAutoSendInvoice';
+import { useAgtConfig } from '@/hooks/useAgtConfig';
 import { formatCurrency, calculateIVA } from '@/lib/format';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  ArrowLeft, 
-  Plus, 
-  Trash2,
-  FileText,
-  Send,
-  Calculator,
-  Building2,
-  User,
-  Loader2,
-  AlertTriangle,
-  Search,
-  CheckCircle,
-  CreditCard,
-  QrCode,
-  Camera,
-  X,
-  Download,
+import {
+  ArrowLeft, Plus, Trash2, FileText, Loader2, Search, CheckCircle,
+  CreditCard, QrCode, Camera, X, Edit, User, Building2,
+  Wallet, Smartphone, Banknote, Building, Clock, Send,
+  Sparkles, Receipt, FileCheck, FileMinus, FilePlus, Save, Eye,
+  ShoppingBag, ScanBarcode,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import QRCode from 'qrcode';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import React from 'react';
 
-type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'proforma';
-type TipoCliente = 'consumidor_final' | 'empresa';
+type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'nota-debito';
+type BuyerTab = 'faktura-id' | 'qr' | 'anonimo';
+type AnonMode = 'consumidor_final' | 'nif_manual';
 
 interface ItemLocal {
   id: string;
@@ -71,102 +50,139 @@ interface ItemLocal {
   total: number;
 }
 
-interface ClienteDataFromQR {
-  nome: string;
-  nif: string;
-  endereco?: string;
-  email?: string;
-  telefone?: string;
-}
-
 export default function NovaFatura() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: clientes = [], isLoading: loadingClientes } = useClientes();
-  const { data: produtos = [], isLoading: loadingProdutos } = useProdutos();
+  const { data: clientes = [] } = useClientes();
+  const { data: produtos = [] } = useProdutos();
+  const { data: agtConfig } = useAgtConfig();
   const createFatura = useCreateFatura();
   const createCliente = useCreateCliente();
   const { autoSend, isAutoSendEnabled } = useAutoSendInvoice();
 
-  // QR Code Scanner state
-  const [showQRScanner, setShowQRScanner] = useState(false);
-  const [qrScannerActive, setQrScannerActive] = useState(false);
-  const qrScannerRef = useRef<Html5QrcodeScanner | null>(null);
-
-  // QR Code Generator state
-  const [showQRGenerator, setShowQRGenerator] = useState(false);
-  const qrCodeRef = useRef<HTMLDivElement>(null);
-
+  // State
+  const [buyerTab, setBuyerTab] = useState<BuyerTab>('faktura-id');
   const [tipo, setTipo] = useState<TipoDocumento>('fatura');
-  const [tipoCliente, setTipoCliente] = useState<TipoCliente>('consumidor_final');
-  const [clienteId, setClienteId] = useState<string>('');
-  const [observacoes, setObservacoes] = useState('');
-  const [metodoPagamento, setMetodoPagamento] = useState('');
   const [itens, setItens] = useState<ItemLocal[]>([]);
-  const [dataVencimento, setDataVencimento] = useState<string>(
+  const [metodoPagamento, setMetodoPagamento] = useState('');
+  const [observacoes, setObservacoes] = useState('');
+  const [dataVencimento, setDataVencimento] = useState(
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
   const [notaCreditoRef, setNotaCreditoRef] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [createdInvoiceNumber, setCreatedInvoiceNumber] = useState('');
+  const [createdInvoiceId, setCreatedInvoiceId] = useState('');
 
-  // B2C inline fields
-  const [cfNome, setCfNome] = useState('');
-  const [cfNif, setCfNif] = useState('');
-  const [cfEndereco, setCfEndereco] = useState('');
-
-  // Faktura ID lookup
-  const [useFakturaId, setUseFakturaId] = useState(false);
-  const [fakturaIdInput, setFakturaIdInput] = useState('');
+  // Buyer ID states
+  const [digits, setDigits] = useState('');
   const [buyerData, setBuyerData] = useState<{ user_id: string; nome: string; nif: string; telefone: string; email: string } | null>(null);
   const [lookingUpBuyer, setLookingUpBuyer] = useState(false);
+  const digitsRef = useRef<HTMLInputElement>(null);
 
-  // B2B inline fields
-  const [b2bNome, setB2bNome] = useState('');
-  const [b2bNif, setB2bNif] = useState('');
-  const [b2bEndereco, setB2bEndereco] = useState('');
-  const [useExistingClient, setUseExistingClient] = useState(true);
+  // Anonymous states
+  const [anonMode, setAnonMode] = useState<AnonMode>('consumidor_final');
+  const [manualNif, setManualNif] = useState('');
+  const [manualNome, setManualNome] = useState('');
+  const [manualEndereco, setManualEndereco] = useState('');
 
-  const clienteSelecionado = clientes.find(c => c.id === clienteId);
-  const isProforma = tipo === 'proforma';
+  // QR scanner
+  const [qrScannerActive, setQrScannerActive] = useState(false);
+  const qrScannerRef = useRef<Html5QrcodeScanner | null>(null);
 
+  // Product search
+  const [productSearch, setProductSearch] = useState('');
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
 
-  // ============ QR CODE SCANNER FUNCTIONS ============
-  const initializeQRScanner = () => {
+  const merchantName = agtConfig?.nome_empresa || 'Minha Empresa';
+  const merchantFakturaId = ''; // Will come from profile
+
+  // Cleanup QR scanner on unmount
+  useEffect(() => {
+    return () => {
+      if (qrScannerRef.current) {
+        qrScannerRef.current.clear();
+      }
+    };
+  }, []);
+
+  // Auto-lookup buyer when 6 digits entered
+  useEffect(() => {
+    if (digits.length === 6 && buyerTab === 'faktura-id') {
+      lookupBuyer();
+    }
+  }, [digits]);
+
+  const handleDigitsChange = (value: string) => {
+    const fullMatch = value.match(/FK-244-(\d{1,6})/i);
+    if (fullMatch) {
+      setDigits(fullMatch[1].slice(0, 6));
+      return;
+    }
+    const cleaned = value.replace(/\D/g, '').slice(0, 6);
+    setDigits(cleaned);
+  };
+
+  const lookupBuyer = async () => {
+    if (digits.length !== 6) return;
+    setLookingUpBuyer(true);
+    setBuyerData(null);
+    try {
+      const fakturaId = `FK-244-${digits}`;
+      const { data, error } = await supabase.rpc('lookup_buyer_by_faktura_id', {
+        _faktura_id: fakturaId,
+      });
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const buyer = data[0] as { user_id: string; nome: string; nif: string; telefone: string; email: string };
+        setBuyerData(buyer);
+        toast.success('Comprador identificado!');
+      } else {
+        toast.error('ID não encontrado. Verifica os dígitos.');
+      }
+    } catch {
+      toast.error('Erro ao procurar comprador');
+    } finally {
+      setLookingUpBuyer(false);
+    }
+  };
+
+  const initQRScanner = () => {
     if (qrScannerRef.current) return;
-
-    const scanner = new Html5QrcodeScanner(
-      'qr-reader',
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      false
-    );
-
-    scanner.render(
-      (decodedText) => {
-        try {
-          // Tenta fazer parse do QR code como JSON com dados do cliente
-          const clienteData: ClienteDataFromQR = JSON.parse(decodedText);
-          
-          // Preenche os campos com os dados do cliente
-          if (clienteData.nome) setCfNome(clienteData.nome);
-          if (clienteData.nif) setCfNif(clienteData.nif);
-          if (clienteData.endereco) setCfEndereco(clienteData.endereco);
-
-          toast.success('Dados do cliente capturados com sucesso!');
-          setShowQRScanner(false);
+    setQrScannerActive(true);
+    setTimeout(() => {
+      const scanner = new Html5QrcodeScanner(
+        'buyer-qr-reader',
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        false
+      );
+      scanner.render(
+        (decodedText) => {
+          try {
+            const parsed = JSON.parse(decodedText);
+            if (parsed.faktura_id) {
+              const match = parsed.faktura_id.match(/FK-244-(\d{6})/);
+              if (match) {
+                setDigits(match[1]);
+                setBuyerTab('faktura-id');
+              }
+            }
+          } catch {
+            const match = decodedText.match(/FK-244-(\d{6})/);
+            if (match) {
+              setDigits(match[1]);
+              setBuyerTab('faktura-id');
+            }
+          }
           scanner.clear();
           qrScannerRef.current = null;
           setQrScannerActive(false);
-        } catch {
-          // Se não for JSON, trata como texto simples (NIF ou ID)
-          toast.info(`QR Code lido: ${decodedText}`);
-        }
-      },
-      (error) => {
-        console.warn('QR Code scan error:', error);
-      }
-    );
-
-    qrScannerRef.current = scanner;
-    setQrScannerActive(true);
+          toast.success('QR lido com sucesso!');
+        },
+        () => {}
+      );
+      qrScannerRef.current = scanner;
+    }, 100);
   };
 
   const stopQRScanner = () => {
@@ -175,79 +191,6 @@ export default function NovaFatura() {
       qrScannerRef.current = null;
     }
     setQrScannerActive(false);
-    setShowQRScanner(false);
-  };
-
-  // ============ QR CODE GENERATOR FUNCTIONS ============
-  const generateQRCodeData = () => {
-    // Cria um objeto com os dados da fatura para o QR code
-    const qrData = {
-      tipo: tipo,
-      cliente: {
-        nome: cfNome || 'Consumidor Final',
-        nif: cfNif || '999999999',
-        endereco: cfEndereco || 'N/A',
-      },
-      itens: itens.map(item => ({
-        nome: item.produto_nome,
-        quantidade: item.quantidade,
-        preco: item.preco_unitario,
-      })),
-      totais: totais,
-      metodo_pagamento: metodoPagamento,
-      data_vencimento: dataVencimento,
-    };
-    return JSON.stringify(qrData);
-  };
-
-  const downloadQRCode = async () => {
-    try {
-      const qrData = generateQRCodeData();
-      if (qrCodeRef.current) {
-        // Create a temporary canvas element for QR generation
-        const tempCanvas = document.createElement('canvas');
-        await QRCode.toCanvas(tempCanvas, qrData, {
-          width: 256,
-          margin: 1,
-          errorCorrectionLevel: 'H',
-        });
-        const link = document.createElement('a');
-        link.href = tempCanvas.toDataURL('image/png');
-        link.download = `fatura-qrcode-${new Date().getTime()}.png`;
-        link.click();
-      }
-    } catch (err) {
-      console.error('Erro ao descarregar QR Code:', err);
-      toast.error('Erro ao descarregar QR Code');
-    }
-  };
-
-  const lookupBuyer = async () => {
-    if (!fakturaIdInput.trim()) {
-      toast.error('Digite o ID Faktura do comprador');
-      return;
-    }
-    setLookingUpBuyer(true);
-    try {
-      const { data, error } = await supabase.rpc('lookup_buyer_by_faktura_id', {
-        _faktura_id: fakturaIdInput.trim().toUpperCase(),
-      });
-      if (error) throw error;
-      if (data && data.length > 0) {
-        const buyer = data[0] as { user_id: string; nome: string; nif: string; telefone: string; email: string };
-        setBuyerData(buyer);
-        setCfNome(buyer.nome || '');
-        setCfNif(buyer.nif || '');
-        toast.success('Comprador encontrado!');
-      } else {
-        setBuyerData(null);
-        toast.error('Nenhum comprador encontrado com este ID');
-      }
-    } catch {
-      toast.error('Erro ao procurar comprador');
-    } finally {
-      setLookingUpBuyer(false);
-    }
   };
 
   const addItem = () => {
@@ -264,8 +207,42 @@ export default function NovaFatura() {
     }]);
   };
 
+  const addProductById = (produtoId: string) => {
+    const produto = produtos.find(p => p.id === produtoId);
+    if (!produto) return;
+
+    // Check if product already in cart
+    const existingIndex = itens.findIndex(i => i.produto_id === produtoId);
+    if (existingIndex >= 0) {
+      updateItem(existingIndex, 'quantidade', itens[existingIndex].quantidade + 1);
+      toast.success(`${produto.nome} — quantidade atualizada`);
+      return;
+    }
+
+    const preco = Number(produto.preco_unitario);
+    const taxa = Number(produto.taxa_iva);
+    const subtotal = preco;
+    const valorIva = calculateIVA(subtotal, taxa);
+
+    setItens(prev => [...prev, {
+      id: Date.now().toString(),
+      produto_id: produtoId,
+      produto_nome: produto.nome,
+      quantidade: 1,
+      preco_unitario: preco,
+      desconto: 0,
+      taxa_iva: taxa,
+      subtotal,
+      valor_iva: valorIva,
+      total: subtotal + valorIva,
+    }]);
+    setProductSearch('');
+    toast.success(`${produto.nome} adicionado`);
+  };
+
   const removeItem = (index: number) => {
     setItens(itens.filter((_, i) => i !== index));
+    if (editingItemIndex === index) setEditingItemIndex(null);
   };
 
   const updateItem = (index: number, field: string, value: string | number) => {
@@ -298,93 +275,89 @@ export default function NovaFatura() {
 
   const totais = useMemo(() => {
     const subtotal = itens.reduce((acc, item) => acc + (item.subtotal || 0), 0);
+    const desconto = itens.reduce((acc, item) => {
+      const bruto = (item.quantidade || 0) * (item.preco_unitario || 0);
+      return acc + bruto * ((item.desconto || 0) / 100);
+    }, 0);
     const totalIva = itens.reduce((acc, item) => acc + (item.valor_iva || 0), 0);
     const total = itens.reduce((acc, item) => acc + (item.total || 0), 0);
-    return { subtotal, totalIva, total };
+    return { subtotal, desconto, totalIva, total };
   }, [itens]);
 
-  // Render QR Code when showQRGenerator changes
-  React.useEffect(() => {
-    if (showQRGenerator && qrCodeRef.current && itens.length > 0) {
-      const qrData = generateQRCodeData();
-      QRCode.toCanvas(qrCodeRef.current, qrData, {
-        width: 256,
-        margin: 1,
-        errorCorrectionLevel: 'H',
-      }).catch((err) => {
-        console.error('Erro ao gerar QR Code:', err);
-      });
-    }
-  }, [showQRGenerator, itens, cfNome, cfNif, cfEndereco, totais, metodoPagamento, dataVencimento]);
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return produtos.slice(0, 10);
+    const q = productSearch.toLowerCase();
+    return produtos.filter(p =>
+      p.nome.toLowerCase().includes(q) ||
+      p.codigo.toLowerCase().includes(q) ||
+      (p.barcode && p.barcode.includes(q))
+    ).slice(0, 10);
+  }, [productSearch, produtos]);
 
-  const handleSave = async () => {
-    // Validate items
+  const handleEmit = async () => {
     if (itens.length === 0) {
-      toast.error('Adicione pelo menos um item');
+      toast.error('Adicione pelo menos um produto');
       return;
     }
     if (itens.some(item => !item.produto_id)) {
-      toast.error('Preencha todos os itens');
+      toast.error('Todos os itens devem ter um produto selecionado');
       return;
     }
-    if (tipo === 'nota-credito' && !notaCreditoRef.trim()) {
-      toast.error('A referência à fatura original é obrigatória para notas de crédito');
+    if ((tipo === 'nota-credito' || tipo === 'nota-debito') && !notaCreditoRef.trim()) {
+      toast.error('Referência ao documento original é obrigatória');
       return;
     }
 
-    let finalClienteId = clienteId;
+    // Resolve client
+    let finalClienteId = '';
 
-    if (tipoCliente === 'empresa') {
-      if (useExistingClient) {
-        if (!clienteId) {
-          toast.error('Selecione um cliente empresa');
-          return;
-        }
+    if (buyerTab === 'faktura-id' && buyerData) {
+      // Use buyer data to create/find client
+      const existing = clientes.find(c => c.nif === buyerData.nif && c.nif !== '999999999');
+      if (existing) {
+        finalClienteId = existing.id;
       } else {
-        // Validate B2B required fields
-        if (!b2bNome.trim()) {
-          toast.error('Nome da empresa é obrigatório');
-          return;
-        }
-        if (!b2bNif.trim()) {
-          toast.error('NIF é obrigatório para empresas');
-          return;
-        }
-        // Create new B2B client
         try {
           const newClient = await createCliente.mutateAsync({
-            nome: b2bNome.trim(),
-            nif: b2bNif.trim(),
-            endereco: b2bEndereco.trim() || 'N/A',
-            tipo: 'empresa',
+            nome: buyerData.nome || 'Consumidor Final',
+            nif: buyerData.nif || '999999999',
+            endereco: 'N/A',
+            tipo: 'particular',
             whatsapp_consent: false,
             whatsapp_enabled: false,
           });
           finalClienteId = newClient.id;
         } catch {
-          toast.error('Erro ao criar cliente empresa');
+          toast.error('Erro ao criar cliente');
           return;
         }
       }
+    } else if (buyerTab === 'anonimo' && anonMode === 'nif_manual' && manualNif.trim()) {
+      try {
+        const newClient = await createCliente.mutateAsync({
+          nome: manualNome.trim() || 'Consumidor Final',
+          nif: manualNif.trim(),
+          endereco: manualEndereco.trim() || 'N/A',
+          tipo: 'particular',
+          whatsapp_consent: false,
+          whatsapp_enabled: false,
+        });
+        finalClienteId = newClient.id;
+      } catch {
+        toast.error('Erro ao criar cliente');
+        return;
+      }
     } else {
-      // Consumidor Final - create or find
-      const nome = cfNome.trim() || 'Consumidor Final';
-      const nif = cfNif.trim() || '999999999';
-      const endereco = cfEndereco.trim() || 'N/A';
-
-      // Check if there's already a "Consumidor Final" client
-      const existingCf = clientes.find(
-        c => c.nome === 'Consumidor Final' && c.nif === '999999999' && !cfNome.trim() && !cfNif.trim()
-      );
-
+      // Anonymous - find or create "Consumidor Final"
+      const existingCf = clientes.find(c => c.nome === 'Consumidor Final' && c.nif === '999999999');
       if (existingCf) {
         finalClienteId = existingCf.id;
       } else {
         try {
           const newClient = await createCliente.mutateAsync({
-            nome,
-            nif,
-            endereco,
+            nome: 'Consumidor Final',
+            nif: '999999999',
+            endereco: 'N/A',
             tipo: 'particular',
             whatsapp_consent: false,
             whatsapp_enabled: false,
@@ -398,18 +371,16 @@ export default function NovaFatura() {
     }
 
     const faturaInput: FaturaInput = {
-      tipo: isProforma ? 'proforma' as any : tipo,
+      tipo: tipo as any,
       cliente_id: finalClienteId,
       data_emissao: new Date().toISOString().split('T')[0],
       data_vencimento: dataVencimento,
-      observacoes: isProforma
-        ? `DOCUMENTO PROFORMA – NÃO VÁLIDO COMO DOCUMENTO FISCAL${observacoes ? '\n' + observacoes : ''}`
-        : tipo === 'nota-credito'
-          ? `Ref. documento original: ${notaCreditoRef.trim()}${observacoes ? '\n' + observacoes : ''}`
-          : observacoes || undefined,
+      observacoes: (tipo === 'nota-credito' || tipo === 'nota-debito')
+        ? `Ref. documento original: ${notaCreditoRef.trim()}${observacoes ? '\n' + observacoes : ''}`
+        : observacoes || undefined,
       metodo_pagamento: metodoPagamento || undefined,
-      buyer_user_id: useFakturaId && buyerData ? buyerData.user_id : undefined,
-      buyer_faktura_id: useFakturaId && buyerData ? fakturaIdInput.trim().toUpperCase() : undefined,
+      buyer_user_id: buyerTab === 'faktura-id' && buyerData ? buyerData.user_id : undefined,
+      buyer_faktura_id: buyerTab === 'faktura-id' && buyerData ? `FK-244-${digits}` : undefined,
       itens: itens.map(item => ({
         produto_id: item.produto_id,
         quantidade: item.quantidade,
@@ -424,334 +395,279 @@ export default function NovaFatura() {
 
     try {
       const result = await createFatura.mutateAsync(faturaInput);
-      
-      const docLabel = isProforma ? 'Proforma' : 'Fatura';
-      toast.success(`${docLabel} criada com sucesso!`, {
-        description: `${docLabel} ${result.numero} foi emitida.`,
-      });
-      
-      if (!isProforma && isAutoSendEnabled && result?.id) {
+      setCreatedInvoiceNumber(result.numero);
+      setCreatedInvoiceId(result.id);
+      setShowSuccess(true);
+
+      if (isAutoSendEnabled && result?.id) {
         autoSend(result.id);
       }
-      
-      navigate('/faturas');
     } catch {
-      toast.error('Erro ao criar fatura');
+      toast.error('Erro ao emitir fatura');
     }
   };
 
+  const resetForm = () => {
+    setShowSuccess(false);
+    setItens([]);
+    setDigits('');
+    setBuyerData(null);
+    setMetodoPagamento('');
+    setObservacoes('');
+    setManualNif('');
+    setManualNome('');
+    setManualEndereco('');
+    setCreatedInvoiceNumber('');
+    setCreatedInvoiceId('');
+  };
+
+  // Document type config
+  const docTypes: { value: TipoDocumento; label: string; icon: React.ElementType }[] = [
+    { value: 'fatura', label: 'Fatura', icon: FileText },
+    { value: 'fatura-recibo', label: 'Fatura-Recibo', icon: FileCheck },
+    { value: 'recibo', label: 'Recibo', icon: Receipt },
+    { value: 'nota-credito', label: 'Nota de Crédito', icon: FileMinus },
+    { value: 'nota-debito', label: 'Nota de Débito', icon: FilePlus },
+  ];
+
+  const paymentMethods = [
+    { value: 'faktura_wallet', label: 'Faktura Wallet', icon: Wallet },
+    { value: 'multicaixa', label: 'Multicaixa Express', icon: Smartphone },
+    { value: 'dinheiro', label: 'Numerário', icon: Banknote },
+    { value: 'transferencia', label: 'Transferência', icon: Building },
+    { value: 'credito', label: 'Crédito / A prazo', icon: Clock },
+  ];
+
+  // ============ SUCCESS SCREEN ============
+  if (showSuccess) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto py-12 flex items-center justify-center min-h-[70vh]">
+          <div className="text-center max-w-md w-full space-y-6 animate-fade-in">
+            <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center mx-auto">
+              <CheckCircle className="w-10 h-10 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black mb-1">Fatura Emitida!</h2>
+              <p className="text-muted-foreground text-sm">
+                Documento <span className="font-mono font-bold text-foreground">{createdInvoiceNumber}</span> criado com sucesso.
+              </p>
+            </div>
+            {buyerData && (
+              <p className="text-sm text-primary font-semibold">
+                ✓ Fatura enviada automaticamente para FK-244-{digits}
+              </p>
+            )}
+            <div className="bg-muted/50 rounded-xl p-4">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-bold text-foreground">{formatCurrency(totais.total)}</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">-1kz deduzido do teu saldo de faturas</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Button variant="outline" onClick={() => navigate('/faturas')} className="gap-2">
+                <FileText className="w-4 h-4" />
+                Ver Faturas
+              </Button>
+              <Button variant="outline" onClick={() => {
+                const url = `https://wa.me/?text=${encodeURIComponent(`Fatura ${createdInvoiceNumber} — ${formatCurrency(totais.total)}`)}`;
+                window.open(url, '_blank');
+              }} className="gap-2">
+                <Send className="w-4 h-4" />
+                WhatsApp
+              </Button>
+            </div>
+            <Button onClick={resetForm} className="w-full gap-2 font-bold">
+              <Plus className="w-4 h-4" />
+              Nova Fatura
+            </Button>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
-      <div className="container mx-auto py-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/faturas">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-display font-bold">Nova Fatura</h1>
-              <p className="text-muted-foreground">Crie uma nova fatura ou documento fiscal</p>
-            </div>
+      <div className="container mx-auto py-4 md:py-6 space-y-5 max-w-2xl">
+
+        {/* ── Header ── */}
+        <div className="flex items-center gap-3">
+          <Link to="/faturas">
+            <Button variant="ghost" size="icon" className="shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <div className="min-w-0">
+            <h1 className="text-xl md:text-2xl font-black tracking-tight">Nova Fatura</h1>
+            {agtConfig?.nome_empresa && (
+              <p className="text-xs text-muted-foreground truncate">{merchantName}</p>
+            )}
           </div>
         </div>
 
-        {/* Tipo de Documento */}
-        <Card className="card-shadow">
-          <CardHeader>
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Tipo de Documento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup value={tipo} onValueChange={(value) => setTipo(value as TipoDocumento)}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-                {(['fatura', 'fatura-recibo', 'recibo', 'nota-credito', 'proforma'] as TipoDocumento[]).map((t) => (
-                  <div key={t} className="flex items-center space-x-2">
-                    <RadioGroupItem value={t} id={`tipo-${t}`} />
-                    <Label htmlFor={`tipo-${t}`} className="cursor-pointer capitalize">
-                      {t.replace('-', ' ')}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
-
-        {/* Cliente Section */}
-        <Card className="card-shadow">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-display flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-primary" />
-                Cliente
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowQRScanner(!showQRScanner)}
-                  className="gap-2"
+        {/* ── SECTION 1: Buyer Identification ── */}
+        <Card className="overflow-hidden">
+          <div className="px-4 pt-4 pb-2">
+            <p className="text-sm font-bold mb-3">Identificar comprador</p>
+            <div className="flex gap-2">
+              {([
+                { key: 'faktura-id' as BuyerTab, icon: CreditCard, label: 'Faktura ID' },
+                { key: 'qr' as BuyerTab, icon: Camera, label: 'QR' },
+                { key: 'anonimo' as BuyerTab, icon: User, label: 'Anón.' },
+              ]).map(({ key, icon: Icon, label }) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setBuyerTab(key);
+                    if (key !== 'qr') stopQRScanner();
+                    if (key === 'qr') initQRScanner();
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                    buyerTab === key
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                      : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                  }`}
                 >
-                  <QrCode className="w-4 h-4" />
-                  {showQRScanner ? 'Fechar Scanner' : 'Ler QR Code'}
-                </Button>
-              </div>
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </button>
+              ))}
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* QR Scanner Section */}
-            {showQRScanner && (
-              <div className="border border-dashed border-primary rounded-lg p-4 space-y-3 bg-primary/5 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-primary">
-                    <Camera className="w-4 h-4" />
-                    <span className="text-sm font-semibold">Leitor de QR Code</span>
+          </div>
+
+          <CardContent className="pt-3">
+            {/* Tab: Faktura ID */}
+            {buyerTab === 'faktura-id' && (
+              <div className="space-y-3 animate-fade-in">
+                <div
+                  className="flex items-center h-12 rounded-xl border-2 border-border/70 overflow-hidden focus-within:border-primary/55 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/.12)] transition-all"
+                >
+                  <div className="flex items-center justify-center px-3 h-full bg-muted/60 border-r border-border/50">
+                    <span className="text-sm font-black text-muted-foreground select-none">FK</span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={stopQRScanner}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center justify-center px-3 h-full bg-muted/40 border-r border-border/50">
+                    <span className="text-sm font-bold text-muted-foreground select-none">244</span>
+                  </div>
+                  <div className="flex-1 relative flex items-center h-full">
+                    <input
+                      ref={digitsRef}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={15}
+                      value={digits}
+                      onChange={e => handleDigitsChange(e.target.value)}
+                      onPaste={e => {
+                        const pasted = e.clipboardData.getData('text');
+                        const match = pasted.match(/FK-244-(\d{1,6})/i);
+                        if (match) { e.preventDefault(); handleDigitsChange(pasted); }
+                      }}
+                      placeholder="_ _ _ _ _ _"
+                      className="w-full h-full px-3 bg-transparent text-sm font-mono font-bold tracking-[0.3em] text-foreground placeholder:text-muted-foreground/40 placeholder:tracking-[0.4em] focus:outline-none"
+                      autoComplete="off"
+                    />
+                    {digits.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => { setDigits(''); setBuyerData(null); digitsRef.current?.focus(); }}
+                        className="absolute right-2 p-1 rounded-full hover:bg-muted/80 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                    )}
+                  </div>
+                  {lookingUpBuyer && (
+                    <div className="px-3">
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    </div>
+                  )}
                 </div>
-                <div id="qr-reader" className="w-full"></div>
+
+                {digits.length > 0 && !buyerData && (
+                  <p className="text-xs text-muted-foreground font-mono pl-1">
+                    FK-244-{digits.padEnd(6, '_')}
+                  </p>
+                )}
+
+                {buyerData && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex items-center gap-3 animate-fade-in">
+                    <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                      <CheckCircle className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold truncate">{buyerData.nome}</p>
+                      <p className="text-xs text-muted-foreground font-mono">FK-244-{digits}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab: QR Scanner */}
+            {buyerTab === 'qr' && (
+              <div className="space-y-3 animate-fade-in">
+                <p className="text-sm text-muted-foreground">Aponta a câmara para o QR do comprador</p>
+                <div id="buyer-qr-reader" className="w-full rounded-xl overflow-hidden" />
                 {!qrScannerActive && (
-                  <Button
-                    onClick={initializeQRScanner}
-                    className="w-full"
-                    size="sm"
-                  >
-                    <Camera className="w-4 h-4 mr-2" />
+                  <Button onClick={initQRScanner} className="w-full gap-2" variant="outline">
+                    <Camera className="w-4 h-4" />
                     Iniciar Scanner
                   </Button>
                 )}
-              </div>
-            )}
-
-            {/* Tipo Cliente Selection */}
-            <div className="flex gap-4">
-              <Button
-                variant={tipoCliente === 'consumidor_final' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTipoCliente('consumidor_final')}
-              >
-                <User className="w-4 h-4 mr-1" />
-                Consumidor Final
-              </Button>
-              <Button
-                variant={tipoCliente === 'empresa' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTipoCliente('empresa')}
-              >
-                <Building2 className="w-4 h-4 mr-1" />
-                Empresa
-              </Button>
-            </div>
-
-            {/* Consumidor Final (B2C) */}
-            {tipoCliente === 'consumidor_final' && (
-              <div className="space-y-4 animate-fade-in">
-                <div className="flex gap-4">
-                  <Button
-                    variant={!useFakturaId ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => { setUseFakturaId(false); setBuyerData(null); }}
-                  >
-                    <User className="w-4 h-4 mr-1" />
-                    Dados manuais
-                  </Button>
-                  <Button
-                    variant={useFakturaId ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setUseFakturaId(true)}
-                  >
-                    <CreditCard className="w-4 h-4 mr-1" />
-                    ID Faktura
-                  </Button>
-                </div>
-
-                {useFakturaId ? (
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Insira o ID Faktura do comprador para preencher automaticamente.
-                    </p>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Ex: FK-12345"
-                        value={fakturaIdInput}
-                        onChange={(e) => setFakturaIdInput(e.target.value.toUpperCase())}
-                        className="font-mono"
-                      />
-                      <Button onClick={lookupBuyer} disabled={lookingUpBuyer} size="default">
-                        {lookingUpBuyer ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                      </Button>
+                {buyerData && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex items-center gap-3">
+                    <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+                    <div>
+                      <p className="text-sm font-bold">{buyerData.nome}</p>
+                      <p className="text-xs text-muted-foreground font-mono">FK-244-{digits}</p>
                     </div>
-
-                    {buyerData && (
-                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3 animate-fade-in">
-                        <div className="flex items-center gap-2 text-primary">
-                          <CheckCircle className="w-4 h-4" />
-                          <span className="text-sm font-bold">Comprador encontrado</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Nome</Label>
-                            <Input value={buyerData.nome || ''} disabled className="bg-muted font-medium" />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">NIF</Label>
-                            <Input value={buyerData.nif || 'N/A'} disabled className="bg-muted font-mono" />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Telefone</Label>
-                            <Input value={buyerData.telefone || 'N/A'} disabled className="bg-muted" />
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Email</Label>
-                            <Input value={buyerData.email || 'N/A'} disabled className="bg-muted" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
-                ) : (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      Todos os campos são opcionais. Se não preencher, será usado "Consumidor Final".
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Nome (opcional)</Label>
-                        <Input
-                          placeholder="Consumidor Final"
-                          value={cfNome}
-                          onChange={(e) => setCfNome(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>NIF (opcional)</Label>
-                        <Input
-                          placeholder="Deixar em branco"
-                          value={cfNif}
-                          onChange={(e) => setCfNif(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Endereço (opcional)</Label>
-                      <Input
-                        placeholder="Endereço do cliente"
-                        value={cfEndereco}
-                        onChange={(e) => setCfEndereco(e.target.value)}
-                      />
-                    </div>
-                  </>
                 )}
               </div>
             )}
 
-            {/* Empresa (B2B) */}
-            {tipoCliente === 'empresa' && (
-              <div className="space-y-4 animate-fade-in">
-                <div className="flex gap-4">
-                  <Button
-                    variant={useExistingClient ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setUseExistingClient(true)}
+            {/* Tab: Anónimo */}
+            {buyerTab === 'anonimo' && (
+              <div className="space-y-3 animate-fade-in">
+                <p className="text-xs text-muted-foreground">A fatura será emitida como consumidor final anónimo.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setAnonMode('consumidor_final')}
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border-2 ${
+                      anonMode === 'consumidor_final'
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-border/50 text-muted-foreground'
+                    }`}
                   >
-                    Cliente existente
-                  </Button>
-                  <Button
-                    variant={!useExistingClient ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setUseExistingClient(false)}
+                    Consumidor Final
+                  </button>
+                  <button
+                    onClick={() => setAnonMode('nif_manual')}
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border-2 ${
+                      anonMode === 'nif_manual'
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-border/50 text-muted-foreground'
+                    }`}
                   >
-                    Novo cliente
-                  </Button>
+                    Adicionar NIF
+                  </button>
                 </div>
-
-                {useExistingClient ? (
-                  <div className="space-y-2">
-                    <Label>Selecionar Empresa *</Label>
-                    <Select value={clienteId} onValueChange={setClienteId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Escolha uma empresa..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clientes.filter(c => c.tipo === 'empresa').length === 0 ? (
-                          <div className="p-2 text-center text-muted-foreground text-sm">
-                            Nenhuma empresa cadastrada.
-                            <Link to="/clientes" className="block text-primary mt-1">
-                              Criar cliente
-                            </Link>
-                          </div>
-                        ) : (
-                          clientes.filter(c => c.tipo === 'empresa').map((cliente) => (
-                            <SelectItem key={cliente.id} value={cliente.id}>
-                              <div className="flex items-center gap-2">
-                                <Building2 className="w-4 h-4 text-muted-foreground" />
-                                <span>{cliente.nome}</span>
-                                <span className="text-muted-foreground text-xs">
-                                  NIF: {cliente.nif}
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-
-                    {clienteSelecionado && (
-                      <div className="bg-muted/50 rounded-lg p-4 space-y-2 animate-fade-in">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary">Empresa</Badge>
-                          <span className="font-mono text-sm text-muted-foreground">
-                            NIF: {clienteSelecionado.nif}
-                          </span>
-                        </div>
-                        <p className="font-medium">{clienteSelecionado.nome}</p>
-                        <p className="text-sm text-muted-foreground">{clienteSelecionado.endereco}</p>
-                        {clienteSelecionado.email && (
-                          <p className="text-sm text-muted-foreground">{clienteSelecionado.email}</p>
-                        )}
+                {anonMode === 'nif_manual' && (
+                  <div className="space-y-3 animate-fade-in">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Nome</Label>
+                        <Input placeholder="Nome do cliente" value={manualNome} onChange={e => setManualNome(e.target.value)} className="h-10 text-sm" />
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Nome da Empresa *</Label>
-                        <Input
-                          placeholder="Nome da empresa"
-                          value={b2bNome}
-                          onChange={(e) => setB2bNome(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>NIF *</Label>
-                        <Input
-                          placeholder="NIF da empresa"
-                          value={b2bNif}
-                          onChange={(e) => setB2bNif(e.target.value)}
-                          required
-                        />
+                      <div className="space-y-1">
+                        <Label className="text-xs">NIF *</Label>
+                        <Input placeholder="NIF" value={manualNif} onChange={e => setManualNif(e.target.value)} className="h-10 text-sm font-mono" />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Endereço</Label>
-                      <Input
-                        placeholder="Endereço da empresa"
-                        value={b2bEndereco}
-                        onChange={(e) => setB2bEndereco(e.target.value)}
-                      />
+                    <div className="space-y-1">
+                      <Label className="text-xs">Endereço</Label>
+                      <Input placeholder="Endereço" value={manualEndereco} onChange={e => setManualEndereco(e.target.value)} className="h-10 text-sm" />
                     </div>
                   </div>
                 )}
@@ -760,265 +676,273 @@ export default function NovaFatura() {
           </CardContent>
         </Card>
 
-        {/* Items */}
-        <Card className="card-shadow">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-display flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-primary" />
-                Itens {isProforma ? 'da Proforma' : 'da Fatura'}
-              </CardTitle>
-              <Button size="sm" onClick={addItem}>
-                <Plus className="w-4 h-4 mr-1" />
-                Adicionar Item
+        {/* ── SECTION 2: Invoice Type ── */}
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm font-bold mb-3">Tipo de documento</p>
+            <div className="flex flex-wrap gap-2">
+              {docTypes.map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  onClick={() => setTipo(value)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                    tipo === value
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
+                      : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            {(tipo === 'nota-credito' || tipo === 'nota-debito') && (
+              <div className="mt-3 space-y-1">
+                <Label className="text-xs">Referência ao documento original *</Label>
+                <Input placeholder="Nº do documento" value={notaCreditoRef} onChange={e => setNotaCreditoRef(e.target.value)} className="h-10 text-sm font-mono" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── SECTION 3: Products ── */}
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm font-bold mb-3">Produtos e Serviços</p>
+
+            {/* Search / Add controls */}
+            <div className="flex gap-2 mb-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar produto..."
+                  value={productSearch}
+                  onChange={e => setProductSearch(e.target.value)}
+                  className="h-10 pl-9 text-sm"
+                />
+              </div>
+              <Button variant="outline" size="sm" onClick={addItem} className="gap-1 h-10 text-xs font-bold shrink-0">
+                <Plus className="w-3.5 h-3.5" />
+                Manual
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
+
+            {/* Search results dropdown */}
+            {productSearch.trim() && filteredProducts.length > 0 && (
+              <div className="border rounded-xl mb-4 divide-y overflow-hidden bg-card shadow-sm">
+                {filteredProducts.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => addProductById(p.id)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate">{p.nome}</p>
+                      <p className="text-xs text-muted-foreground">{p.codigo}{p.barcode ? ` · ${p.barcode}` : ''}</p>
+                    </div>
+                    <span className="text-sm font-bold font-mono text-primary shrink-0">
+                      {formatCurrency(Number(p.preco_unitario))}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Cart items */}
             {itens.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <Calculator className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>Nenhum item adicionado</p>
-                <p className="text-sm">Clique em "Adicionar Item" para começar</p>
+                <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                <p className="text-sm">Nenhum produto adicionado</p>
+                <p className="text-xs">Pesquise ou adicione manualmente</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Produto</TableHead>
-                      <TableHead className="text-right">Quantidade</TableHead>
-                      <TableHead className="text-right">Preço Unit.</TableHead>
-                      <TableHead className="text-right">Desconto %</TableHead>
-                      <TableHead className="text-right">IVA %</TableHead>
-                      <TableHead className="text-right">Subtotal</TableHead>
-                      <TableHead className="text-right">IVA</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {itens.map((item, index) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <Select value={item.produto_id} onValueChange={(value) => updateItem(index, 'produto_id', value)}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {produtos.map((p) => (
-                                <SelectItem key={p.id} value={p.id}>
-                                  {p.nome}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.quantidade}
-                            onChange={(e) => updateItem(index, 'quantidade', parseFloat(e.target.value) || 0)}
-                            className="w-20 text-right"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.preco_unitario}
-                            onChange={(e) => updateItem(index, 'preco_unitario', parseFloat(e.target.value) || 0)}
-                            className="w-24 text-right"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.01"
-                            value={item.desconto}
-                            onChange={(e) => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
-                            className="w-20 text-right"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.01"
-                            value={item.taxa_iva}
-                            onChange={(e) => updateItem(index, 'taxa_iva', parseFloat(e.target.value) || 14)}
-                            className="w-20 text-right"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatCurrency(item.subtotal)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {formatCurrency(item.valor_iva)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono font-semibold">
-                          {formatCurrency(item.total)}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeItem(index)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="space-y-3">
+                {itens.map((item, index) => (
+                  <div key={item.id} className="border rounded-xl p-3 space-y-2 bg-muted/20">
+                    {/* Product select for manual items */}
+                    {!item.produto_nome && (
+                      <Select value={item.produto_id} onValueChange={v => updateItem(index, 'produto_id', v)}>
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Selecionar produto..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {produtos.map(p => (
+                            <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+
+                    {/* Product card */}
+                    {item.produto_nome && (
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <ShoppingBag className="w-4 h-4 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold truncate">{item.produto_nome}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatCurrency(item.preco_unitario)} × {item.quantidade}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold font-mono">{formatCurrency(item.subtotal)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.taxa_iva > 0 ? `IVA ${item.taxa_iva}% · ${formatCurrency(item.valor_iva)}` : 'Isento IVA'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Inline edit controls */}
+                    {editingItemIndex === index ? (
+                      <div className="grid grid-cols-3 gap-2 pt-1 animate-fade-in">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] text-muted-foreground">Qtd</Label>
+                          <Input type="number" min="1" step="1" value={item.quantidade}
+                            onChange={e => updateItem(index, 'quantidade', parseFloat(e.target.value) || 1)}
+                            className="h-8 text-xs" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] text-muted-foreground">Desc. %</Label>
+                          <Input type="number" min="0" max="100" value={item.desconto}
+                            onChange={e => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
+                            className="h-8 text-xs" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] text-muted-foreground">IVA %</Label>
+                          <Input type="number" min="0" max="100" value={item.taxa_iva}
+                            onChange={e => updateItem(index, 'taxa_iva', parseFloat(e.target.value) || 0)}
+                            className="h-8 text-xs" />
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Action buttons */}
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs"
+                          onClick={() => updateItem(index, 'quantidade', Math.max(1, item.quantidade - 1))}>
+                          −
+                        </Button>
+                        <span className="flex items-center px-2 text-xs font-bold tabular-nums">{item.quantidade}</span>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs"
+                          onClick={() => updateItem(index, 'quantidade', item.quantidade + 1)}>
+                          +
+                        </Button>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7"
+                          onClick={() => setEditingItemIndex(editingItemIndex === index ? null : index)}>
+                          <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7"
+                          onClick={() => removeItem(index)}>
+                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Totals */}
+        {/* ── SECTION 4: Totals ── */}
         {itens.length > 0 && (
-          <Card className="card-shadow bg-primary/5 border-primary/20">
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Subtotal</p>
-                  <p className="text-2xl font-bold font-mono">{formatCurrency(totais.subtotal)}</p>
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="pt-4 pb-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-mono font-semibold">{formatCurrency(totais.subtotal)}</span>
+              </div>
+              {totais.desconto > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Desconto</span>
+                  <span className="font-mono text-destructive">-{formatCurrency(totais.desconto)}</span>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">IVA Total</p>
-                  <p className="text-2xl font-bold font-mono text-orange-600">{formatCurrency(totais.totalIva)}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold font-mono text-primary">{formatCurrency(totais.total)}</p>
-                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">IVA</span>
+                <span className="font-mono font-semibold">{formatCurrency(totais.totalIva)}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="font-bold">TOTAL</span>
+                <span className="text-lg font-black font-mono text-primary">{formatCurrency(totais.total)}</span>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Additional Info */}
-        <Card className="card-shadow">
-          <CardHeader>
-            <CardTitle className="text-lg font-display">Informações Adicionais</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data de Vencimento</Label>
-                <Input
-                  type="date"
-                  value={dataVencimento}
-                  onChange={(e) => setDataVencimento(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Método de Pagamento</Label>
-                <Select value={metodoPagamento} onValueChange={setMetodoPagamento}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="transferencia">Transferência Bancária</SelectItem>
-                    <SelectItem value="cartao">Cartão de Crédito</SelectItem>
-                    <SelectItem value="cheque">Cheque</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {tipo === 'nota-credito' && (
-              <div className="space-y-2">
-                <Label>Referência à Fatura Original *</Label>
-                <Input
-                  placeholder="Número da fatura original"
-                  value={notaCreditoRef}
-                  onChange={(e) => setNotaCreditoRef(e.target.value)}
-                />
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label>Observações</Label>
-              <Textarea
-                placeholder="Adicione observações ou notas adicionais..."
-                value={observacoes}
-                onChange={(e) => setObservacoes(e.target.value)}
-                rows={4}
-              />
+        {/* ── SECTION 5: Payment Method ── */}
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm font-bold mb-3">Método de pagamento</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {paymentMethods.map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  onClick={() => setMetodoPagamento(value)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border-2 ${
+                    metodoPagamento === value
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-border/50 text-muted-foreground hover:border-border'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* QR Code Generator Section */}
-        {itens.length > 0 && (
-          <Card className="card-shadow border-primary/20 bg-primary/5">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-display flex items-center gap-2">
-                  <QrCode className="w-5 h-5 text-primary" />
-                  Gerar QR Code da Fatura
-                </CardTitle>
-                <Button
-                  variant={showQRGenerator ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setShowQRGenerator(!showQRGenerator)}
-                  className="gap-2"
-                >
-                  <QrCode className="w-4 h-4" />
-                  {showQRGenerator ? 'Ocultar' : 'Mostrar'} QR Code
-                </Button>
+        {/* Additional info */}
+        <Card>
+          <CardContent className="pt-4 pb-4 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Data de vencimento</Label>
+                <Input type="date" value={dataVencimento} onChange={e => setDataVencimento(e.target.value)} className="h-10 text-sm" />
               </div>
-            </CardHeader>
-            {showQRGenerator && (
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  O QR Code contém os dados da fatura (cliente, itens, totais) e pode ser compartilhado com o cliente para leitura.
-                </p>
-                <div className="flex justify-center p-4 bg-white rounded-lg border border-dashed">
-                  <div ref={qrCodeRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {/* QR Code será renderizado aqui via canvas */}
-                  </div>
-                </div>
-                <Button
-                  onClick={downloadQRCode}
-                  className="w-full gap-2"
-                  variant="outline"
-                >
-                  <Download className="w-4 h-4" />
-                  Descarregar QR Code
-                </Button>
-              </CardContent>
-            )}
-          </Card>
-        )}
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Observações</Label>
+              <Textarea placeholder="Notas adicionais..." value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={2} className="text-sm" />
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 justify-end">
-          <Link to="/faturas">
-            <Button variant="outline">Cancelar</Button>
-          </Link>
+        {/* ── SECTION 6: Actions ── */}
+        <div className="space-y-2 pb-6">
           <Button
-            onClick={handleSave}
-            disabled={createFatura.isPending}
-            className="gap-2"
+            onClick={handleEmit}
+            disabled={createFatura.isPending || itens.length === 0}
+            className="w-full h-12 text-base font-black rounded-xl shadow-lg shadow-primary/25 gap-2"
           >
             {createFatura.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <><Loader2 className="w-4 h-4 animate-spin" />A emitir...</>
             ) : (
-              <FileText className="w-4 h-4" />
+              <><FileText className="w-4 h-4" />EMITIR FATURA</>
             )}
-            {isProforma ? 'Criar Proforma' : 'Criar Fatura'}
           </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1 gap-2 text-xs font-bold" onClick={() => toast.info('Rascunho guardado (em breve)')}>
+              <Save className="w-3.5 h-3.5" />
+              Guardar rascunho
+            </Button>
+            <Button variant="outline" className="flex-1 gap-2 text-xs font-bold" onClick={() => toast.info('Pré-visualização (em breve)')}>
+              <Eye className="w-3.5 h-3.5" />
+              Pré-visualizar
+            </Button>
+          </div>
         </div>
       </div>
     </MainLayout>
