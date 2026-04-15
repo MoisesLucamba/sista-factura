@@ -16,7 +16,6 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import logoFaktura from '@/assets/logo-faktura.png';
 import heroBusiness from '@/assets/hero-business.jpg';
-import dashboardPreview from '@/assets/dashboard-preview.png';
 import logoOrbislink from '@/assets/logos/orbislink.png';
 import logoCalmind from '@/assets/logos/calmind.png';
 import logoPlaka from '@/assets/logos/plaka.jpg';
@@ -182,15 +181,12 @@ function SectionAutoFaturacao() {
           </div>
         </FadeIn>
 
-        {/* ── DOIS CARDS PRINCIPAIS ── */}
         <div className="grid lg:grid-cols-2 gap-8 mb-16">
-
           {/* Card 1 — Proximidade */}
           <FadeIn direction="left" delay={100}>
             <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
               <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-
               <div className="flex items-center gap-4 mb-7">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
                   <MapPin className="w-8 h-8 text-primary" />
@@ -200,11 +196,9 @@ function SectionAutoFaturacao() {
                   <h3 className="text-2xl font-black">Faturação por Proximidade</h3>
                 </div>
               </div>
-
               <p className="text-muted-foreground leading-relaxed mb-7 text-sm">
                 Quando o cliente com ID Faktura entra na sua loja, o sistema detecta-o automaticamente via <strong className="text-foreground">Bluetooth / NFC</strong> e pré-carrega os seus dados fiscais — a fatura está pronta antes de chegar ao caixa.
               </p>
-
               <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7 space-y-3">
                 <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-3">Como funciona</p>
                 {[
@@ -224,13 +218,11 @@ function SectionAutoFaturacao() {
                   </div>
                 ))}
               </div>
-
               <div className="flex flex-wrap gap-2 mb-7">
                 {['Bluetooth Low Energy', 'NFC', 'Sem app do cliente aberta', 'Lojas · Restaurantes · Postos'].map(t => (
                   <span key={t} className="text-xs bg-primary/8 border border-primary/20 text-primary font-semibold px-3 py-1 rounded-full">{t}</span>
                 ))}
               </div>
-
               <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl p-4">
                 <Clock className="w-5 h-5 text-primary flex-shrink-0" />
                 <p className="text-sm text-muted-foreground"><strong className="text-foreground">Redução de 80%</strong> no tempo de preenchimento de dados no caixa.</p>
@@ -243,7 +235,6 @@ function SectionAutoFaturacao() {
             <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
               <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-
               <div className="flex items-center gap-4 mb-7">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
                   <ScanLine className="w-8 h-8 text-primary" />
@@ -253,11 +244,9 @@ function SectionAutoFaturacao() {
                   <h3 className="text-2xl font-black">Auto-Faturação no Caixa</h3>
                 </div>
               </div>
-
               <p className="text-muted-foreground leading-relaxed mb-7 text-sm">
                 Chega de perder minutos nos supermercados. O operador apresenta o <strong className="text-foreground">QR da compra</strong> — o cliente aponta o telemóvel, confirma, e a fatura é emitida automaticamente em conformidade AGT. Sem filas. Sem espera.
               </p>
-
               <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7">
                 <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-4">Experiência no caixa</p>
                 <div className="grid grid-cols-3 gap-3 items-center">
@@ -291,13 +280,11 @@ function SectionAutoFaturacao() {
                   Tempo médio: 4 segundos
                 </div>
               </div>
-
               <div className="flex flex-wrap gap-2 mb-7">
                 {['Supermercados', 'Farmácias', 'Postos de combustível', 'Restauração', 'Zero papel'].map(t => (
                   <span key={t} className="text-xs bg-primary/8 border border-primary/20 text-primary font-semibold px-3 py-1 rounded-full">{t}</span>
                 ))}
               </div>
-
               <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl p-4">
                 <Users className="w-5 h-5 text-primary flex-shrink-0" />
                 <p className="text-sm text-muted-foreground"><strong className="text-foreground">Fila anda 3× mais rápido</strong> — operador não precisa digitar nenhum dado do cliente.</p>
@@ -306,7 +293,7 @@ function SectionAutoFaturacao() {
           </FadeIn>
         </div>
 
-        {/* ── COMPARAÇÃO ANTES / DEPOIS ── */}
+        {/* Comparação Antes / Depois */}
         <FadeIn direction="up" delay={150}>
           <div className="bg-card border border-border/50 rounded-3xl p-8 lg:p-12 relative overflow-hidden mb-10">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
@@ -354,7 +341,6 @@ function SectionAutoFaturacao() {
           </div>
         </FadeIn>
 
-        {/* ── CTA SECÇÃO ── */}
         <FadeIn direction="up" delay={200}>
           <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden text-center">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
@@ -1074,7 +1060,7 @@ export default function LandingPage() {
         @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
         @keyframes bounce-subtle { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
         @keyframes fade-scale { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
-        @keyframes lema-appear { 0%{opacity:0;transform:translateY(60px) scale(.9)} 60%{opacity:1;transform:translateY(-8px) scale(1.02)} 100%{transform:translateY(0) scale(1)} }
+        @keyframes id-glow { 0%,100%{box-shadow:0 0 0 0 hsl(var(--primary)/.0)} 50%{box-shadow:0 0 32px 4px hsl(var(--primary)/.25)} }
 
         .af { animation: float 4s ease-in-out infinite; }
         .af2 { animation: float2 6s ease-in-out infinite; }
@@ -1082,6 +1068,7 @@ export default function LandingPage() {
         .asx { animation: scroll-x 28s linear infinite; }
         .ag { animation: glow-pulse 3s ease-in-out infinite; }
         .ab { animation: bounce-subtle 2.5s ease-in-out infinite; }
+        .id-glow { animation: id-glow 3s ease-in-out infinite; }
 
         .hero1 { animation: slide-left .9s cubic-bezier(.4,0,.2,1) .15s both; }
         .hero2 { animation: slide-left .9s cubic-bezier(.4,0,.2,1) .35s both; }
@@ -1118,31 +1105,6 @@ export default function LandingPage() {
         .ec:hover { transform: translateY(-6px); box-shadow: 0 20px 48px hsl(var(--primary)/.12); }
         .btn-glow:hover { box-shadow: 0 8px 32px hsl(var(--primary)/.45) !important; }
         .id-badge { font-family: 'Courier New', monospace; letter-spacing: .15em; }
-
-        .lema-section {
-          background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/.7) 100%);
-          position: relative;
-          overflow: hidden;
-        }
-        .lema-section::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,.15) 0%, transparent 60%),
-                      radial-gradient(ellipse at 80% 50%, rgba(255,255,255,.08) 0%, transparent 60%);
-        }
-        .lema-text {
-          font-size: clamp(2.5rem, 8vw, 7rem);
-          font-weight: 900;
-          letter-spacing: -0.03em;
-          line-height: 1;
-          animation: lema-appear 1s cubic-bezier(.34,1.56,.64,1) .1s both;
-        }
-        .lema-sub {
-          animation: lema-appear 1s cubic-bezier(.34,1.56,.64,1) .3s both;
-        }
-        .ticker-wrap { overflow: hidden; }
-        .ticker-inner { display: flex; width: max-content; animation: ticker 20s linear infinite; }
 
         .page-transition { animation: fade-scale .4s cubic-bezier(.4,0,.2,1) both; }
 
@@ -1206,43 +1168,32 @@ export default function LandingPage() {
         @keyframes mouse-scroll { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
         .mouse-scroll-dot { animation: mouse-scroll 2s ease-in-out infinite; }
 
-        @keyframes rise-in {
-          from { opacity:0; transform: translateY(60px) scale(.96); }
-          to   { opacity:1; transform: translateY(0)   scale(1);    }
-        }
-        .dash-rise { animation: rise-in 1s cubic-bezier(.22,1,.36,1) .15s both; }
-
-        .dash-frame {
+        .faktura-id-card {
+          background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/.75) 100%);
           border-radius: 20px;
+          position: relative;
           overflow: hidden;
-          box-shadow:
-            0 0 0 1px hsl(var(--primary)/.18),
-            0 30px 90px hsl(var(--primary)/.20),
-            0 10px 40px rgba(0,0,0,.18);
-          transition: box-shadow .5s ease, transform .5s ease;
         }
-        .dash-frame:hover {
-          box-shadow:
-            0 0 0 1px hsl(var(--primary)/.35),
-            0 40px 110px hsl(var(--primary)/.30),
-            0 15px 50px rgba(0,0,0,.22);
-          transform: translateY(-6px);
+        .faktura-id-card::before {
+          content: '';
+          position: absolute;
+          top: -30%;
+          right: -10%;
+          width: 250px;
+          height: 250px;
+          background: rgba(255,255,255,.08);
+          border-radius: 50%;
         }
-        .browser-bar {
-          background: hsl(var(--muted)/.9);
-          border-bottom: 1px solid hsl(var(--border)/.6);
-          backdrop-filter: blur(12px);
+        .faktura-id-card::after {
+          content: '';
+          position: absolute;
+          bottom: -20%;
+          left: -5%;
+          width: 180px;
+          height: 180px;
+          background: rgba(255,255,255,.06);
+          border-radius: 50%;
         }
-        .url-bar {
-          background: hsl(var(--background)/.7);
-          border: 1px solid hsl(var(--border)/.5);
-        }
-        .tag-pill {
-          background: hsl(var(--primary)/.09);
-          border: 1px solid hsl(var(--primary)/.22);
-          transition: all .25s ease;
-        }
-        .tag-pill:hover { background: hsl(var(--primary)/.18); transform: translateY(-2px); }
       `}</style>
 
       {/* ── NAV ── */}
@@ -1280,9 +1231,6 @@ export default function LandingPage() {
       ) : (
         <>
           {/* ══ HERO ══ */}
-
-
-          
           <section className="hero-wrap">
             <div className="hero-photo">
               <img src={heroBusiness} alt="Empresarios angolanos a trabalhar" />
@@ -1347,11 +1295,11 @@ export default function LandingPage() {
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
                   </Button>
                 </Link>
-                <a href="#plataforma">
+                <a href="#id-fiscal">
                   <Button size="lg" variant="outline"
                     className="h-14 px-8 text-lg font-bold border-2 border-white/35 text-white bg-white/10 hover:bg-white/18 hover:border-white/60 hover:scale-[1.04] transition-all group gap-2.5 backdrop-blur-md">
                     <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    Ver a Plataforma
+                    O Meu ID Fiscal
                   </Button>
                 </a>
               </div>
@@ -1414,8 +1362,8 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* ══ PLATAFORMA SHOWCASE ══ */}
-          <section id="plataforma" className="relative py-28 overflow-hidden">
+          {/* ══ IDENTIFICADOR ÚNICO FISCAL — SECÇÃO PUBLICITÁRIA ══ */}
+          <section id="id-fiscal" className="relative py-28 overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
@@ -1426,79 +1374,120 @@ export default function LandingPage() {
             </div>
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <FadeIn direction="up">
-                <div className="text-center mb-14">
-                  <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
-                    <Zap className="w-4 h-4 text-primary animate-pulse" />
-                    <span className="text-sm font-bold">Plataforma completa</span>
+              <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+                {/* Texto */}
+                <FadeIn direction="left">
+                  <div>
+                    <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
+                      <ShieldCheck className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-bold">Identificador Único Fiscal</span>
+                    </div>
+                    <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-6 leading-tight">
+                      Crie o seu ID fiscal.<br />
+                      <span className="shimmer-text">Use em tudo.</span>
+                    </h2>
+                    <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                      O seu Identificador Único Fiscal Faktura é o seu passaporte digital para todas as actividades fiscais em Angola. Um só ID, válido em qualquer empresa que use a Faktura.
+                    </p>
+                    <p className="text-base text-muted-foreground leading-relaxed mb-8">
+                      Compre, receba faturas automáticas e ganhe recompensas — tudo com um único identificador. <strong className="text-foreground">Com a Faktura, todos fakturam.</strong>
+                    </p>
+                    <div className="flex flex-wrap gap-3 mb-8">
+                      {['Registo gratuito', 'Válido em toda Angola', 'Faturas automáticas', '50 Kz por compra'].map(tag => (
+                        <span key={tag} className="text-sm font-semibold bg-primary/8 border border-primary/20 text-primary px-4 py-2 rounded-full">{tag}</span>
+                      ))}
+                    </div>
+                    <Link to="/registar">
+                      <Button size="lg" className="h-14 px-10 font-black shadow-2xl shadow-primary/40 btn-glow hover:scale-105 transition-all gap-2">
+                        Criar o meu ID Fiscal <ArrowRight className="w-5 h-5" />
+                      </Button>
+                    </Link>
                   </div>
-                  <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5 leading-tight">
-                    Tudo o que precisa,<br />
-                    <span className="shimmer-text">num só ecrã</span>
-                  </h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                    Dashboard intuitivo com métricas em tempo real, gestão de faturas, clientes e pagamentos —
-                    desenhado especificamente para o mercado angolano.
-                  </p>
-                </div>
-              </FadeIn>
+                </FadeIn>
 
-              <FadeIn direction="up" delay={80}>
-                <div className="flex flex-wrap justify-center gap-2.5 mb-14">
-                  {['Faturas em segundos', 'Multicaixa Express', 'Links de Pagamento', 'Pagamentos Intermediados', 'Conformidade AGT', 'Reconciliação Bancária', 'WhatsApp nativo', 'QR Code', 'API REST', 'ID Comprador'].map((tag) => (
-                    <span key={tag} className="tag-pill text-sm font-semibold px-4 py-2 rounded-full cursor-default">{tag}</span>
-                  ))}
-                </div>
-              </FadeIn>
+                {/* Card de ID — visual publicitário */}
+                <FadeIn direction="right" delay={150}>
+                  <div className="relative">
+                    {/* Glow de fundo */}
+                    <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-3xl scale-95" />
 
-              <div className="dash-rise">
-                <div className="dash-frame group cursor-default">
-                  <div className="browser-bar px-5 py-3 flex items-center gap-4">
-                    <div className="flex gap-1.5 flex-shrink-0">
-                      <div className="w-3 h-3 rounded-full bg-red-400" />
-                      <div className="w-3 h-3 rounded-full bg-amber-400" />
-                      <div className="w-3 h-3 rounded-full bg-green-400" />
-                    </div>
-                    <div className="flex-1 url-bar rounded-full px-4 py-1.5 flex items-center gap-2.5 max-w-md mx-auto">
-                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0" />
-                      <span className="text-xs text-muted-foreground font-mono tracking-wide">app.faktura.ao/dashboard</span>
-                      <Lock className="w-3 h-3 text-green-500 ml-auto flex-shrink-0" />
-                    </div>
-                    <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-                      <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-[10px] font-black text-primary">FT</span>
+                    {/* Cartão ID Fiscal */}
+                    <div className="faktura-id-card relative z-10 p-8 lg:p-10">
+                      <div className="flex items-start justify-between mb-8">
+                        <div>
+                          <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Faktura — Angola</p>
+                          <p className="text-white font-black text-lg">Identificador Único Fiscal</p>
+                        </div>
+                        <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                          <ShieldCheck className="w-6 h-6 text-white" />
+                        </div>
                       </div>
-                      <span className="text-xs font-semibold text-muted-foreground hidden md:block">Faktura Pro</span>
+
+                      <div className="mb-8">
+                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-2">O teu identificador</p>
+                        <div className="id-glow bg-white/10 border border-white/25 rounded-2xl px-6 py-4 inline-block">
+                          <p className="text-white font-black text-4xl tracking-[0.3em] font-mono">FT-244-XXXXXX</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-white/10 rounded-xl p-4">
+                          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-1">Titular</p>
+                          <p className="text-white font-bold text-sm">Manuel Da Silva</p>
+                        </div>
+                        <div className="bg-white/10 rounded-xl p-4">
+                          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-1">Estado</p>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                            <p className="text-white font-bold text-sm">Activo</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-white/15 pt-5">
+                        <div>
+                          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-1">Recompensas acumuladas</p>
+                          <p className="text-white font-black text-2xl">3.450 <span className="text-base font-semibold text-white/60">Kz</span></p>
+                        </div>
+                        <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center">
+                          <BadgeDollarSign className="w-7 h-7 text-white" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={dashboardPreview}
-                      alt="Dashboard Faktura — plataforma completa de faturação angolana"
-                      className="w-full h-auto block group-hover:scale-[1.012] transition-transform duration-700 ease-out"
-                    />
-                    <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-background/30 to-transparent pointer-events-none" />
-                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-5 mt-14">
-                {[
-                  { icon: Zap, t: 'Configure em 2 minutos', d: 'Sem instalações, sem burocracia. Abra a conta e emita a primeira fatura ainda hoje — totalmente grátis.' },
-                  { icon: Shield, t: '100% Legal e Certificado', d: 'Cada documento cumpre os requisitos da AGT. Assinatura digital e QR code incluídos automaticamente.' },
-                  { icon: BarChart3, t: 'Crescimento visível', d: 'Veja a evolução da sua faturação em tempo real com gráficos interactivos e alertas automáticos.' },
-                ].map(({ icon: I, t, d }, i) => (
-                  <FadeIn key={i} delay={i * 100} direction="up">
-                    <div className="bg-card border border-border/50 rounded-2xl p-6 flex items-start gap-4 hover:border-primary/35 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/6 transition-all duration-300 group">
-                      <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                        <I className="w-5 h-5 text-primary" />
+                    {/* Badge flutuante */}
+                    <div className="af2 absolute -bottom-4 -right-4 bg-card border border-border/50 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 z-20">
+                      <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                        <ScanLine className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-bold mb-1.5">{t}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
+                        <p className="text-xs font-black">Use em qualquer loja</p>
+                        <p className="text-[11px] text-muted-foreground">Fatura emitida em 4 seg.</p>
                       </div>
+                    </div>
+                  </div>
+                </FadeIn>
+              </div>
+
+              {/* Três passos rápidos */}
+              <div className="grid md:grid-cols-3 gap-6 mt-20">
+                {[
+                  { icon: UserPlus, s: '01', t: 'Registe-se gratuitamente', d: 'Crie a sua conta Faktura e receba o seu ID único no formato FT-244-XXXXXX.' },
+                  { icon: ShieldCheck, s: '02', t: 'Use em todas as compras', d: 'Partilhe o seu ID em qualquer estabelecimento que use a Faktura — fatura gerada automaticamente.' },
+                  { icon: BadgeDollarSign, s: '03', t: 'Ganhe por cada fatura', d: 'Receba 50 Kz de recompensa por cada compra faturada acima de 1.500 Kz. Automaticamente.' },
+                ].map(({ icon: I, s, t, d }, i) => (
+                  <FadeIn key={i} delay={i * 100} direction="up">
+                    <div className="bg-card border border-border/50 rounded-2xl p-7 group hover:border-primary/30 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/6 transition-all duration-300">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors relative flex-shrink-0">
+                          <I className="w-6 h-6 text-primary" />
+                          <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center">{i+1}</span>
+                        </div>
+                        <span className="text-xs font-black text-primary/40 uppercase tracking-widest">{s}</span>
+                      </div>
+                      <h3 className="font-bold text-lg mb-2">{t}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
                     </div>
                   </FadeIn>
                 ))}
@@ -1507,7 +1496,7 @@ export default function LandingPage() {
           </section>
 
           {/* ── PAGAMENTOS SECTION ── */}
-          <section className="py-24 relative overflow-hidden">
+          <section className="py-24 relative overflow-hidden bg-muted/20">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-primary/5 rounded-full blur-[140px]" />
             </div>
@@ -1616,99 +1605,8 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* ── STATS BAND ── */}
-          <section className="py-10 border-b border-border/30">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((s, i) => {
-                  const I = s.icon;
-                  return (
-                    <FadeIn key={i} delay={i * 80} direction="up">
-                      <div className="flex items-center gap-3 bg-card border border-border/40 rounded-2xl px-5 py-4 hover:border-primary/30 hover:-translate-y-0.5 transition-all group cursor-default">
-                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                          <I className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <div className="text-xl font-black tabular-nums leading-none"><AnimatedCounter value={s.value} /></div>
-                          <div className="text-xs text-muted-foreground font-semibold mt-0.5 leading-tight">{s.label}</div>
-                        </div>
-                      </div>
-                    </FadeIn>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          {/* ════ LEMA SECTION ════ */}
-          <section className="lema-section py-24 lg:py-36">
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              <div className="absolute -top-20 -left-20 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-              <div className="absolute -bottom-20 -right-20 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-              <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1.5px, transparent 1.5px)', backgroundSize: '48px 48px' }} />
-              <div className="absolute bottom-0 left-0 right-0 ticker-wrap py-4 border-t border-white/10">
-                <div className="ticker-inner">
-                  {[...Array(8)].map((_, i) => (
-                    <span key={i} className="text-white/15 font-black text-5xl uppercase tracking-widest mx-12 select-none">
-                      Com a Faktura, todos facturam.
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
-              <FadeIn direction="up">
-                <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-5 py-2 mb-8 backdrop-blur-sm">
-                  <Sparkles className="w-4 h-4 text-white animate-pulse" />
-                  <span className="text-sm font-bold text-white">O lema que nos define</span>
-                </div>
-              </FadeIn>
-
-              <div className="lema-text text-white mb-8">
-                Com a Faktura,<br />
-                <span className="shimmer-text-white">todos facturam.</span>
-              </div>
-
-              <div className="lema-sub">
-                <p className="text-white/70 text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed mb-12">
-                  Empresas emitem faturas mais depressa. Compradores ganham por cada compra. Pagamentos fluem com segurança — um ecossistema onde toda a gente beneficia.
-                </p>
-
-                <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
-                  {[
-                    { icon: Building2, t: 'Para Empresas', d: 'Emita faturas em segundos com dados pre-preenchidos. Zero erros, maxima conformidade AGT.', color: 'bg-white/15' },
-                    { icon: UserPlus, t: 'Para Compradores', d: 'Registe-se gratuitamente, partilhe o seu ID e ganhe 50 Kz de recompensa por cada fatura acima de 1.500 Kz.', color: 'bg-white/20' },
-                    { icon: ShieldCheck, t: 'Com Segurança', d: 'Pagamentos intermediados sem armazenamento de fundos. Total transparência e rastreabilidade.', color: 'bg-white/15' },
-                  ].map(({ icon: I, t, d, color }, i) => (
-                    <div key={i} className={`${color} backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-left hover:bg-white/25 transition-all hover:-translate-y-1 group`}>
-                      <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-4 group-hover:bg-white/30 transition-colors">
-                        <I className="w-5 h-5 text-white" />
-                      </div>
-                      <h3 className="font-bold text-white mb-2">{t}</h3>
-                      <p className="text-white/65 text-sm leading-relaxed">{d}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link to="/registar">
-                    <Button size="lg" className="h-13 px-10 font-black bg-white text-primary hover:bg-white/90 hover:scale-105 transition-all shadow-2xl gap-2 text-base">
-                      Comecar Gratis <ArrowRight className="w-5 h-5" />
-                    </Button>
-                  </Link>
-                  <a href="#ecosystem">
-                    <Button size="lg" variant="outline" className="h-13 px-8 font-bold border-2 border-white/50 text-white hover:bg-white/10 hover:border-white transition-all gap-2 text-base">
-                      Ver o Ecossistema <ChevronRight className="w-5 h-5" />
-                    </Button>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* ── ECOSSISTEMA ── */}
-          <section id="ecosystem" className="py-28 relative overflow-hidden bg-muted/20">
+          <section id="ecosystem" className="py-28 relative overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
@@ -1720,7 +1618,7 @@ export default function LandingPage() {
                 <div className="text-center mb-20">
                   <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
                     <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                    <span className="text-sm font-bold">Com a Faktura, todos facturam.</span>
+                    <span className="text-sm font-bold">Com a Faktura, todos fakturam.</span>
                   </div>
                   <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5">Um ecossistema que<span className="shimmer-text"> recompensa</span><br />quem compra e quem vende</h2>
                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">Disponibilize os seus dados de comprador, ganhe por cada fatura e ajude empresas a faturar mais rapido — sem erros, sem complicacoes.</p>
@@ -1742,7 +1640,7 @@ export default function LandingPage() {
                     <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7">
                       <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-3">O seu ID de comprador</p>
                       <div className="flex items-center justify-between">
-                        <div><p className="id-badge text-2xl font-black tracking-widest">M20XV</p><p className="text-xs text-muted-foreground mt-1">500****21 · 923***574 · Manuel Silva</p></div>
+                        <div><p className="id-badge text-2xl font-black tracking-widest">FT-244-XXXXXX</p><p className="text-xs text-muted-foreground mt-1">500****21 · 923***574 · Manuel Silva</p></div>
                         <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center"><ScanLine className="w-5 h-5 text-primary" /></div>
                       </div>
                     </div>
@@ -1761,12 +1659,10 @@ export default function LandingPage() {
                       ))}
                     </ul>
                     <Link to="/registar">
-                      <Button className="w-full h-12 font-bold btn-glow hover:scale-[1.02] transition-all gap-2">Criar o meu ID de comprador <ArrowRight className="w-4 h-4" /></Button>
+                      <Button className="w-full h-12 font-bold btn-glow hover:scale-[1.02] transition-all gap-2">Criar o meu ID Faktura <ArrowRight className="w-4 h-4" /></Button>
                     </Link>
                   </div>
                 </FadeIn>
-
-
 
                 {/* Empresas */}
                 <FadeIn direction="right" delay={200}>
@@ -1781,7 +1677,7 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7 space-y-3">
                       <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">Como funciona na pratica</p>
-                      {[['1', 'Cliente informa o seu ID', 'Ex: M20XV'], ['2', 'Insere o ID na Faktura', 'Pesquisa instantanea'], ['3', 'Dados preenchidos automaticamente', 'Nome, NIF, contacto'], ['4', 'Fatura emitida e enviada', 'WhatsApp, SMS ou email']].map(([s, t, b]) => (
+                      {[['1', 'Cliente informa o seu ID', 'Ex: FT-244-XXXXXX'], ['2', 'Insere o ID na Faktura', 'Pesquisa instantanea'], ['3', 'Dados preenchidos automaticamente', 'Nome, NIF, contacto'], ['4', 'Fatura emitida e enviada', 'WhatsApp, SMS ou email']].map(([s, t, b]) => (
                         <div key={s} className="flex items-center gap-3">
                           <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-xs font-black text-primary">{s}</span></div>
                           <div className="flex-1 min-w-0"><span className="text-sm font-semibold">{t}</span><span className="text-xs text-muted-foreground ml-2">{b}</span></div>
@@ -1801,32 +1697,6 @@ export default function LandingPage() {
                     </Link>
                   </div>
                 </FadeIn>
-              </div>
-
-              {/* Steps */}
-              <FadeIn direction="up">
-                <div className="text-center mb-10"><h3 className="text-3xl font-black mb-2">Como funciona</h3><p className="text-muted-foreground">Simples. Seguro. Automatico.</p></div>
-              </FadeIn>
-              <div className="grid md:grid-cols-4 gap-6 mb-16">
-                {[
-                  { Ico: UserPlus, s: '01', t: 'Crie a sua conta', d: 'Registe-se gratuitamente e receba o seu ID unico de comprador.' },
-                  { Ico: ScanLine, s: '02', t: 'Partilhe o seu ID', d: 'Ao fazer compras, informe o seu ID ao vendedor. Ex: M20XV.' },
-                  { Ico: FileText, s: '03', t: 'A fatura e emitida', d: 'A empresa usa o seu ID para preencher os dados automaticamente.' },
-                  { Ico: BadgeDollarSign, s: '04', t: 'Receba a recompensa', d: 'Por cada fatura acima de 1.500 Kz, recebe 50 Kz de recompensa automaticamente.' },
-                ].map(({ Ico, s, t, d }, i) => (
-                  <FadeIn key={i} delay={i * 100} direction="up">
-                    <div className="ec group bg-card border border-border/50 rounded-2xl p-6 text-center hover:border-primary/30 h-full relative">
-                      {i < 3 && <div className="hidden md:block absolute top-8 left-[calc(100%-1px)] w-6 h-px bg-gradient-to-r from-primary/30 to-primary/10 z-10" />}
-                      <div className="relative w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 group-hover:bg-primary/20 transition-colors">
-                        <Ico className="w-7 h-7 text-primary" />
-                        <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center">{i + 1}</span>
-                      </div>
-                      <p className="text-xs font-bold text-primary/60 uppercase tracking-widest mb-2">{s}</p>
-                      <h4 className="font-bold text-base mb-2">{t}</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
-                    </div>
-                  </FadeIn>
-                ))}
               </div>
 
               {/* Earnings */}
@@ -1869,28 +1739,6 @@ export default function LandingPage() {
               </FadeIn>
             </div>
           </section>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
           {/* ── AUTO-FATURAÇÃO SECTION ── */}
           <SectionAutoFaturacao />
@@ -1947,35 +1795,8 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* ── CTA MID ── */}
-          <section className="py-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <FadeIn direction="up">
-                <div className="relative bg-accent rounded-3xl p-12 lg:p-20 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/15 rounded-full blur-3xl af2" />
-                  <div className="absolute bottom-0 left-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl af" />
-                  <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(hsl(var(--primary)) 1px,transparent 1px),linear-gradient(90deg,hsl(var(--primary)) 1px,transparent 1px)', backgroundSize: '60px 60px' }} />
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-                  <div className="relative z-10 text-center">
-                    <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 rounded-full px-5 py-2 mb-6">
-                      <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                      <span className="text-sm font-bold">Sem cartao de credito</span>
-                    </div>
-                    <h2 className="text-4xl lg:text-6xl font-black text-accent-foreground mb-6 tracking-tight">Pronto para <span className="shimmer-text">comecar?</span></h2>
-                    <p className="text-lg text-accent-foreground/60 max-w-xl mx-auto mb-10">Junte-se a centenas de empresas angolanas. Configure em 2 minutos.</p>
-                    <Link to="/registar">
-                      <Button size="lg" className="h-14 px-10 text-lg font-black shadow-2xl shadow-primary/40 btn-glow hover:scale-110 transition-all group gap-2">
-                        Criar Conta Gratis <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </FadeIn>
-            </div>
-          </section>
-
           {/* ── CLIENTS ── */}
-          <section id="clients" className="py-24 bg-muted/30 overflow-hidden">
+          <section id="clients" className="py-24 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <FadeIn direction="up">
                 <div className="text-center mb-16">
@@ -1985,8 +1806,8 @@ export default function LandingPage() {
               </FadeIn>
             </div>
             <div className="relative w-full">
-              <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-muted/80 to-transparent z-10 pointer-events-none" />
-              <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-muted/80 to-transparent z-10 pointer-events-none" />
+              <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
               <div className="flex asx w-max gap-6 hover:[animation-play-state:paused]">
                 {[...clientLogos, ...clientLogos, ...clientLogos, ...clientLogos].map((c, i) => (
                   <div key={i} className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm flex items-center justify-center h-24 w-52 flex-shrink-0 hover:border-primary/30 hover:shadow-lg transition-all group">
@@ -1998,7 +1819,7 @@ export default function LandingPage() {
           </section>
 
           {/* ── PRICING ── */}
-          <section id="pricing" className="py-24 relative overflow-hidden">
+          <section id="pricing" className="py-24 bg-muted/30 relative overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[150px]" />
             </div>
@@ -2061,7 +1882,7 @@ export default function LandingPage() {
           </section>
 
           {/* ── FAQ ── */}
-          <section id="faq" className="py-24 bg-muted/30">
+          <section id="faq" className="py-24">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <FadeIn direction="up">
                 <div className="text-center mb-16">
@@ -2094,7 +1915,7 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 py-6 border-b border-accent-foreground/10">
             <p className="text-2xl lg:text-3xl font-black text-accent-foreground/80 tracking-tight">
-              Com a Faktura, <span className="text-primary">todos facturam.</span>
+              Com a Faktura, <span className="text-primary">todos fakturam.</span>
             </p>
           </div>
 
@@ -2131,7 +1952,7 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-accent-foreground/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-accent-foreground/30">© {new Date().getFullYear()} Faktura Angola. Todos os direitos reservados.</p>
-            <p className="text-sm text-accent-foreground/20 italic">Com a Faktura, todos facturam.</p>
+            <p className="text-sm text-accent-foreground/20 italic">Com a Faktura, todos fakturam.</p>
           </div>
         </div>
       </footer>
