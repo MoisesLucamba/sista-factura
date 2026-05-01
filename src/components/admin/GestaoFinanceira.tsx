@@ -187,8 +187,7 @@ export default function GestaoFinanceira() {
           <div>
             <Label>Custo por fatura</Label>
             <Input type="number" value={creditCfg.custo_por_fatura}
-              onChange={e => setCreditCfg({ ...creditCfg, custo_por_fatura: e.target.value })}
-              suffix="kz" />
+              onChange={e => setCreditCfg({ ...creditCfg, custo_por_fatura: e.target.value })} />
           </div>
           <div>
             <Label>Custo mora por fatura</Label>
