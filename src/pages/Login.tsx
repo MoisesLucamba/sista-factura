@@ -671,11 +671,11 @@ export default function Login() {
             </div>
 
             <div style={{ display:'flex', flexDirection:'column', gap:10 }} className="fu5">
-              <Link to="/recuperar-senha" className="rec-a">
+              <Link to="/recuperar-id" className="rec-a">
                 <Mail size={14} />
                 Reenviar ID por Email
               </Link>
-              <Link to="/recuperar-senha" className="rec-a">
+              <Link to="/recuperar-id" className="rec-a">
                 <Smartphone size={14} />
                 Reenviar ID por SMS
               </Link>
