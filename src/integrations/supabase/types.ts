@@ -206,6 +206,48 @@ export type Database = {
           },
         ]
       }
+      billing_settings: {
+        Row: {
+          aviso_quinta: string
+          dia_cobranca: string
+          dia1_acao: string
+          dia3_acao: string
+          dia7_acao: string
+          hora_fecho: string
+          id: string
+          lembrete_sexta: string
+          taxa_mora: number
+          taxa_normal: number
+          updated_at: string
+        }
+        Insert: {
+          aviso_quinta?: string
+          dia_cobranca?: string
+          dia1_acao?: string
+          dia3_acao?: string
+          dia7_acao?: string
+          hora_fecho?: string
+          id?: string
+          lembrete_sexta?: string
+          taxa_mora?: number
+          taxa_normal?: number
+          updated_at?: string
+        }
+        Update: {
+          aviso_quinta?: string
+          dia_cobranca?: string
+          dia1_acao?: string
+          dia3_acao?: string
+          dia7_acao?: string
+          hora_fecho?: string
+          id?: string
+          lembrete_sexta?: string
+          taxa_mora?: number
+          taxa_normal?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       buyer_expense_records: {
         Row: {
           barcode: string | null
@@ -373,6 +415,60 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_movements: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          performed_by: string | null
+          reason: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          performed_by?: string | null
+          reason?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          performed_by?: string | null
+          reason?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_settings: {
+        Row: {
+          custo_mora_por_fatura: number
+          custo_por_fatura: number
+          faturas_gratis_challenge: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          custo_mora_por_fatura?: number
+          custo_por_fatura?: number
+          faturas_gratis_challenge?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          custo_mora_por_fatura?: number
+          custo_por_fatura?: number
+          faturas_gratis_challenge?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_signatures: {
         Row: {
           certificate_number: string | null
@@ -502,6 +598,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fk244_challenge: {
+        Row: {
+          ativo: boolean
+          duracao_horas: number
+          faturas_gratis: number
+          fim: string
+          id: string
+          inicio: string
+          total_vagas: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          duracao_horas?: number
+          faturas_gratis?: number
+          fim?: string
+          id?: string
+          inicio?: string
+          total_vagas?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          duracao_horas?: number
+          faturas_gratis?: number
+          fim?: string
+          id?: string
+          inicio?: string
+          total_vagas?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fk244_participants: {
+        Row: {
+          data_registo: string
+          faturas_usadas: number
+          id: string
+          posicao: number
+          user_id: string
+        }
+        Insert: {
+          data_registo?: string
+          faturas_usadas?: number
+          id?: string
+          posicao: number
+          user_id: string
+        }
+        Update: {
+          data_registo?: string
+          faturas_usadas?: number
+          id?: string
+          posicao?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       fornecedores: {
         Row: {
@@ -1217,6 +1370,72 @@ export type Database = {
           },
         ]
       }
+      subscription_automation: {
+        Row: {
+          downgrade_automatico: boolean
+          graca_7_dias: boolean
+          id: string
+          notificar_3_dias: boolean
+          notificar_7_dias: boolean
+          notificar_no_dia: boolean
+          updated_at: string
+        }
+        Insert: {
+          downgrade_automatico?: boolean
+          graca_7_dias?: boolean
+          id?: string
+          notificar_3_dias?: boolean
+          notificar_7_dias?: boolean
+          notificar_no_dia?: boolean
+          updated_at?: string
+        }
+        Update: {
+          downgrade_automatico?: boolean
+          graca_7_dias?: boolean
+          id?: string
+          notificar_3_dias?: boolean
+          notificar_7_dias?: boolean
+          notificar_no_dia?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          faturas_max: number | null
+          features: Json
+          id: string
+          marca_dagua: boolean
+          nome: string
+          preco_mensal: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          faturas_max?: number | null
+          features?: Json
+          id?: string
+          marca_dagua?: boolean
+          nome: string
+          preco_mensal?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          faturas_max?: number | null
+          features?: Json
+          id?: string
+          marca_dagua?: boolean
+          nome?: string
+          preco_mensal?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1291,6 +1510,36 @@ export type Database = {
           },
         ]
       }
+      user_credits: {
+        Row: {
+          created_at: string
+          credits_remaining: number
+          credits_used: number
+          free_credits: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_remaining?: number
+          credits_used?: number
+          free_credits?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_remaining?: number
+          credits_used?: number
+          free_credits?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1309,6 +1558,89 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          estado: string
+          expira: string
+          id: string
+          inicio: string
+          plan_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          expira?: string
+          id?: string
+          inicio?: string
+          plan_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          expira?: string
+          id?: string
+          inicio?: string
+          plan_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_charges: {
+        Row: {
+          amount_mora: number
+          amount_normal: number
+          amount_total: number
+          created_at: string
+          id: string
+          invoices_count: number
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          amount_mora?: number
+          amount_normal?: number
+          amount_total?: number
+          created_at?: string
+          id?: string
+          invoices_count?: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          amount_mora?: number
+          amount_normal?: number
+          amount_total?: number
+          created_at?: string
+          id?: string
+          invoices_count?: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          week_start?: string
         }
         Relationships: []
       }
