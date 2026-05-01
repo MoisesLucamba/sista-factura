@@ -22,8 +22,9 @@ import {
   ToggleRight, CreditCard, Receipt, FileCheck, Copy, ExternalLink,
   ChevronDown, ChevronUp, Globe, Settings, Package, Layers,
   DollarSign, TrendingDown, Info, AlertCircle, MoreHorizontal,
-  Filter, Download, Printer,
+  Filter, Download, Printer, Wallet,
 } from 'lucide-react';
+import GestaoFinanceira from '@/components/admin/GestaoFinanceira';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/format';
 import {
@@ -201,8 +202,8 @@ export default function AdminDashboard() {
       const monthlyRevenue = revenueData?.filter(f => f.data_emissao?.startsWith(thisMonth)).reduce((s, f) => s + Number(f.total), 0) || 0;
       const prevMonthRevenue = revenueData?.filter(f => f.data_emissao?.startsWith(prevMonth)).reduce((s, f) => s + Number(f.total), 0) || 0;
 
-      const { count: totalPagamentos } = await supabase.from('pagamentos').select('*', { count: 'exact', head: true });
-      const { count: pendingPagamentos } = await supabase.from('pagamentos').select('*', { count: 'exact', head: true }).eq('estado', 'pendente');
+      const { count: totalPagamentos } = await (supabase as any).from('transactions').select('*', { count: 'exact', head: true });
+      const { count: pendingPagamentos } = await (supabase as any).from('transactions').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
@@ -251,9 +252,9 @@ export default function AdminDashboard() {
       setUserFaturas((faturas as unknown as Fatura[]) || []);
 
       // Pagamentos do utilizador
-      const { data: pagamentos } = await supabase
-        .from('pagamentos')
-        .select('id, valor, estado, metodo, created_at, referencia')
+      const { data: pagamentos } = await (supabase as any)
+        .from('transactions')
+        .select('id, amount, status, payment_method, created_at, reference')
         .eq('user_id', u.user_id)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -517,6 +518,9 @@ export default function AdminDashboard() {
                 {stats?.pendingPagamentos}
               </span>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="financeira" className="gap-1.5">
+            <Wallet className="w-3.5 h-3.5" />Gestão Financeira
           </TabsTrigger>
           <TabsTrigger value="audit" className="gap-1.5">
             <History className="w-3.5 h-3.5" />Auditoria
@@ -861,6 +865,11 @@ export default function AdminDashboard() {
               <AllPaymentsTable />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* TAB: GESTÃO FINANCEIRA */}
+        <TabsContent value="financeira" className="space-y-4">
+          <GestaoFinanceira />
         </TabsContent>
 
         {/* ══════════════════════════════════════
@@ -1430,8 +1439,8 @@ function AllPaymentsTable() {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase
-        .from('pagamentos')
+      const { data } = await (supabase as any)
+        .from('transactions')
         .select('*, profiles(nome, email)')
         .order('created_at', { ascending: false })
         .limit(100);

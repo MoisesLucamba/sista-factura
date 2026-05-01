@@ -24,6 +24,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Registar = lazy(() => import("./pages/Registar"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const RecuperarSenha = lazy(() => import("./pages/RecuperarSenha"));
+const RecuperarId = lazy(() => import("./pages/RecuperarId"));
 const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
 const TermosDeUso = lazy(() => import("./pages/TermosDeUso"));
 const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/registar" element={<Registar />} />
             <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+            <Route path="/recuperar-id" element={<RecuperarId />} />
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
