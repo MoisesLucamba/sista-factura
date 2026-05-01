@@ -867,6 +867,11 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
 
+        {/* TAB: GESTÃO FINANCEIRA */}
+        <TabsContent value="financeira" className="space-y-4">
+          <GestaoFinanceira />
+        </TabsContent>
+
         {/* ══════════════════════════════════════
             TAB: AUDITORIA
         ══════════════════════════════════════ */}
