@@ -22,8 +22,9 @@ import {
   ToggleRight, CreditCard, Receipt, FileCheck, Copy, ExternalLink,
   ChevronDown, ChevronUp, Globe, Settings, Package, Layers,
   DollarSign, TrendingDown, Info, AlertCircle, MoreHorizontal,
-  Filter, Download, Printer,
+  Filter, Download, Printer, Wallet,
 } from 'lucide-react';
+import GestaoFinanceira from '@/components/admin/GestaoFinanceira';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/format';
 import {
@@ -517,6 +518,9 @@ export default function AdminDashboard() {
                 {stats?.pendingPagamentos}
               </span>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="financeira" className="gap-1.5">
+            <Wallet className="w-3.5 h-3.5" />Gestão Financeira
           </TabsTrigger>
           <TabsTrigger value="audit" className="gap-1.5">
             <History className="w-3.5 h-3.5" />Auditoria
