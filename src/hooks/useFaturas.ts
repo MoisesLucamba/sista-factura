@@ -272,7 +272,7 @@ export function useCreateFatura() {
         hash_4chars: agtHashRes.extracto4Chars,
       });
 
-      // Create fatura
+      // Create fatura (with all AGT 312/18 fields)
       const insertData: Record<string, unknown> = {
         user_id: user!.id,
         numero,
@@ -291,6 +291,25 @@ export function useCreateFatura() {
         signature_hash: signatureHash,
         certificate_number: certificateNumber,
         is_locked: true,
+        // AGT 312/18
+        hash_doc: agtHashRes.hashCompleto,
+        hash_extracto: agtHashRes.extracto4Chars,
+        hash_anterior: previousHash,
+        periodo_contabilistico: getPeriodoContabilistico(input.data_emissao),
+        system_entry_date: systemEntryDate,
+        desconto_global: descontoGlobalPct,
+        desconto_global_valor: descontoGlobalValor,
+        moeda: input.moeda || 'AOA',
+        taxa_cambio: input.taxa_cambio || 1,
+        order_reference_id: input.order_reference_id,
+        order_reference_numero: input.order_reference_numero,
+        guia_morada_carga: input.guia_morada_carga,
+        guia_morada_descarga: input.guia_morada_descarga,
+        guia_matricula_viatura: input.guia_matricula_viatura,
+        guia_data_transporte: input.guia_data_transporte,
+        periodo_global_inicio: input.periodo_global_inicio,
+        periodo_global_fim: input.periodo_global_fim,
+        incluir_saft: incluirSaft,
       };
 
       if (input.buyer_user_id) {
@@ -306,22 +325,24 @@ export function useCreateFatura() {
 
       if (faturaError) throw faturaError;
 
-      // Create items
+      // Create items (with REGRA 3 — exemption codes & REGRA 4 — 4-decimal precision)
       const itensToInsert = input.itens.map(item => ({
         fatura_id: fatura.id,
         produto_id: item.produto_id,
         quantidade: item.quantidade,
-        preco_unitario: item.preco_unitario,
+        preco_unitario: Number(item.preco_unitario.toFixed(4)),
         desconto: item.desconto,
         taxa_iva: item.taxa_iva,
         subtotal: item.subtotal,
         valor_iva: item.valor_iva,
         total: item.total,
+        tax_exemption_code: item.tax_exemption_code || null,
+        tax_exemption_reason: item.tax_exemption_reason || null,
       }));
 
       const { error: itensError } = await supabase
         .from('itens_fatura')
-        .insert(itensToInsert);
+        .insert(itensToInsert as any);
 
       if (itensError) throw itensError;
 
