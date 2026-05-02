@@ -214,18 +214,32 @@ export function useCreateFatura() {
         .single();
       const nifCliente = clienteData?.nif || '999999999';
 
-      // Hash Chain: fetch previous invoice hash in the same series
+      // REGRA 5 — Apply global discount
+      const descontoGlobalPct = Number(input.desconto_global || 0);
+      const descontoGlobalValor = subtotal * (descontoGlobalPct / 100);
+
+      // Hash Chain (REGRA 1): fetch previous AGT hash in the same series
       const { data: previousInvoice } = await supabase
         .from('faturas')
-        .select('signature_hash')
+        .select('hash_doc, signature_hash')
         .eq('user_id', user!.id)
         .eq('serie', invoiceSerie)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      const previousHash = previousInvoice?.signature_hash || null;
+      const previousHash = (previousInvoice as any)?.hash_doc || previousInvoice?.signature_hash || '0';
 
-      // Generate document hash (SHA-256) with hash chain
+      // REGRA 1 + 9 — AGT hash with system entry date
+      const systemEntryDate = new Date().toISOString();
+      const agtHashRes = await generateAGTHash({
+        dataEmissao: input.data_emissao,
+        dataHoraSistema: systemEntryDate,
+        numeroDocumento: numero,
+        totalBruto: total,
+        hashAnterior: previousHash,
+      });
+
+      // Legacy invoice-signing (kept for backwards compatibility)
       const documentHash = await generateDocumentHash({
         numero,
         data_emissao: input.data_emissao,
@@ -238,19 +252,12 @@ export function useCreateFatura() {
         previous_hash: previousHash,
       });
 
-      // Sign document hash (uses private key if available, otherwise hash)
-      let signatureHash = documentHash;
-      if (agtConfig?.public_key) {
-        // In production, signing would use the private key stored securely
-        // For now, we store the document hash as the signature
-        signatureHash = documentHash;
-      }
+      const signatureHash = documentHash;
 
       // Generate ATCUD
       const atcud = `${invoiceSerie}-${numero.split('/')[2] || '000001'}`;
 
-      // Build AGT-compliant QR code
-      const hash4chars = documentHash.substring(0, 4).toUpperCase();
+      // Build AGT-compliant QR code (use Base64 4-char extract from AGT hash)
       const qrData = buildAgtQrPayload({
         nif_emitente: nifEmitente,
         nif_cliente: nifCliente,
@@ -262,7 +269,7 @@ export function useCreateFatura() {
         subtotal,
         total_iva: totalIva,
         total,
-        hash_4chars: hash4chars,
+        hash_4chars: agtHashRes.extracto4Chars,
       });
 
       // Create fatura
