@@ -420,9 +420,12 @@ export async function generateInvoicePDF(
     `${compName} — Sistema de Faturação Certificado${certLabel}`,
     W / 2, H - 14, { align: 'center' }
   );
+  // REGRA 14 — AGT software certified line + Período contabilístico
+  const agtExtracto = (fatura as any).hash_extracto || (fatura.signature_hash || '').substring(0, 4).toUpperCase() || 'XXXX';
+  const periodo = (fatura as any).periodo_contabilistico || (fatura.data_emissao || '').substring(0, 7);
   sz(5.5);
   doc.text(
-    `Emitido em ${formatDate(fatura.data_emissao)}  ·  Documento válido para efeitos fiscais na República de Angola`,
+    `${getAgtSoftwareLine(agtExtracto)}  ·  Período: ${periodo}  ·  Documento válido para efeitos fiscais na República de Angola`,
     W / 2, H - 9.5, { align: 'center' }
   );
   sz(5);
