@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import type { Cliente } from './useClientes';
 import type { Produto } from './useProdutos';
 import { generateDocumentHash, signDocumentHash, buildAgtQrPayload } from '@/lib/invoice-signing';
+import { generateAGTHash } from '@/lib/agt-hash';
+import { getPeriodoContabilistico, DOCUMENT_TYPES, type TipoDocumentoAGT } from '@/lib/agt-constants';
 
 export interface ItemFatura {
   id: string;
