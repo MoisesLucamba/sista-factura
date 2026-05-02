@@ -80,6 +80,18 @@ export interface FaturaInput {
   metodo_pagamento?: string;
   buyer_user_id?: string;
   buyer_faktura_id?: string;
+  // AGT 312/18 — optional
+  desconto_global?: number;
+  moeda?: string;
+  taxa_cambio?: number;
+  order_reference_id?: string;
+  order_reference_numero?: string;
+  guia_morada_carga?: string;
+  guia_morada_descarga?: string;
+  guia_matricula_viatura?: string;
+  guia_data_transporte?: string;
+  periodo_global_inicio?: string;
+  periodo_global_fim?: string;
   itens: Array<{
     produto_id: string;
     quantidade: number;
@@ -89,6 +101,8 @@ export interface FaturaInput {
     subtotal: number;
     valor_iva: number;
     total: number;
+    tax_exemption_code?: string;
+    tax_exemption_reason?: string;
   }>;
 }
 
