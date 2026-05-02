@@ -518,17 +518,35 @@ export type Database = {
           data_emissao: string
           data_pagamento: string | null
           data_vencimento: string
+          desconto_global: number | null
+          desconto_global_valor: number | null
           estado: string
+          guia_data_transporte: string | null
+          guia_matricula_viatura: string | null
+          guia_morada_carga: string | null
+          guia_morada_descarga: string | null
+          hash_anterior: string | null
+          hash_doc: string | null
+          hash_extracto: string | null
           id: string
+          incluir_saft: boolean | null
           is_locked: boolean | null
           metodo_pagamento: string | null
+          moeda: string | null
           numero: string
           observacoes: string | null
+          order_reference_id: string | null
+          order_reference_numero: string | null
+          periodo_contabilistico: string | null
+          periodo_global_fim: string | null
+          periodo_global_inicio: string | null
           qr_code: string | null
           referencia_pagamento: string | null
           serie: string
           signature_hash: string | null
           subtotal: number
+          system_entry_date: string | null
+          taxa_cambio: number | null
           tipo: string
           total: number
           total_iva: number
@@ -545,17 +563,35 @@ export type Database = {
           data_emissao?: string
           data_pagamento?: string | null
           data_vencimento: string
+          desconto_global?: number | null
+          desconto_global_valor?: number | null
           estado?: string
+          guia_data_transporte?: string | null
+          guia_matricula_viatura?: string | null
+          guia_morada_carga?: string | null
+          guia_morada_descarga?: string | null
+          hash_anterior?: string | null
+          hash_doc?: string | null
+          hash_extracto?: string | null
           id?: string
+          incluir_saft?: boolean | null
           is_locked?: boolean | null
           metodo_pagamento?: string | null
+          moeda?: string | null
           numero: string
           observacoes?: string | null
+          order_reference_id?: string | null
+          order_reference_numero?: string | null
+          periodo_contabilistico?: string | null
+          periodo_global_fim?: string | null
+          periodo_global_inicio?: string | null
           qr_code?: string | null
           referencia_pagamento?: string | null
           serie?: string
           signature_hash?: string | null
           subtotal?: number
+          system_entry_date?: string | null
+          taxa_cambio?: number | null
           tipo: string
           total?: number
           total_iva?: number
@@ -572,17 +608,35 @@ export type Database = {
           data_emissao?: string
           data_pagamento?: string | null
           data_vencimento?: string
+          desconto_global?: number | null
+          desconto_global_valor?: number | null
           estado?: string
+          guia_data_transporte?: string | null
+          guia_matricula_viatura?: string | null
+          guia_morada_carga?: string | null
+          guia_morada_descarga?: string | null
+          hash_anterior?: string | null
+          hash_doc?: string | null
+          hash_extracto?: string | null
           id?: string
+          incluir_saft?: boolean | null
           is_locked?: boolean | null
           metodo_pagamento?: string | null
+          moeda?: string | null
           numero?: string
           observacoes?: string | null
+          order_reference_id?: string | null
+          order_reference_numero?: string | null
+          periodo_contabilistico?: string | null
+          periodo_global_fim?: string | null
+          periodo_global_inicio?: string | null
           qr_code?: string | null
           referencia_pagamento?: string | null
           serie?: string
           signature_hash?: string | null
           subtotal?: number
+          system_entry_date?: string | null
+          taxa_cambio?: number | null
           tipo?: string
           total?: number
           total_iva?: number
@@ -821,6 +875,8 @@ export type Database = {
           produto_id: string
           quantidade: number
           subtotal: number
+          tax_exemption_code: string | null
+          tax_exemption_reason: string | null
           taxa_iva: number
           total: number
           valor_iva: number
@@ -834,6 +890,8 @@ export type Database = {
           produto_id: string
           quantidade: number
           subtotal: number
+          tax_exemption_code?: string | null
+          tax_exemption_reason?: string | null
           taxa_iva?: number
           total: number
           valor_iva: number
@@ -847,6 +905,8 @@ export type Database = {
           produto_id?: string
           quantidade?: number
           subtotal?: number
+          tax_exemption_code?: string | null
+          tax_exemption_reason?: string | null
           taxa_iva?: number
           total?: number
           valor_iva?: number
