@@ -28,7 +28,7 @@ export interface Fatura {
   user_id: string;
   numero: string;
   serie: string;
-  tipo: 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'proforma';
+  tipo: TipoDocumentoAGT;
   estado: 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
   cliente_id: string;
   cliente?: Cliente;
@@ -47,6 +47,25 @@ export interface Fatura {
   buyer_user_id?: string;
   buyer_faktura_id?: string;
   certificate_number?: string;
+  // AGT 312/18
+  hash_doc?: string;
+  hash_extracto?: string;
+  hash_anterior?: string;
+  periodo_contabilistico?: string;
+  system_entry_date?: string;
+  desconto_global?: number;
+  desconto_global_valor?: number;
+  moeda?: string;
+  taxa_cambio?: number;
+  order_reference_id?: string;
+  order_reference_numero?: string;
+  guia_morada_carga?: string;
+  guia_morada_descarga?: string;
+  guia_matricula_viatura?: string;
+  guia_data_transporte?: string;
+  periodo_global_inicio?: string;
+  periodo_global_fim?: string;
+  incluir_saft?: boolean;
   itens?: ItemFatura[];
   created_at: string;
   updated_at: string;
