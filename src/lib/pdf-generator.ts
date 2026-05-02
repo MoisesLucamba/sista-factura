@@ -2,6 +2,8 @@ import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import type { Fatura } from '@/hooks/useFaturas';
 import { formatCurrency } from './format';
+import { getAgtSoftwareLine } from './agt-hash';
+import { DOCUMENT_TYPES } from './agt-constants';
 
 /* ══════════════════════════════════════════════════════════════════
    FAKTURA — PDF v4.0  "Ultra Clean"
@@ -40,13 +42,9 @@ const ESTADO_LABEL: Record<string,string> = {
   paga:'Paga', emitida:'Emitida', vencida:'Vencida', anulada:'Anulada', rascunho:'Rascunho',
 };
 
-const TIPO_LABEL: Record<string,string> = {
-  'fatura'       : 'FATURA',
-  'fatura-recibo': 'FATURA-RECIBO',
-  'recibo'       : 'RECIBO',
-  'nota-credito' : 'NOTA DE CRÉDITO',
-  'proforma'     : 'FATURA PROFORMA',
-};
+const TIPO_LABEL: Record<string,string> = Object.fromEntries(
+  Object.entries(DOCUMENT_TYPES).map(([k, v]) => [k, v.label.toUpperCase()])
+);
 
 // ── Tipos ─────────────────────────────────────────────────────────
 export interface CompanyInfo {
