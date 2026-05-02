@@ -2,6 +2,8 @@ import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import type { Fatura } from '@/hooks/useFaturas';
 import { formatCurrency } from './format';
+import { getAgtSoftwareLine } from './agt-hash';
+import { DOCUMENT_TYPES } from './agt-constants';
 
 /* ══════════════════════════════════════════════════════════════════
    FAKTURA — PDF v4.0  "Ultra Clean"
@@ -40,13 +42,9 @@ const ESTADO_LABEL: Record<string,string> = {
   paga:'Paga', emitida:'Emitida', vencida:'Vencida', anulada:'Anulada', rascunho:'Rascunho',
 };
 
-const TIPO_LABEL: Record<string,string> = {
-  'fatura'       : 'FATURA',
-  'fatura-recibo': 'FATURA-RECIBO',
-  'recibo'       : 'RECIBO',
-  'nota-credito' : 'NOTA DE CRÉDITO',
-  'proforma'     : 'FATURA PROFORMA',
-};
+const TIPO_LABEL: Record<string,string> = Object.fromEntries(
+  Object.entries(DOCUMENT_TYPES).map(([k, v]) => [k, v.label.toUpperCase()])
+);
 
 // ── Tipos ─────────────────────────────────────────────────────────
 export interface CompanyInfo {
@@ -422,9 +420,12 @@ export async function generateInvoicePDF(
     `${compName} — Sistema de Faturação Certificado${certLabel}`,
     W / 2, H - 14, { align: 'center' }
   );
+  // REGRA 14 — AGT software certified line + Período contabilístico
+  const agtExtracto = (fatura as any).hash_extracto || (fatura.signature_hash || '').substring(0, 4).toUpperCase() || 'XXXX';
+  const periodo = (fatura as any).periodo_contabilistico || (fatura.data_emissao || '').substring(0, 7);
   sz(5.5);
   doc.text(
-    `Emitido em ${formatDate(fatura.data_emissao)}  ·  Documento válido para efeitos fiscais na República de Angola`,
+    `${getAgtSoftwareLine(agtExtracto)}  ·  Período: ${periodo}  ·  Documento válido para efeitos fiscais na República de Angola`,
     W / 2, H - 9.5, { align: 'center' }
   );
   sz(5);
