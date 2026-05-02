@@ -166,15 +166,19 @@ export function useCreateFatura() {
 
   return useMutation({
     mutationFn: async (input: FaturaInput) => {
-      // Generate invoice number
-      const serieMap: Record<string, string> = {
-        'fatura': 'FT',
-        'fatura-recibo': 'FR',
-        'recibo': 'RC',
-        'nota-credito': 'NC',
-        'proforma': 'PRO',
-      };
-      const serie = serieMap[input.tipo] || 'FT';
+      // REGRA 2 — Series for all SAF-T document types
+      const docTypeMeta = DOCUMENT_TYPES[input.tipo as TipoDocumentoAGT];
+      const serie = docTypeMeta?.saft || 'FT';
+      const incluirSaft = docTypeMeta?.fiscal !== false; // proforma/orcamento: false
+
+      // REGRA 3 — Validate IVA exemption codes
+      for (const it of input.itens) {
+        if (Number(it.taxa_iva) === 0 && incluirSaft && !it.tax_exemption_code) {
+          throw new Error(
+            'Para itens isentos de IVA (0%), é obrigatório indicar o código de isenção (M00...M38) conforme o CIVA.'
+          );
+        }
+      }
 
       const { data: numeroData, error: numeroError } = await supabase
         .rpc('generate_invoice_number', {
