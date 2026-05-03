@@ -10,7 +10,7 @@ import {
   Shield, Sparkles, FileText, BadgeDollarSign, CheckCircle,
   Users, TrendingUp,
 } from 'lucide-react';
-import logoFaktura from '@/assets/logo-faktura.png';
+import logoFaktura from '@/assets/faktura-logo.svg';
 import heroBusiness from '@/assets/hero-business.jpg';
 import { toast } from 'sonner';
 

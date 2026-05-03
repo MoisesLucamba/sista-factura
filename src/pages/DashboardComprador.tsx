@@ -27,7 +27,7 @@ import {
   ScanLine,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import logoFaktura from '@/assets/logo-faktura.png';
+import logoFaktura from '@/assets/faktura-logo.svg';
 
 interface WalletData {
   faktura_id: string;
