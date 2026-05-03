@@ -440,7 +440,7 @@ export default function Login() {
         <div className="hero-content">
           {/* Logo */}
           <Link to="/" style={{ display:'inline-block' }}>
-            <img src={logoFaktura} alt="Faktura Angola" style={{ height:62, objectFit:'contain', filter:'drop-shadow(0 2px 16px rgba(217,119,6,.45)) brightness(1.05)' }} />
+            <img src={logoFaktura} alt="Faktura Angola" style={{ height:120, objectFit:'contain', filter:'drop-shadow(0 4px 22px rgba(217,119,6,.5))' }} />
           </Link>
 
           {/* Hero body */}
@@ -535,7 +535,7 @@ export default function Login() {
           {/* Mobile only logo */}
           <div className="fu1" style={{ display:'flex', justifyContent:'center', marginBottom:28 }}>
             <Link to="/" style={{ display:'inline-block' }} className="lg:hidden">
-              <img src={logoFaktura} alt="Faktura Angola" style={{ height:54, objectFit:'contain' }} />
+              <img src={logoFaktura} alt="Faktura Angola" style={{ height:110, objectFit:'contain' }} />
             </Link>
           </div>
 

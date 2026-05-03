@@ -223,7 +223,7 @@ export function Sidebar() {
           <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
             {/* Logo mark */}
             <div className="logo-ring relative flex-shrink-0 w-9 h-9 rounded-[13px] bg-sidebar-primary/10 flex items-center justify-center" style={{ isolation: 'isolate' }}>
-              <img src={logoFaktura} alt="Faktura" className="w-5 h-5 object-contain relative z-10" />
+              <img src={logoFaktura} alt="Faktura" className="w-9 h-9 object-contain relative z-10" />
             </div>
 
             {!collapsed && (
