@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import logoFaktura from '@/assets/faktura-logo.svg';
+import logoFaktura from '@/assets/faktura-logo.png';
 
 /* ─── Types ────────────────────────────────────────── */
 interface NavItem {
@@ -31,6 +31,7 @@ const mainNavItems: NavItem[] = [
   { icon: Package,         label: 'Stock',        href: '/gestao-stock' },
   { icon: Receipt,         label: 'Documentos',   href: '/documentos'   },
   { icon: BarChart3,       label: 'Relatórios',   href: '/relatorios'   },
+  { icon: FileText,        label: 'SAF-T (AGT)',  href: '/relatorios/saft' },
   { icon: Store,           label: 'Lojas',        href: '/lojas'        },
   { icon: MapPin,          label: 'Directório',   href: '/directorio'   },
 ];
@@ -223,7 +224,7 @@ export function Sidebar() {
           <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
             {/* Logo mark */}
             <div className="logo-ring relative flex-shrink-0 w-9 h-9 rounded-[13px] bg-sidebar-primary/10 flex items-center justify-center" style={{ isolation: 'isolate' }}>
-              <img src={logoFaktura} alt="Faktura" className="w-5 h-5 object-contain relative z-10" />
+              <img src={logoFaktura} alt="Faktura" className="w-9 h-9 object-contain relative z-10" />
             </div>
 
             {!collapsed && (

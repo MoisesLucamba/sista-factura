@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   User, Loader2, ArrowLeft, CheckCircle, FileText, ArrowRight,
 } from 'lucide-react';
-import logoFaktura from '@/assets/faktura-logo.svg';
+import logoFaktura from '@/assets/faktura-logo.png';
 
 interface BuyerInfo {
   user_id: string;

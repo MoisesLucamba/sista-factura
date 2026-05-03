@@ -12,7 +12,7 @@ import {
   Sparkles, Users, TrendingUp, Lock, Star, ShoppingBag, Store,
   Camera, ShieldCheck,
 } from 'lucide-react';
-import logoFaktura from '@/assets/faktura-logo.svg';
+import logoFaktura from '@/assets/faktura-logo.png';
 import heroBusiness from '@/assets/hero-business.jpg';
 
 type UserTipo = 'vendedor' | 'comprador';
@@ -239,7 +239,7 @@ export default function Registar() {
         <div className="absolute z-[3] pointer-events-none rounded-full" style={{ width:520,height:520,background:'hsl(var(--primary)/.26)',filter:'blur(115px)',top:'8%',left:'-6%' }} />
         <div className="absolute z-[3] pointer-events-none rounded-full" style={{ width:300,height:300,background:'hsl(var(--primary)/.15)',filter:'blur(80px)',bottom:'12%',right:'8%' }} />
         <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
-          <Link to="/" className="self-start"><img src={logoFaktura} alt="Faktura Angola" className="h-9 object-contain" /></Link>
+          <Link to="/" className="self-start"><img src={logoFaktura} alt="Faktura Angola" className="h-20 object-contain" /></Link>
           <div className="my-auto">
             <div className="inline-flex items-center gap-2 glass-pill rounded-full px-4 py-2 mb-7 cursor-default">
               <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
@@ -303,7 +303,7 @@ export default function Registar() {
       <div className="flex-1 flex items-center justify-center p-6 md:p-10 reg-panel-r overflow-y-auto">
         <div className="w-full max-w-sm py-6">
           <div className="lg:hidden flex justify-center mb-8">
-            <Link to="/"><img src={logoFaktura} alt="Faktura" className="h-10 object-contain" /></Link>
+            <Link to="/"><img src={logoFaktura} alt="Faktura" className="h-24 object-contain" /></Link>
           </div>
 
           {/* Header */}

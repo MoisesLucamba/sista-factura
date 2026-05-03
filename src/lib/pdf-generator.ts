@@ -4,6 +4,7 @@ import type { Fatura } from '@/hooks/useFaturas';
 import { formatCurrency } from './format';
 import { getAgtSoftwareLine } from './agt-hash';
 import { DOCUMENT_TYPES } from './agt-constants';
+import fakturaLogoUrl from '@/assets/faktura-logo.png';
 
 /* ══════════════════════════════════════════════════════════════════
    FAKTURA — PDF v4.0  "Ultra Clean"
@@ -128,17 +129,16 @@ export async function generateInvoicePDF(
   // Faixa âmbar — 3mm topo
   fc(AMBER); doc.rect(0, 0, W, 3, 'F');
 
-  // Logo (opcional)
+  // Logo (empresa ou fallback Faktura)
   let logoEnd = ML;
-  if (compLogo) {
-    try {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      await new Promise<void>((ok, no) => { img.onload = () => ok(); img.onerror = () => no(); img.src = compLogo; });
-      doc.addImage(img, 'PNG', ML, 9, 15, 15);
-      logoEnd = ML + 19;
-    } catch { /* skip */ }
-  }
+  const logoSrc = compLogo || fakturaLogoUrl;
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise<void>((ok, no) => { img.onload = () => ok(); img.onerror = () => no(); img.src = logoSrc; });
+    doc.addImage(img, 'PNG', ML, 8, 18, 18);
+    logoEnd = ML + 22;
+  } catch { /* skip */ }
 
   // Nome empresa — grande, branco
   tc(WHITE); sz(15); B();
@@ -178,6 +178,15 @@ export async function generateInvoicePDF(
     tc([140, 82, 0] as [number,number,number]); sz(7); B();
     doc.text('DOCUMENTO PROFORMA — NÃO VÁLIDO COMO DOCUMENTO FISCAL', W / 2, y + 5, { align: 'center' });
     y += 12;
+  }
+
+  /* ── BANNER ANULADO (REGRA AGT 7) ───────────────────────────── */
+  if (fatura.estado === 'anulada') {
+    fc([254, 226, 226] as [number,number,number]); doc.rect(0, y, W, 9, 'F');
+    fc([185, 28, 28] as [number,number,number]); doc.rect(0, y, 3.5, 9, 'F');
+    tc([153, 27, 27] as [number,number,number]); sz(10); B();
+    doc.text('★ DOCUMENTO ANULADO — SEM VALIDADE FISCAL ★', W / 2, y + 6, { align: 'center' });
+    y += 13;
   }
 
   /* ════════════════════════════════════════════════════════════
@@ -439,6 +448,16 @@ export async function generateInvoicePDF(
   doc.text('FAKTURA', W - MR, H - 13, { align: 'right' });
   sz(6); N(); tc([95, 95, 115] as [number,number,number]);
   doc.text('faktura.ao', W - MR, H - 8.5, { align: 'right' });
+
+  /* ── MARCA D'ÁGUA ANULADO (REGRA AGT 7) ─────────────────────── */
+  if (fatura.estado === 'anulada') {
+    const gs = (doc as any).GState ? new (doc as any).GState({ opacity: 0.18 }) : null;
+    if (gs) (doc as any).setGState(gs);
+    tc([185, 28, 28] as [number,number,number]); B(); sz(95);
+    doc.text('ANULADO', W / 2, H / 2, { align: 'center', angle: 35 });
+    if (gs) (doc as any).setGState(new (doc as any).GState({ opacity: 1 }));
+  }
+
 
   return doc.output('blob');
 }
