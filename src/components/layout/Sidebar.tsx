@@ -31,6 +31,7 @@ const mainNavItems: NavItem[] = [
   { icon: Package,         label: 'Stock',        href: '/gestao-stock' },
   { icon: Receipt,         label: 'Documentos',   href: '/documentos'   },
   { icon: BarChart3,       label: 'Relatórios',   href: '/relatorios'   },
+  { icon: FileText,        label: 'SAF-T (AGT)',  href: '/relatorios/saft' },
   { icon: Store,           label: 'Lojas',        href: '/lojas'        },
   { icon: MapPin,          label: 'Directório',   href: '/directorio'   },
 ];
