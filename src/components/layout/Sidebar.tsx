@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import logoFaktura from '@/assets/faktura-logo.svg';
+import logoFaktura from '@/assets/faktura-logo.png';
 
 /* ─── Types ────────────────────────────────────────── */
 interface NavItem {

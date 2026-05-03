@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, ShieldCheck, XCircle, Clock, ArrowRight, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import logoFaktura from '@/assets/faktura-logo.svg';
+import logoFaktura from '@/assets/faktura-logo.png';
 
 export default function PendingApproval() {
   const { user, profile, signOut } = useAuth();
