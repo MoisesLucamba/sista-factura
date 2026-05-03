@@ -4,6 +4,7 @@ import type { Fatura } from '@/hooks/useFaturas';
 import { formatCurrency } from './format';
 import { getAgtSoftwareLine } from './agt-hash';
 import { DOCUMENT_TYPES } from './agt-constants';
+import fakturaLogoUrl from '@/assets/faktura-logo.png';
 
 /* ══════════════════════════════════════════════════════════════════
    FAKTURA — PDF v4.0  "Ultra Clean"
@@ -128,17 +129,16 @@ export async function generateInvoicePDF(
   // Faixa âmbar — 3mm topo
   fc(AMBER); doc.rect(0, 0, W, 3, 'F');
 
-  // Logo (opcional)
+  // Logo (empresa ou fallback Faktura)
   let logoEnd = ML;
-  if (compLogo) {
-    try {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      await new Promise<void>((ok, no) => { img.onload = () => ok(); img.onerror = () => no(); img.src = compLogo; });
-      doc.addImage(img, 'PNG', ML, 9, 15, 15);
-      logoEnd = ML + 19;
-    } catch { /* skip */ }
-  }
+  const logoSrc = compLogo || fakturaLogoUrl;
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise<void>((ok, no) => { img.onload = () => ok(); img.onerror = () => no(); img.src = logoSrc; });
+    doc.addImage(img, 'PNG', ML, 8, 18, 18);
+    logoEnd = ML + 22;
+  } catch { /* skip */ }
 
   // Nome empresa — grande, branco
   tc(WHITE); sz(15); B();
