@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import logoFaktura from '@/assets/logo-faktura.png';
+import logoFaktura from '@/assets/faktura-logo.svg';
 
 export default function RecuperarId() {
   const [email, setEmail] = useState('');

@@ -12,7 +12,7 @@ import {
   Sparkles, Users, TrendingUp, Lock, Star, ShoppingBag, Store,
   Camera, ShieldCheck,
 } from 'lucide-react';
-import logoFaktura from '@/assets/logo-faktura.png';
+import logoFaktura from '@/assets/faktura-logo.svg';
 import heroBusiness from '@/assets/hero-business.jpg';
 
 type UserTipo = 'vendedor' | 'comprador';

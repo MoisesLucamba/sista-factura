@@ -12,7 +12,7 @@ import {
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import logoFaktura from '@/assets/logo-faktura.png';
+import logoFaktura from '@/assets/faktura-logo.svg';
 
 export default function PagarLink() {
   const { code } = useParams<{ code: string }>();

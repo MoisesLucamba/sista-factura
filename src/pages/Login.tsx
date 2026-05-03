@@ -8,7 +8,7 @@ import {
   Users, TrendingUp, Lock, Eye, EyeOff, X, Mail, Smartphone,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import logoFaktura from '@/assets/logo-faktura.png';
+import logoFaktura from '@/assets/faktura-logo.svg';
 import heroBusiness from '@/assets/hero-business.jpg';
 
 const MAX_ATTEMPTS = 5;
