@@ -449,6 +449,16 @@ export async function generateInvoicePDF(
   sz(6); N(); tc([95, 95, 115] as [number,number,number]);
   doc.text('faktura.ao', W - MR, H - 8.5, { align: 'right' });
 
+  /* ── MARCA D'ÁGUA ANULADO (REGRA AGT 7) ─────────────────────── */
+  if (fatura.estado === 'anulada') {
+    const gs = (doc as any).GState ? new (doc as any).GState({ opacity: 0.18 }) : null;
+    if (gs) (doc as any).setGState(gs);
+    tc([185, 28, 28] as [number,number,number]); B(); sz(95);
+    doc.text('ANULADO', W / 2, H / 2, { align: 'center', angle: 35 });
+    if (gs) (doc as any).setGState(new (doc as any).GState({ opacity: 1 }));
+  }
+
+
   return doc.output('blob');
 }
 
