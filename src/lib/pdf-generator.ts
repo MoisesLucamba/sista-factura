@@ -180,6 +180,15 @@ export async function generateInvoicePDF(
     y += 12;
   }
 
+  /* ── BANNER ANULADO (REGRA AGT 7) ───────────────────────────── */
+  if (fatura.estado === 'anulada') {
+    fc([254, 226, 226] as [number,number,number]); doc.rect(0, y, W, 9, 'F');
+    fc([185, 28, 28] as [number,number,number]); doc.rect(0, y, 3.5, 9, 'F');
+    tc([153, 27, 27] as [number,number,number]); sz(10); B();
+    doc.text('★ DOCUMENTO ANULADO — SEM VALIDADE FISCAL ★', W / 2, y + 6, { align: 'center' });
+    y += 13;
+  }
+
   /* ════════════════════════════════════════════════════════════
      ④ CLIENTE  +  DETALHES  — sem nenhuma borda, tipografia pura
   ════════════════════════════════════════════════════════════ */
