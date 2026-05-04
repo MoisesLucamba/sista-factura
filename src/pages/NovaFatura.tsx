@@ -392,6 +392,9 @@ export default function NovaFatura() {
       metodo_pagamento: metodoPagamento || undefined,
       buyer_user_id: buyerTab === 'faktura-id' && buyerData ? buyerData.user_id : undefined,
       buyer_faktura_id: buyerTab === 'faktura-id' && buyerData ? `FK-244-${digits}` : undefined,
+      desconto_global: descontoGlobal || 0,
+      moeda,
+      taxa_cambio: taxaCambio || 1,
       itens: itens.map(item => ({
         produto_id: item.produto_id,
         quantidade: item.quantidade,
@@ -401,6 +404,8 @@ export default function NovaFatura() {
         subtotal: item.subtotal,
         valor_iva: item.valor_iva,
         total: item.total,
+        tax_exemption_code: item.taxa_iva === 0 ? (item.tax_exemption_code || undefined) : undefined,
+        tax_exemption_reason: item.taxa_iva === 0 ? (item.tax_exemption_reason || undefined) : undefined,
       })),
     };
 
