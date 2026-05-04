@@ -897,6 +897,52 @@ export default function NovaFatura() {
           </CardContent>
         </Card>
 
+        {/* ── SECTION 3.5: AGT — Desconto Global, Moeda ── */}
+        {itens.length > 0 && (
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="pt-4 pb-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <p className="text-sm font-bold">Opções AGT (Decreto 312/18)</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs flex items-center gap-1">
+                    <Percent className="w-3 h-3" /> Desconto global %
+                  </Label>
+                  <Input type="number" min="0" max="100" step="0.01" value={descontoGlobal}
+                    onChange={e => setDescontoGlobal(parseFloat(e.target.value) || 0)}
+                    className="h-9 text-sm" placeholder="0" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs flex items-center gap-1">
+                    <Globe className="w-3 h-3" /> Moeda
+                  </Label>
+                  <Select value={moeda} onValueChange={v => { setMoeda(v); if (v === 'AOA') setTaxaCambio(1); }}>
+                    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map(c => (
+                        <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {moeda !== 'AOA' && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Taxa de câmbio para AOA *</Label>
+                    <Input type="number" min="0" step="0.0001" value={taxaCambio}
+                      onChange={e => setTaxaCambio(parseFloat(e.target.value) || 1)}
+                      className="h-9 text-sm font-mono" placeholder="ex: 920.50" />
+                  </div>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Para itens isentos (IVA 0%), selecione o código de isenção em cada item.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* ── SECTION 4: Totals ── */}
         {itens.length > 0 && (
           <Card className="bg-primary/5 border-primary/20">
@@ -907,7 +953,7 @@ export default function NovaFatura() {
               </div>
               {totais.desconto > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Desconto</span>
+                  <span className="text-muted-foreground">Desconto itens</span>
                   <span className="font-mono text-destructive">-{formatCurrency(totais.desconto)}</span>
                 </div>
               )}
@@ -915,11 +961,22 @@ export default function NovaFatura() {
                 <span className="text-muted-foreground">IVA</span>
                 <span className="font-mono font-semibold">{formatCurrency(totais.totalIva)}</span>
               </div>
+              {descontoGlobal > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Desconto global ({descontoGlobal}%)</span>
+                  <span className="font-mono text-destructive">-{formatCurrency(totais.descontoGlobalValor)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between">
-                <span className="font-bold">TOTAL</span>
+                <span className="font-bold">TOTAL ({moeda})</span>
                 <span className="text-lg font-black font-mono text-primary">{formatCurrency(totais.total)}</span>
               </div>
+              {moeda !== 'AOA' && (
+                <p className="text-[10px] text-muted-foreground text-right">
+                  ≈ {formatCurrency(totais.total * taxaCambio)} AOA (câmbio {taxaCambio})
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
