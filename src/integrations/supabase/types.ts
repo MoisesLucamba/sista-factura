@@ -507,6 +507,54 @@ export type Database = {
           },
         ]
       }
+      empresa_membros: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string
+          empresa_user_id: string
+          id: string
+          invite_token: string | null
+          invited_at: string
+          membro_email: string
+          membro_nome: string | null
+          membro_user_id: string | null
+          role: Database["public"]["Enums"]["empresa_role"]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by: string
+          empresa_user_id: string
+          id?: string
+          invite_token?: string | null
+          invited_at?: string
+          membro_email: string
+          membro_nome?: string | null
+          membro_user_id?: string | null
+          role?: Database["public"]["Enums"]["empresa_role"]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string
+          empresa_user_id?: string
+          id?: string
+          invite_token?: string | null
+          invited_at?: string
+          membro_email?: string
+          membro_nome?: string | null
+          membro_user_id?: string | null
+          role?: Database["public"]["Enums"]["empresa_role"]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faturas: {
         Row: {
           assinatura_digital: string | null
@@ -1731,6 +1779,17 @@ export type Database = {
       }
       generate_payment_link_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_user_companies: {
+        Args: { _user_id: string }
+        Returns: {
+          email: string
+          empresa_user_id: string
+          faktura_id: string
+          is_owner: boolean
+          nome: string
+          role: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1740,6 +1799,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_company_member: {
+        Args: { _empresa_user_id: string; _user_id: string }
         Returns: boolean
       }
       lookup_buyer_by_faktura_id: {
@@ -1756,6 +1819,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "operador" | "contador" | "comprador"
+      empresa_role: "gestor" | "operador" | "contador" | "visualizador"
       send_channel: "whatsapp" | "sms" | "email"
       send_status: "pending" | "sent" | "delivered" | "failed" | "read"
     }
@@ -1886,6 +1950,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "operador", "contador", "comprador"],
+      empresa_role: ["gestor", "operador", "contador", "visualizador"],
       send_channel: ["whatsapp", "sms", "email"],
       send_status: ["pending", "sent", "delivered", "failed", "read"],
     },
