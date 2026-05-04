@@ -282,15 +282,18 @@ export default function NovaFatura() {
   };
 
   const totais = useMemo(() => {
-    const subtotal = itens.reduce((acc, item) => acc + (item.subtotal || 0), 0);
+    const subtotalItens = itens.reduce((acc, item) => acc + (item.subtotal || 0), 0);
     const desconto = itens.reduce((acc, item) => {
       const bruto = (item.quantidade || 0) * (item.preco_unitario || 0);
       return acc + bruto * ((item.desconto || 0) / 100);
     }, 0);
-    const totalIva = itens.reduce((acc, item) => acc + (item.valor_iva || 0), 0);
-    const total = itens.reduce((acc, item) => acc + (item.total || 0), 0);
-    return { subtotal, desconto, totalIva, total };
-  }, [itens]);
+    const totalIvaItens = itens.reduce((acc, item) => acc + (item.valor_iva || 0), 0);
+    const totalItens = itens.reduce((acc, item) => acc + (item.total || 0), 0);
+    // AGT REGRA 5: desconto global aplicado sobre o total
+    const descontoGlobalValor = totalItens * ((descontoGlobal || 0) / 100);
+    const total = totalItens - descontoGlobalValor;
+    return { subtotal: subtotalItens, desconto, totalIva: totalIvaItens, total, descontoGlobalValor };
+  }, [itens, descontoGlobal]);
 
   const filteredProducts = useMemo(() => {
     if (!productSearch.trim()) return produtos.slice(0, 10);
