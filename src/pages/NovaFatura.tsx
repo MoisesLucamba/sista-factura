@@ -75,6 +75,11 @@ export default function NovaFatura() {
   const [createdInvoiceNumber, setCreatedInvoiceNumber] = useState('');
   const [createdInvoiceId, setCreatedInvoiceId] = useState('');
 
+  // AGT: desconto global, moeda, taxa câmbio
+  const [descontoGlobal, setDescontoGlobal] = useState<number>(0);
+  const [moeda, setMoeda] = useState<string>('AOA');
+  const [taxaCambio, setTaxaCambio] = useState<number>(1);
+
   // Buyer ID states
   const [digits, setDigits] = useState('');
   const [buyerData, setBuyerData] = useState<{ user_id: string; nome: string; nif: string; telefone: string; email: string } | null>(null);
