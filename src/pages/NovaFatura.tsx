@@ -21,12 +21,13 @@ import { useAutoSendInvoice } from '@/hooks/useAutoSendInvoice';
 import { useAgtConfig } from '@/hooks/useAgtConfig';
 import { formatCurrency, calculateIVA } from '@/lib/format';
 import { supabase } from '@/integrations/supabase/client';
+import { CURRENCIES, TAX_EXEMPTION_CODES } from '@/lib/agt-constants';
 import {
   ArrowLeft, Plus, Trash2, FileText, Loader2, Search, CheckCircle,
   CreditCard, QrCode, Camera, X, Edit, User, Building2,
   Wallet, Smartphone, Banknote, Building, Clock, Send,
   Sparkles, Receipt, FileCheck, FileMinus, FilePlus, Save, Eye,
-  ShoppingBag, ScanBarcode,
+  ShoppingBag, ScanBarcode, Percent, Globe,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -48,6 +49,8 @@ interface ItemLocal {
   subtotal: number;
   valor_iva: number;
   total: number;
+  tax_exemption_code?: string;
+  tax_exemption_reason?: string;
 }
 
 export default function NovaFatura() {
@@ -73,6 +76,11 @@ export default function NovaFatura() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [createdInvoiceNumber, setCreatedInvoiceNumber] = useState('');
   const [createdInvoiceId, setCreatedInvoiceId] = useState('');
+
+  // AGT: desconto global, moeda, taxa câmbio
+  const [descontoGlobal, setDescontoGlobal] = useState<number>(0);
+  const [moeda, setMoeda] = useState<string>('AOA');
+  const [taxaCambio, setTaxaCambio] = useState<number>(1);
 
   // Buyer ID states
   const [digits, setDigits] = useState('');
@@ -274,15 +282,18 @@ export default function NovaFatura() {
   };
 
   const totais = useMemo(() => {
-    const subtotal = itens.reduce((acc, item) => acc + (item.subtotal || 0), 0);
+    const subtotalItens = itens.reduce((acc, item) => acc + (item.subtotal || 0), 0);
     const desconto = itens.reduce((acc, item) => {
       const bruto = (item.quantidade || 0) * (item.preco_unitario || 0);
       return acc + bruto * ((item.desconto || 0) / 100);
     }, 0);
-    const totalIva = itens.reduce((acc, item) => acc + (item.valor_iva || 0), 0);
-    const total = itens.reduce((acc, item) => acc + (item.total || 0), 0);
-    return { subtotal, desconto, totalIva, total };
-  }, [itens]);
+    const totalIvaItens = itens.reduce((acc, item) => acc + (item.valor_iva || 0), 0);
+    const totalItens = itens.reduce((acc, item) => acc + (item.total || 0), 0);
+    // AGT REGRA 5: desconto global aplicado sobre o total
+    const descontoGlobalValor = totalItens * ((descontoGlobal || 0) / 100);
+    const total = totalItens - descontoGlobalValor;
+    return { subtotal: subtotalItens, desconto, totalIva: totalIvaItens, total, descontoGlobalValor };
+  }, [itens, descontoGlobal]);
 
   const filteredProducts = useMemo(() => {
     if (!productSearch.trim()) return produtos.slice(0, 10);
@@ -381,6 +392,9 @@ export default function NovaFatura() {
       metodo_pagamento: metodoPagamento || undefined,
       buyer_user_id: buyerTab === 'faktura-id' && buyerData ? buyerData.user_id : undefined,
       buyer_faktura_id: buyerTab === 'faktura-id' && buyerData ? `FK-244-${digits}` : undefined,
+      desconto_global: descontoGlobal || 0,
+      moeda,
+      taxa_cambio: taxaCambio || 1,
       itens: itens.map(item => ({
         produto_id: item.produto_id,
         quantidade: item.quantidade,
@@ -390,6 +404,8 @@ export default function NovaFatura() {
         subtotal: item.subtotal,
         valor_iva: item.valor_iva,
         total: item.total,
+        tax_exemption_code: item.taxa_iva === 0 ? (item.tax_exemption_code || undefined) : undefined,
+        tax_exemption_reason: item.taxa_iva === 0 ? (item.tax_exemption_reason || undefined) : undefined,
       })),
     };
 
@@ -801,25 +817,52 @@ export default function NovaFatura() {
 
                     {/* Inline edit controls */}
                     {editingItemIndex === index ? (
-                      <div className="grid grid-cols-3 gap-2 pt-1 animate-fade-in">
-                        <div className="space-y-1">
-                          <Label className="text-[10px] text-muted-foreground">Qtd</Label>
-                          <Input type="number" min="1" step="1" value={item.quantidade}
-                            onChange={e => updateItem(index, 'quantidade', parseFloat(e.target.value) || 1)}
-                            className="h-8 text-xs" />
+                      <div className="space-y-2 pt-1 animate-fade-in">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Qtd</Label>
+                            <Input type="number" min="1" step="1" value={item.quantidade}
+                              onChange={e => updateItem(index, 'quantidade', parseFloat(e.target.value) || 1)}
+                              className="h-8 text-xs" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Desc. %</Label>
+                            <Input type="number" min="0" max="100" value={item.desconto}
+                              onChange={e => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
+                              className="h-8 text-xs" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">IVA %</Label>
+                            <Select value={String(item.taxa_iva)} onValueChange={v => updateItem(index, 'taxa_iva', parseFloat(v))}>
+                              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="0">0% (Isento)</SelectItem>
+                                <SelectItem value="5">5% (Reduzida)</SelectItem>
+                                <SelectItem value="14">14% (Normal)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] text-muted-foreground">Desc. %</Label>
-                          <Input type="number" min="0" max="100" value={item.desconto}
-                            onChange={e => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
-                            className="h-8 text-xs" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] text-muted-foreground">IVA %</Label>
-                          <Input type="number" min="0" max="100" value={item.taxa_iva}
-                            onChange={e => updateItem(index, 'taxa_iva', parseFloat(e.target.value) || 0)}
-                            className="h-8 text-xs" />
-                        </div>
+                        {Number(item.taxa_iva) === 0 && (
+                          <div className="space-y-1 p-2 rounded-lg bg-amber-500/5 border border-amber-500/30">
+                            <Label className="text-[10px] font-bold text-amber-600">Código de isenção AGT (obrigatório) *</Label>
+                            <Select value={item.tax_exemption_code || ''} onValueChange={v => {
+                              const ex = TAX_EXEMPTION_CODES.find(c => c.code === v);
+                              const newItens = [...itens];
+                              newItens[index] = { ...newItens[index], tax_exemption_code: v, tax_exemption_reason: ex?.description };
+                              setItens(newItens);
+                            }}>
+                              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecionar código M00–M38" /></SelectTrigger>
+                              <SelectContent className="max-h-[280px]">
+                                {TAX_EXEMPTION_CODES.map(ex => (
+                                  <SelectItem key={ex.code} value={ex.code} className="text-xs">
+                                    <span className="font-bold font-mono">{ex.code}</span> — {ex.description}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                       </div>
                     ) : null}
 
@@ -854,6 +897,52 @@ export default function NovaFatura() {
           </CardContent>
         </Card>
 
+        {/* ── SECTION 3.5: AGT — Desconto Global, Moeda ── */}
+        {itens.length > 0 && (
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="pt-4 pb-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <p className="text-sm font-bold">Opções AGT (Decreto 312/18)</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs flex items-center gap-1">
+                    <Percent className="w-3 h-3" /> Desconto global %
+                  </Label>
+                  <Input type="number" min="0" max="100" step="0.01" value={descontoGlobal}
+                    onChange={e => setDescontoGlobal(parseFloat(e.target.value) || 0)}
+                    className="h-9 text-sm" placeholder="0" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs flex items-center gap-1">
+                    <Globe className="w-3 h-3" /> Moeda
+                  </Label>
+                  <Select value={moeda} onValueChange={v => { setMoeda(v); if (v === 'AOA') setTaxaCambio(1); }}>
+                    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map(c => (
+                        <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {moeda !== 'AOA' && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Taxa de câmbio para AOA *</Label>
+                    <Input type="number" min="0" step="0.0001" value={taxaCambio}
+                      onChange={e => setTaxaCambio(parseFloat(e.target.value) || 1)}
+                      className="h-9 text-sm font-mono" placeholder="ex: 920.50" />
+                  </div>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Para itens isentos (IVA 0%), selecione o código de isenção em cada item.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* ── SECTION 4: Totals ── */}
         {itens.length > 0 && (
           <Card className="bg-primary/5 border-primary/20">
@@ -864,7 +953,7 @@ export default function NovaFatura() {
               </div>
               {totais.desconto > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Desconto</span>
+                  <span className="text-muted-foreground">Desconto itens</span>
                   <span className="font-mono text-destructive">-{formatCurrency(totais.desconto)}</span>
                 </div>
               )}
@@ -872,11 +961,22 @@ export default function NovaFatura() {
                 <span className="text-muted-foreground">IVA</span>
                 <span className="font-mono font-semibold">{formatCurrency(totais.totalIva)}</span>
               </div>
+              {descontoGlobal > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Desconto global ({descontoGlobal}%)</span>
+                  <span className="font-mono text-destructive">-{formatCurrency(totais.descontoGlobalValor)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between">
-                <span className="font-bold">TOTAL</span>
+                <span className="font-bold">TOTAL ({moeda})</span>
                 <span className="text-lg font-black font-mono text-primary">{formatCurrency(totais.total)}</span>
               </div>
+              {moeda !== 'AOA' && (
+                <p className="text-[10px] text-muted-foreground text-right">
+                  ≈ {formatCurrency(totais.total * taxaCambio)} AOA (câmbio {taxaCambio})
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
