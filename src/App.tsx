@@ -46,6 +46,7 @@ const POS = lazy(() => import("./pages/POS"));
 const BuyerScanInvoice = lazy(() => import("./pages/BuyerScanInvoice"));
 const GestaoStock = lazy(() => import("./pages/GestaoStock"));
 const SaftExport = lazy(() => import("./pages/SaftExport"));
+const EmpresaMembros = lazy(() => import("./pages/EmpresaMembros"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
