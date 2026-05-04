@@ -817,25 +817,52 @@ export default function NovaFatura() {
 
                     {/* Inline edit controls */}
                     {editingItemIndex === index ? (
-                      <div className="grid grid-cols-3 gap-2 pt-1 animate-fade-in">
-                        <div className="space-y-1">
-                          <Label className="text-[10px] text-muted-foreground">Qtd</Label>
-                          <Input type="number" min="1" step="1" value={item.quantidade}
-                            onChange={e => updateItem(index, 'quantidade', parseFloat(e.target.value) || 1)}
-                            className="h-8 text-xs" />
+                      <div className="space-y-2 pt-1 animate-fade-in">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Qtd</Label>
+                            <Input type="number" min="1" step="1" value={item.quantidade}
+                              onChange={e => updateItem(index, 'quantidade', parseFloat(e.target.value) || 1)}
+                              className="h-8 text-xs" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Desc. %</Label>
+                            <Input type="number" min="0" max="100" value={item.desconto}
+                              onChange={e => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
+                              className="h-8 text-xs" />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">IVA %</Label>
+                            <Select value={String(item.taxa_iva)} onValueChange={v => updateItem(index, 'taxa_iva', parseFloat(v))}>
+                              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="0">0% (Isento)</SelectItem>
+                                <SelectItem value="5">5% (Reduzida)</SelectItem>
+                                <SelectItem value="14">14% (Normal)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] text-muted-foreground">Desc. %</Label>
-                          <Input type="number" min="0" max="100" value={item.desconto}
-                            onChange={e => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
-                            className="h-8 text-xs" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] text-muted-foreground">IVA %</Label>
-                          <Input type="number" min="0" max="100" value={item.taxa_iva}
-                            onChange={e => updateItem(index, 'taxa_iva', parseFloat(e.target.value) || 0)}
-                            className="h-8 text-xs" />
-                        </div>
+                        {Number(item.taxa_iva) === 0 && (
+                          <div className="space-y-1 p-2 rounded-lg bg-amber-500/5 border border-amber-500/30">
+                            <Label className="text-[10px] font-bold text-amber-600">Código de isenção AGT (obrigatório) *</Label>
+                            <Select value={item.tax_exemption_code || ''} onValueChange={v => {
+                              const ex = TAX_EXEMPTION_CODES.find(c => c.code === v);
+                              const newItens = [...itens];
+                              newItens[index] = { ...newItens[index], tax_exemption_code: v, tax_exemption_reason: ex?.description };
+                              setItens(newItens);
+                            }}>
+                              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecionar código M00–M38" /></SelectTrigger>
+                              <SelectContent className="max-h-[280px]">
+                                {TAX_EXEMPTION_CODES.map(ex => (
+                                  <SelectItem key={ex.code} value={ex.code} className="text-xs">
+                                    <span className="font-bold font-mono">{ex.code}</span> — {ex.description}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                       </div>
                     ) : null}
 
