@@ -273,6 +273,7 @@ const App = () => (
           </Routes>
             </Suspense>
           </BrowserRouter>
+          </ActiveAccountProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
