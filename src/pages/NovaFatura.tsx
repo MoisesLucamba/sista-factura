@@ -21,12 +21,13 @@ import { useAutoSendInvoice } from '@/hooks/useAutoSendInvoice';
 import { useAgtConfig } from '@/hooks/useAgtConfig';
 import { formatCurrency, calculateIVA } from '@/lib/format';
 import { supabase } from '@/integrations/supabase/client';
+import { CURRENCIES, TAX_EXEMPTION_CODES } from '@/lib/agt-constants';
 import {
   ArrowLeft, Plus, Trash2, FileText, Loader2, Search, CheckCircle,
   CreditCard, QrCode, Camera, X, Edit, User, Building2,
   Wallet, Smartphone, Banknote, Building, Clock, Send,
   Sparkles, Receipt, FileCheck, FileMinus, FilePlus, Save, Eye,
-  ShoppingBag, ScanBarcode,
+  ShoppingBag, ScanBarcode, Percent, Globe,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
