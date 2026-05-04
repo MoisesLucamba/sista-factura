@@ -49,6 +49,8 @@ interface ItemLocal {
   subtotal: number;
   valor_iva: number;
   total: number;
+  tax_exemption_code?: string;
+  tax_exemption_reason?: string;
 }
 
 export default function NovaFatura() {
