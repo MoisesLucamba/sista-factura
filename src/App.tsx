@@ -60,8 +60,10 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <ActiveAccountProvider>
           <Toaster />
           <Sonner position="top-right" richColors />
+          <AccountSelectorModal />
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
             <Routes>
