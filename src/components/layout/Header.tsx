@@ -453,6 +453,14 @@ export function Header() {
                 <Building2 className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span className="font-medium">Dados da Empresa</span>
               </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="cursor-pointer py-2.5 rounded-md"
+                onClick={() => navigate('/empresa/membros')}
+              >
+                <UserPlus className="w-4 h-4 mr-3 text-muted-foreground" />
+                <span className="font-medium">Membros da equipa</span>
+              </DropdownMenuItem>
               
               <Separator className="my-2" />
               
