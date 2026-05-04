@@ -35,6 +35,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { AccountSwitcher } from '@/components/account/AccountSwitcher';
 
 interface Notification {
   id: string;
