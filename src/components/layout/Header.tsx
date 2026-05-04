@@ -35,6 +35,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { AccountSwitcher } from '@/components/account/AccountSwitcher';
 
 interface Notification {
   id: string;
@@ -259,20 +260,7 @@ export function Header() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 ml-4">
-          {/* Company indicator */}
-          <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border">
-            <div className="p-1.5 rounded-md bg-primary/10">
-              <Building2 className="w-4 h-4 text-primary" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground leading-tight">
-                Minha Empresa, Lda
-              </span>
-              <span className="text-xs text-muted-foreground leading-tight">
-                NIF: 5000000000
-              </span>
-            </div>
-          </div>
+          <AccountSwitcher />
 
           {/* Notifications */}
           <DropdownMenu>
@@ -464,6 +452,14 @@ export function Header() {
               >
                 <Building2 className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span className="font-medium">Dados da Empresa</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="cursor-pointer py-2.5 rounded-md"
+                onClick={() => navigate('/empresa/membros')}
+              >
+                <UserPlus className="w-4 h-4 mr-3 text-muted-foreground" />
+                <span className="font-medium">Membros da equipa</span>
               </DropdownMenuItem>
               
               <Separator className="my-2" />

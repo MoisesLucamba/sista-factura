@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ActiveAccountProvider } from "@/contexts/ActiveAccountContext";
+import { AccountSelectorModal } from "@/components/account/AccountSelectorModal";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
@@ -44,6 +46,7 @@ const POS = lazy(() => import("./pages/POS"));
 const BuyerScanInvoice = lazy(() => import("./pages/BuyerScanInvoice"));
 const GestaoStock = lazy(() => import("./pages/GestaoStock"));
 const SaftExport = lazy(() => import("./pages/SaftExport"));
+const EmpresaMembros = lazy(() => import("./pages/EmpresaMembros"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -57,8 +60,10 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <ActiveAccountProvider>
           <Toaster />
           <Sonner position="top-right" richColors />
+          <AccountSelectorModal />
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -262,12 +267,21 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/empresa/membros"
+              element={
+                <ProtectedRoute>
+                  <EmpresaMembros />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
             </Suspense>
           </BrowserRouter>
+          </ActiveAccountProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
