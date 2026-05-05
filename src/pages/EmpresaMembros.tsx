@@ -39,7 +39,9 @@ export default function EmpresaMembros() {
   const [inviting, setInviting] = useState(false);
 
   // form
+  const [inviteMode, setInviteMode] = useState<'email' | 'faktura_id'>('faktura_id');
   const [email, setEmail] = useState('');
+  const [fakturaId, setFakturaId] = useState('');
   const [nome, setNome] = useState('');
   const [role, setRole] = useState<Membro['role']>('operador');
 
@@ -66,38 +68,62 @@ export default function EmpresaMembros() {
   useEffect(() => { load(); }, [empresaUserId]);
 
   const invite = async () => {
-    if (!email.trim()) { toast.error('Email obrigatório'); return; }
     if (!user || !empresaUserId) return;
+
+    let resolvedEmail = email.trim().toLowerCase();
+    let resolvedUserId: string | null = null;
+    let resolvedNome: string | null = nome.trim() || null;
+
+    if (inviteMode === 'faktura_id') {
+      const id = fakturaId.trim().toUpperCase();
+      if (!/^FK-244-\d{6}$/.test(id)) {
+        toast.error('ID inválido. Formato: FK-244-XXXXXX');
+        return;
+      }
+      const { data: found, error: lookErr } = await supabase
+        .rpc('lookup_user_by_faktura_id', { _faktura_id: id })
+        .maybeSingle();
+      if (lookErr || !found) {
+        toast.error('Nenhuma conta encontrada com este Faktura ID.');
+        return;
+      }
+      resolvedEmail = (found as any).email;
+      resolvedUserId = (found as any).user_id;
+      resolvedNome = resolvedNome || (found as any).nome;
+    } else {
+      if (!resolvedEmail) { toast.error('Email obrigatório'); return; }
+    }
+
     setInviting(true);
     const token = crypto.randomUUID().replace(/-/g, '');
     const { error } = await supabase.from('empresa_membros').insert({
       empresa_user_id: empresaUserId,
-      membro_email: email.trim().toLowerCase(),
-      membro_nome: nome.trim() || null,
+      membro_email: resolvedEmail,
+      membro_nome: resolvedNome,
+      membro_user_id: resolvedUserId,
       role,
-      status: 'pending',
+      status: resolvedUserId ? 'active' : 'pending',
+      accepted_at: resolvedUserId ? new Date().toISOString() : null,
       invite_token: token,
       created_by: user.id,
     });
     if (error) {
       toast.error('Erro: ' + error.message);
     } else {
-      // Tentar vincular se já existir uma conta com esse email
-      const { data: existing } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('email', email.trim().toLowerCase())
-        .maybeSingle();
-      if (existing?.user_id) {
-        await supabase
-          .from('empresa_membros')
-          .update({ membro_user_id: existing.user_id, status: 'active', accepted_at: new Date().toISOString() })
-          .eq('invite_token', token);
-        toast.success('Membro adicionado e ativado (já tinha conta).');
-      } else {
-        toast.success('Convite criado. Quando o membro registar com este email, terá acesso.');
+      if (!resolvedUserId) {
+        // tentar vincular se já existir conta com esse email
+        const { data: existing } = await supabase
+          .rpc('lookup_user_by_faktura_id', { _faktura_id: '___' })
+          .maybeSingle()
+          .then(() => supabase.from('profiles').select('user_id').eq('email', resolvedEmail).maybeSingle());
+        if (existing?.data?.user_id) {
+          await supabase.from('empresa_membros')
+            .update({ membro_user_id: existing.data.user_id, status: 'active', accepted_at: new Date().toISOString() })
+            .eq('invite_token', token);
+        }
       }
-      setEmail(''); setNome(''); setRole('operador');
+      toast.success(resolvedUserId ? 'Membro adicionado e ativado.' : 'Convite criado. O membro terá acesso ao registar-se.');
+      setEmail(''); setFakturaId(''); setNome(''); setRole('operador');
       load();
     }
     setInviting(false);
