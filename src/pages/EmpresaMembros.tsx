@@ -39,7 +39,9 @@ export default function EmpresaMembros() {
   const [inviting, setInviting] = useState(false);
 
   // form
+  const [inviteMode, setInviteMode] = useState<'email' | 'faktura_id'>('faktura_id');
   const [email, setEmail] = useState('');
+  const [fakturaId, setFakturaId] = useState('');
   const [nome, setNome] = useState('');
   const [role, setRole] = useState<Membro['role']>('operador');
 
@@ -66,38 +68,62 @@ export default function EmpresaMembros() {
   useEffect(() => { load(); }, [empresaUserId]);
 
   const invite = async () => {
-    if (!email.trim()) { toast.error('Email obrigatório'); return; }
     if (!user || !empresaUserId) return;
+
+    let resolvedEmail = email.trim().toLowerCase();
+    let resolvedUserId: string | null = null;
+    let resolvedNome: string | null = nome.trim() || null;
+
+    if (inviteMode === 'faktura_id') {
+      const id = fakturaId.trim().toUpperCase();
+      if (!/^FK-244-\d{6}$/.test(id)) {
+        toast.error('ID inválido. Formato: FK-244-XXXXXX');
+        return;
+      }
+      const { data: found, error: lookErr } = await supabase
+        .rpc('lookup_user_by_faktura_id', { _faktura_id: id })
+        .maybeSingle();
+      if (lookErr || !found) {
+        toast.error('Nenhuma conta encontrada com este Faktura ID.');
+        return;
+      }
+      resolvedEmail = (found as any).email;
+      resolvedUserId = (found as any).user_id;
+      resolvedNome = resolvedNome || (found as any).nome;
+    } else {
+      if (!resolvedEmail) { toast.error('Email obrigatório'); return; }
+    }
+
     setInviting(true);
     const token = crypto.randomUUID().replace(/-/g, '');
     const { error } = await supabase.from('empresa_membros').insert({
       empresa_user_id: empresaUserId,
-      membro_email: email.trim().toLowerCase(),
-      membro_nome: nome.trim() || null,
+      membro_email: resolvedEmail,
+      membro_nome: resolvedNome,
+      membro_user_id: resolvedUserId,
       role,
-      status: 'pending',
+      status: resolvedUserId ? 'active' : 'pending',
+      accepted_at: resolvedUserId ? new Date().toISOString() : null,
       invite_token: token,
       created_by: user.id,
     });
     if (error) {
       toast.error('Erro: ' + error.message);
     } else {
-      // Tentar vincular se já existir uma conta com esse email
-      const { data: existing } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('email', email.trim().toLowerCase())
-        .maybeSingle();
-      if (existing?.user_id) {
-        await supabase
-          .from('empresa_membros')
-          .update({ membro_user_id: existing.user_id, status: 'active', accepted_at: new Date().toISOString() })
-          .eq('invite_token', token);
-        toast.success('Membro adicionado e ativado (já tinha conta).');
-      } else {
-        toast.success('Convite criado. Quando o membro registar com este email, terá acesso.');
+      if (!resolvedUserId) {
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('user_id')
+          .eq('email', resolvedEmail)
+          .maybeSingle();
+        if (existing?.user_id) {
+          await supabase.from('empresa_membros')
+            .update({ membro_user_id: existing.user_id, status: 'active', accepted_at: new Date().toISOString() })
+            .eq('invite_token', token);
+        }
       }
-      setEmail(''); setNome(''); setRole('operador');
+      toast.success(resolvedUserId ? 'Membro adicionado e ativado.' : 'Convite criado. O membro terá acesso ao registar-se.');
+      setEmail(''); setFakturaId(''); setNome(''); setRole('operador');
       load();
     }
     setInviting(false);
@@ -154,16 +180,43 @@ export default function EmpresaMembros() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInviteMode('faktura_id')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold border ${inviteMode === 'faktura_id' ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted/40 border-border'}`}
+                >Por Faktura ID</button>
+                <button
+                  type="button"
+                  onClick={() => setInviteMode('email')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold border ${inviteMode === 'email' ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted/40 border-border'}`}
+                >Por Email</button>
+              </div>
+
+              {inviteMode === 'faktura_id' ? (
+                <div className="space-y-1">
+                  <Label className="text-xs">Faktura ID *</Label>
+                  <Input
+                    value={fakturaId}
+                    onChange={e => setFakturaId(e.target.value.toUpperCase())}
+                    placeholder="FK-244-XXXXXX"
+                    className="h-10 text-sm font-mono tracking-wider"
+                    maxLength={13}
+                  />
+                  <p className="text-[10px] text-muted-foreground">A pessoa receberá acesso imediato.</p>
+                </div>
+              ) : (
                 <div className="space-y-1">
                   <Label className="text-xs">Email *</Label>
                   <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="colega@empresa.ao" className="h-10 text-sm" />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Nome (opcional)</Label>
-                  <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: João Silva" className="h-10 text-sm" />
-                </div>
+              )}
+
+              <div className="space-y-1">
+                <Label className="text-xs">Nome (opcional)</Label>
+                <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: João Silva" className="h-10 text-sm" />
               </div>
+
               <div className="space-y-1">
                 <Label className="text-xs">Papel</Label>
                 <Select value={role} onValueChange={v => setRole(v as Membro['role'])}>
@@ -180,7 +233,11 @@ export default function EmpresaMembros() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={invite} disabled={inviting || !email.trim()} className="w-full gap-2 font-bold">
+              <Button
+                onClick={invite}
+                disabled={inviting || (inviteMode === 'email' ? !email.trim() : !fakturaId.trim())}
+                className="w-full gap-2 font-bold"
+              >
                 {inviting ? <><Loader2 className="w-4 h-4 animate-spin" /> A convidar…</> : <><Mail className="w-4 h-4" /> Enviar convite</>}
               </Button>
             </CardContent>

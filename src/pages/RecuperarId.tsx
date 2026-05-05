@@ -17,9 +17,7 @@ export default function RecuperarId() {
     setLoading(true);
     try {
       const { data, error: qErr } = await supabase
-        .from('profiles')
-        .select('faktura_id, nome')
-        .eq('email', email.trim().toLowerCase())
+        .rpc('lookup_faktura_id_by_email', { _email: email.trim().toLowerCase() })
         .maybeSingle();
 
       if (qErr) throw qErr;
