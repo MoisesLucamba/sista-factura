@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import type { Cliente } from './useClientes';
 import type { Produto } from './useProdutos';
 import { generateDocumentHash, signDocumentHash, buildAgtQrPayload } from '@/lib/invoice-signing';
+import { generateAGTHash } from '@/lib/agt-hash';
+import { getPeriodoContabilistico, DOCUMENT_TYPES, type TipoDocumentoAGT } from '@/lib/agt-constants';
 
 export interface ItemFatura {
   id: string;
@@ -26,7 +28,7 @@ export interface Fatura {
   user_id: string;
   numero: string;
   serie: string;
-  tipo: 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'proforma';
+  tipo: TipoDocumentoAGT;
   estado: 'rascunho' | 'emitida' | 'paga' | 'anulada' | 'vencida';
   cliente_id: string;
   cliente?: Cliente;
@@ -45,6 +47,25 @@ export interface Fatura {
   buyer_user_id?: string;
   buyer_faktura_id?: string;
   certificate_number?: string;
+  // AGT 312/18
+  hash_doc?: string;
+  hash_extracto?: string;
+  hash_anterior?: string;
+  periodo_contabilistico?: string;
+  system_entry_date?: string;
+  desconto_global?: number;
+  desconto_global_valor?: number;
+  moeda?: string;
+  taxa_cambio?: number;
+  order_reference_id?: string;
+  order_reference_numero?: string;
+  guia_morada_carga?: string;
+  guia_morada_descarga?: string;
+  guia_matricula_viatura?: string;
+  guia_data_transporte?: string;
+  periodo_global_inicio?: string;
+  periodo_global_fim?: string;
+  incluir_saft?: boolean;
   itens?: ItemFatura[];
   created_at: string;
   updated_at: string;
@@ -59,6 +80,18 @@ export interface FaturaInput {
   metodo_pagamento?: string;
   buyer_user_id?: string;
   buyer_faktura_id?: string;
+  // AGT 312/18 — optional
+  desconto_global?: number;
+  moeda?: string;
+  taxa_cambio?: number;
+  order_reference_id?: string;
+  order_reference_numero?: string;
+  guia_morada_carga?: string;
+  guia_morada_descarga?: string;
+  guia_matricula_viatura?: string;
+  guia_data_transporte?: string;
+  periodo_global_inicio?: string;
+  periodo_global_fim?: string;
   itens: Array<{
     produto_id: string;
     quantidade: number;
@@ -68,6 +101,8 @@ export interface FaturaInput {
     subtotal: number;
     valor_iva: number;
     total: number;
+    tax_exemption_code?: string;
+    tax_exemption_reason?: string;
   }>;
 }
 
@@ -131,15 +166,19 @@ export function useCreateFatura() {
 
   return useMutation({
     mutationFn: async (input: FaturaInput) => {
-      // Generate invoice number
-      const serieMap: Record<string, string> = {
-        'fatura': 'FT',
-        'fatura-recibo': 'FR',
-        'recibo': 'RC',
-        'nota-credito': 'NC',
-        'proforma': 'PRO',
-      };
-      const serie = serieMap[input.tipo] || 'FT';
+      // REGRA 2 — Series for all SAF-T document types
+      const docTypeMeta = DOCUMENT_TYPES[input.tipo as TipoDocumentoAGT];
+      const serie = docTypeMeta?.saft || 'FT';
+      const incluirSaft = docTypeMeta?.fiscal !== false; // proforma/orcamento: false
+
+      // REGRA 3 — Validate IVA exemption codes
+      for (const it of input.itens) {
+        if (Number(it.taxa_iva) === 0 && incluirSaft && !it.tax_exemption_code) {
+          throw new Error(
+            'Para itens isentos de IVA (0%), é obrigatório indicar o código de isenção (M00...M38) conforme o CIVA.'
+          );
+        }
+      }
 
       const { data: numeroData, error: numeroError } = await supabase
         .rpc('generate_invoice_number', {
@@ -175,18 +214,32 @@ export function useCreateFatura() {
         .single();
       const nifCliente = clienteData?.nif || '999999999';
 
-      // Hash Chain: fetch previous invoice hash in the same series
+      // REGRA 5 — Apply global discount
+      const descontoGlobalPct = Number(input.desconto_global || 0);
+      const descontoGlobalValor = subtotal * (descontoGlobalPct / 100);
+
+      // Hash Chain (REGRA 1): fetch previous AGT hash in the same series
       const { data: previousInvoice } = await supabase
         .from('faturas')
-        .select('signature_hash')
+        .select('hash_doc, signature_hash')
         .eq('user_id', user!.id)
         .eq('serie', invoiceSerie)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      const previousHash = previousInvoice?.signature_hash || null;
+      const previousHash = (previousInvoice as any)?.hash_doc || previousInvoice?.signature_hash || '0';
 
-      // Generate document hash (SHA-256) with hash chain
+      // REGRA 1 + 9 — AGT hash with system entry date
+      const systemEntryDate = new Date().toISOString();
+      const agtHashRes = await generateAGTHash({
+        dataEmissao: input.data_emissao,
+        dataHoraSistema: systemEntryDate,
+        numeroDocumento: numero,
+        totalBruto: total,
+        hashAnterior: previousHash,
+      });
+
+      // Legacy invoice-signing (kept for backwards compatibility)
       const documentHash = await generateDocumentHash({
         numero,
         data_emissao: input.data_emissao,
@@ -199,19 +252,12 @@ export function useCreateFatura() {
         previous_hash: previousHash,
       });
 
-      // Sign document hash (uses private key if available, otherwise hash)
-      let signatureHash = documentHash;
-      if (agtConfig?.public_key) {
-        // In production, signing would use the private key stored securely
-        // For now, we store the document hash as the signature
-        signatureHash = documentHash;
-      }
+      const signatureHash = documentHash;
 
       // Generate ATCUD
       const atcud = `${invoiceSerie}-${numero.split('/')[2] || '000001'}`;
 
-      // Build AGT-compliant QR code
-      const hash4chars = documentHash.substring(0, 4).toUpperCase();
+      // Build AGT-compliant QR code (use Base64 4-char extract from AGT hash)
       const qrData = buildAgtQrPayload({
         nif_emitente: nifEmitente,
         nif_cliente: nifCliente,
@@ -223,10 +269,10 @@ export function useCreateFatura() {
         subtotal,
         total_iva: totalIva,
         total,
-        hash_4chars: hash4chars,
+        hash_4chars: agtHashRes.extracto4Chars,
       });
 
-      // Create fatura
+      // Create fatura (with all AGT 312/18 fields)
       const insertData: Record<string, unknown> = {
         user_id: user!.id,
         numero,
@@ -245,6 +291,25 @@ export function useCreateFatura() {
         signature_hash: signatureHash,
         certificate_number: certificateNumber,
         is_locked: true,
+        // AGT 312/18
+        hash_doc: agtHashRes.hashCompleto,
+        hash_extracto: agtHashRes.extracto4Chars,
+        hash_anterior: previousHash,
+        periodo_contabilistico: getPeriodoContabilistico(input.data_emissao),
+        system_entry_date: systemEntryDate,
+        desconto_global: descontoGlobalPct,
+        desconto_global_valor: descontoGlobalValor,
+        moeda: input.moeda || 'AOA',
+        taxa_cambio: input.taxa_cambio || 1,
+        order_reference_id: input.order_reference_id,
+        order_reference_numero: input.order_reference_numero,
+        guia_morada_carga: input.guia_morada_carga,
+        guia_morada_descarga: input.guia_morada_descarga,
+        guia_matricula_viatura: input.guia_matricula_viatura,
+        guia_data_transporte: input.guia_data_transporte,
+        periodo_global_inicio: input.periodo_global_inicio,
+        periodo_global_fim: input.periodo_global_fim,
+        incluir_saft: incluirSaft,
       };
 
       if (input.buyer_user_id) {
@@ -260,22 +325,24 @@ export function useCreateFatura() {
 
       if (faturaError) throw faturaError;
 
-      // Create items
+      // Create items (with REGRA 3 — exemption codes & REGRA 4 — 4-decimal precision)
       const itensToInsert = input.itens.map(item => ({
         fatura_id: fatura.id,
         produto_id: item.produto_id,
         quantidade: item.quantidade,
-        preco_unitario: item.preco_unitario,
+        preco_unitario: Number(item.preco_unitario.toFixed(4)),
         desconto: item.desconto,
         taxa_iva: item.taxa_iva,
         subtotal: item.subtotal,
         valor_iva: item.valor_iva,
         total: item.total,
+        tax_exemption_code: item.tax_exemption_code || null,
+        tax_exemption_reason: item.tax_exemption_reason || null,
       }));
 
       const { error: itensError } = await supabase
         .from('itens_fatura')
-        .insert(itensToInsert);
+        .insert(itensToInsert as any);
 
       if (itensError) throw itensError;
 

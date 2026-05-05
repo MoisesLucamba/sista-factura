@@ -30,37 +30,37 @@ export const MobileTabBar = memo(function MobileTabBar() {
       <style>{`
         .tab-bar {
           position: relative;
-          background: #0a0a0a;
-          border-top: 1px solid #1f1f1f;
-          box-shadow: 0 -4px 24px rgba(0,0,0,0.6);
+          background: #ffffff;
+          border-top: 1px solid #e5e7eb;
+          box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
         }
         .tab-bar::before {
           content: '';
           position: absolute;
           top: 0; left: 0; right: 0;
           height: 1px;
-          background: linear-gradient(90deg, transparent, #facc15, transparent);
-          opacity: 0.5;
+          background: linear-gradient(90deg, transparent, #f5a623, transparent);
+          opacity: 0.6;
         }
         .tab-btn-active .tab-icon-wrap {
-          background: #facc15;
-          box-shadow: 0 0 12px 2px rgba(250,204,21,0.45);
+          background: #f5a623;
+          box-shadow: 0 4px 12px -2px rgba(245,166,35,0.45);
         }
         .tab-btn-active .tab-icon-wrap svg {
-          color: #0a0a0a !important;
+          color: #ffffff !important;
         }
         .tab-btn-active .tab-label {
-          color: #facc15;
+          color: #1c1c28;
           font-weight: 700;
         }
         .tab-btn-inactive .tab-icon-wrap svg {
-          color: #525252;
+          color: #94a3b8;
         }
         .tab-btn-inactive .tab-label {
-          color: #525252;
+          color: #64748b;
         }
         .tab-btn-inactive:active .tab-icon-wrap svg {
-          color: #a3a3a3;
+          color: #1c1c28;
         }
       `}</style>
 

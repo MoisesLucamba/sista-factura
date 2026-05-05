@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ActiveAccountProvider } from "@/contexts/ActiveAccountContext";
+import { AccountSelectorModal } from "@/components/account/AccountSelectorModal";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
@@ -24,6 +26,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Registar = lazy(() => import("./pages/Registar"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const RecuperarSenha = lazy(() => import("./pages/RecuperarSenha"));
+const RecuperarId = lazy(() => import("./pages/RecuperarId"));
 const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
 const TermosDeUso = lazy(() => import("./pages/TermosDeUso"));
 const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
@@ -42,6 +45,8 @@ const StoreDirectory = lazy(() => import("./pages/StoreDirectory"));
 const POS = lazy(() => import("./pages/POS"));
 const BuyerScanInvoice = lazy(() => import("./pages/BuyerScanInvoice"));
 const GestaoStock = lazy(() => import("./pages/GestaoStock"));
+const SaftExport = lazy(() => import("./pages/SaftExport"));
+const EmpresaMembros = lazy(() => import("./pages/EmpresaMembros"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -55,8 +60,10 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <ActiveAccountProvider>
           <Toaster />
           <Sonner position="top-right" richColors />
+          <AccountSelectorModal />
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -65,6 +72,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/registar" element={<Registar />} />
             <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+            <Route path="/recuperar-id" element={<RecuperarId />} />
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
@@ -251,12 +259,29 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/relatorios/saft"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'contador']}>
+                  <SaftExport />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/empresa/membros"
+              element={
+                <ProtectedRoute>
+                  <EmpresaMembros />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
             </Suspense>
           </BrowserRouter>
+          </ActiveAccountProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

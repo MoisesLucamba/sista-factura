@@ -206,6 +206,48 @@ export type Database = {
           },
         ]
       }
+      billing_settings: {
+        Row: {
+          aviso_quinta: string
+          dia_cobranca: string
+          dia1_acao: string
+          dia3_acao: string
+          dia7_acao: string
+          hora_fecho: string
+          id: string
+          lembrete_sexta: string
+          taxa_mora: number
+          taxa_normal: number
+          updated_at: string
+        }
+        Insert: {
+          aviso_quinta?: string
+          dia_cobranca?: string
+          dia1_acao?: string
+          dia3_acao?: string
+          dia7_acao?: string
+          hora_fecho?: string
+          id?: string
+          lembrete_sexta?: string
+          taxa_mora?: number
+          taxa_normal?: number
+          updated_at?: string
+        }
+        Update: {
+          aviso_quinta?: string
+          dia_cobranca?: string
+          dia1_acao?: string
+          dia3_acao?: string
+          dia7_acao?: string
+          hora_fecho?: string
+          id?: string
+          lembrete_sexta?: string
+          taxa_mora?: number
+          taxa_normal?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       buyer_expense_records: {
         Row: {
           barcode: string | null
@@ -373,6 +415,60 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_movements: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          performed_by: string | null
+          reason: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          performed_by?: string | null
+          reason?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          performed_by?: string | null
+          reason?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_settings: {
+        Row: {
+          custo_mora_por_fatura: number
+          custo_por_fatura: number
+          faturas_gratis_challenge: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          custo_mora_por_fatura?: number
+          custo_por_fatura?: number
+          faturas_gratis_challenge?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          custo_mora_por_fatura?: number
+          custo_por_fatura?: number
+          faturas_gratis_challenge?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_signatures: {
         Row: {
           certificate_number: string | null
@@ -411,6 +507,54 @@ export type Database = {
           },
         ]
       }
+      empresa_membros: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string
+          empresa_user_id: string
+          id: string
+          invite_token: string | null
+          invited_at: string
+          membro_email: string
+          membro_nome: string | null
+          membro_user_id: string | null
+          role: Database["public"]["Enums"]["empresa_role"]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by: string
+          empresa_user_id: string
+          id?: string
+          invite_token?: string | null
+          invited_at?: string
+          membro_email: string
+          membro_nome?: string | null
+          membro_user_id?: string | null
+          role?: Database["public"]["Enums"]["empresa_role"]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string
+          empresa_user_id?: string
+          id?: string
+          invite_token?: string | null
+          invited_at?: string
+          membro_email?: string
+          membro_nome?: string | null
+          membro_user_id?: string | null
+          role?: Database["public"]["Enums"]["empresa_role"]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faturas: {
         Row: {
           assinatura_digital: string | null
@@ -422,17 +566,35 @@ export type Database = {
           data_emissao: string
           data_pagamento: string | null
           data_vencimento: string
+          desconto_global: number | null
+          desconto_global_valor: number | null
           estado: string
+          guia_data_transporte: string | null
+          guia_matricula_viatura: string | null
+          guia_morada_carga: string | null
+          guia_morada_descarga: string | null
+          hash_anterior: string | null
+          hash_doc: string | null
+          hash_extracto: string | null
           id: string
+          incluir_saft: boolean | null
           is_locked: boolean | null
           metodo_pagamento: string | null
+          moeda: string | null
           numero: string
           observacoes: string | null
+          order_reference_id: string | null
+          order_reference_numero: string | null
+          periodo_contabilistico: string | null
+          periodo_global_fim: string | null
+          periodo_global_inicio: string | null
           qr_code: string | null
           referencia_pagamento: string | null
           serie: string
           signature_hash: string | null
           subtotal: number
+          system_entry_date: string | null
+          taxa_cambio: number | null
           tipo: string
           total: number
           total_iva: number
@@ -449,17 +611,35 @@ export type Database = {
           data_emissao?: string
           data_pagamento?: string | null
           data_vencimento: string
+          desconto_global?: number | null
+          desconto_global_valor?: number | null
           estado?: string
+          guia_data_transporte?: string | null
+          guia_matricula_viatura?: string | null
+          guia_morada_carga?: string | null
+          guia_morada_descarga?: string | null
+          hash_anterior?: string | null
+          hash_doc?: string | null
+          hash_extracto?: string | null
           id?: string
+          incluir_saft?: boolean | null
           is_locked?: boolean | null
           metodo_pagamento?: string | null
+          moeda?: string | null
           numero: string
           observacoes?: string | null
+          order_reference_id?: string | null
+          order_reference_numero?: string | null
+          periodo_contabilistico?: string | null
+          periodo_global_fim?: string | null
+          periodo_global_inicio?: string | null
           qr_code?: string | null
           referencia_pagamento?: string | null
           serie?: string
           signature_hash?: string | null
           subtotal?: number
+          system_entry_date?: string | null
+          taxa_cambio?: number | null
           tipo: string
           total?: number
           total_iva?: number
@@ -476,17 +656,35 @@ export type Database = {
           data_emissao?: string
           data_pagamento?: string | null
           data_vencimento?: string
+          desconto_global?: number | null
+          desconto_global_valor?: number | null
           estado?: string
+          guia_data_transporte?: string | null
+          guia_matricula_viatura?: string | null
+          guia_morada_carga?: string | null
+          guia_morada_descarga?: string | null
+          hash_anterior?: string | null
+          hash_doc?: string | null
+          hash_extracto?: string | null
           id?: string
+          incluir_saft?: boolean | null
           is_locked?: boolean | null
           metodo_pagamento?: string | null
+          moeda?: string | null
           numero?: string
           observacoes?: string | null
+          order_reference_id?: string | null
+          order_reference_numero?: string | null
+          periodo_contabilistico?: string | null
+          periodo_global_fim?: string | null
+          periodo_global_inicio?: string | null
           qr_code?: string | null
           referencia_pagamento?: string | null
           serie?: string
           signature_hash?: string | null
           subtotal?: number
+          system_entry_date?: string | null
+          taxa_cambio?: number | null
           tipo?: string
           total?: number
           total_iva?: number
@@ -502,6 +700,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fk244_challenge: {
+        Row: {
+          ativo: boolean
+          duracao_horas: number
+          faturas_gratis: number
+          fim: string
+          id: string
+          inicio: string
+          total_vagas: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          duracao_horas?: number
+          faturas_gratis?: number
+          fim?: string
+          id?: string
+          inicio?: string
+          total_vagas?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          duracao_horas?: number
+          faturas_gratis?: number
+          fim?: string
+          id?: string
+          inicio?: string
+          total_vagas?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fk244_participants: {
+        Row: {
+          data_registo: string
+          faturas_usadas: number
+          id: string
+          posicao: number
+          user_id: string
+        }
+        Insert: {
+          data_registo?: string
+          faturas_usadas?: number
+          id?: string
+          posicao: number
+          user_id: string
+        }
+        Update: {
+          data_registo?: string
+          faturas_usadas?: number
+          id?: string
+          posicao?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       fornecedores: {
         Row: {
@@ -668,6 +923,8 @@ export type Database = {
           produto_id: string
           quantidade: number
           subtotal: number
+          tax_exemption_code: string | null
+          tax_exemption_reason: string | null
           taxa_iva: number
           total: number
           valor_iva: number
@@ -681,6 +938,8 @@ export type Database = {
           produto_id: string
           quantidade: number
           subtotal: number
+          tax_exemption_code?: string | null
+          tax_exemption_reason?: string | null
           taxa_iva?: number
           total: number
           valor_iva: number
@@ -694,6 +953,8 @@ export type Database = {
           produto_id?: string
           quantidade?: number
           subtotal?: number
+          tax_exemption_code?: string | null
+          tax_exemption_reason?: string | null
           taxa_iva?: number
           total?: number
           valor_iva?: number
@@ -1217,6 +1478,72 @@ export type Database = {
           },
         ]
       }
+      subscription_automation: {
+        Row: {
+          downgrade_automatico: boolean
+          graca_7_dias: boolean
+          id: string
+          notificar_3_dias: boolean
+          notificar_7_dias: boolean
+          notificar_no_dia: boolean
+          updated_at: string
+        }
+        Insert: {
+          downgrade_automatico?: boolean
+          graca_7_dias?: boolean
+          id?: string
+          notificar_3_dias?: boolean
+          notificar_7_dias?: boolean
+          notificar_no_dia?: boolean
+          updated_at?: string
+        }
+        Update: {
+          downgrade_automatico?: boolean
+          graca_7_dias?: boolean
+          id?: string
+          notificar_3_dias?: boolean
+          notificar_7_dias?: boolean
+          notificar_no_dia?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          faturas_max: number | null
+          features: Json
+          id: string
+          marca_dagua: boolean
+          nome: string
+          preco_mensal: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          faturas_max?: number | null
+          features?: Json
+          id?: string
+          marca_dagua?: boolean
+          nome: string
+          preco_mensal?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          faturas_max?: number | null
+          features?: Json
+          id?: string
+          marca_dagua?: boolean
+          nome?: string
+          preco_mensal?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1291,6 +1618,36 @@ export type Database = {
           },
         ]
       }
+      user_credits: {
+        Row: {
+          created_at: string
+          credits_remaining: number
+          credits_used: number
+          free_credits: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_remaining?: number
+          credits_used?: number
+          free_credits?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_remaining?: number
+          credits_used?: number
+          free_credits?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1309,6 +1666,89 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          estado: string
+          expira: string
+          id: string
+          inicio: string
+          plan_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          expira?: string
+          id?: string
+          inicio?: string
+          plan_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          expira?: string
+          id?: string
+          inicio?: string
+          plan_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_charges: {
+        Row: {
+          amount_mora: number
+          amount_normal: number
+          amount_total: number
+          created_at: string
+          id: string
+          invoices_count: number
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          amount_mora?: number
+          amount_normal?: number
+          amount_total?: number
+          created_at?: string
+          id?: string
+          invoices_count?: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          amount_mora?: number
+          amount_normal?: number
+          amount_total?: number
+          created_at?: string
+          id?: string
+          invoices_count?: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          week_start?: string
         }
         Relationships: []
       }
@@ -1339,6 +1779,17 @@ export type Database = {
       }
       generate_payment_link_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      get_user_companies: {
+        Args: { _user_id: string }
+        Returns: {
+          email: string
+          empresa_user_id: string
+          faktura_id: string
+          is_owner: boolean
+          nome: string
+          role: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1348,6 +1799,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_company_member: {
+        Args: { _empresa_user_id: string; _user_id: string }
         Returns: boolean
       }
       lookup_buyer_by_faktura_id: {
@@ -1360,10 +1815,27 @@ export type Database = {
           user_id: string
         }[]
       }
+      lookup_faktura_id_by_email: {
+        Args: { _email: string }
+        Returns: {
+          faktura_id: string
+          nome: string
+        }[]
+      }
+      lookup_user_by_faktura_id: {
+        Args: { _faktura_id: string }
+        Returns: {
+          email: string
+          nome: string
+          tipo: string
+          user_id: string
+        }[]
+      }
       mark_overdue_invoices: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "operador" | "contador" | "comprador"
+      empresa_role: "gestor" | "operador" | "contador" | "visualizador"
       send_channel: "whatsapp" | "sms" | "email"
       send_status: "pending" | "sent" | "delivered" | "failed" | "read"
     }
@@ -1494,6 +1966,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "operador", "contador", "comprador"],
+      empresa_role: ["gestor", "operador", "contador", "visualizador"],
       send_channel: ["whatsapp", "sms", "email"],
       send_status: ["pending", "sent", "delivered", "failed", "read"],
     },

@@ -133,7 +133,7 @@ export default function Produtos() {
         await updateProduto.mutateAsync({ id: editingId, ...form });
         toast.success('Produto actualizado');
       } else {
-        await createProduto.mutateAsync(form);
+        await createProduto.mutateAsync({ tipo: 'produto', iva_incluido: false, ...form } as any);
         toast.success('Produto criado com sucesso');
       }
       setIsOpen(false);

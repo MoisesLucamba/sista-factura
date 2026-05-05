@@ -90,7 +90,8 @@ export function getMonthName(month: number): string {
  * Calculate VAT amount
  */
 export function calculateIVA(subtotal: number, rate: number = 14): number {
-  return subtotal * (rate / 100);
+  // REGRA 4 — 4 decimal precision internally
+  return Math.round(subtotal * (rate / 100) * 10000) / 10000;
 }
 
 /**
