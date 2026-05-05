@@ -241,7 +241,6 @@ export default function EmpresaMembros() {
                 {inviting ? <><Loader2 className="w-4 h-4 animate-spin" /> A convidar…</> : <><Mail className="w-4 h-4" /> Enviar convite</>}
               </Button>
             </CardContent>
-            </CardContent>
           </Card>
         )}
 
