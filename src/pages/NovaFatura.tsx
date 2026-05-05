@@ -34,7 +34,11 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
-type TipoDocumento = 'fatura' | 'fatura-recibo' | 'recibo' | 'nota-credito' | 'nota-debito';
+type TipoDocumento =
+  | 'fatura' | 'fatura-recibo' | 'recibo'
+  | 'nota-credito' | 'nota-debito'
+  | 'fatura-global' | 'fatura-generica' | 'auto-faturacao'
+  | 'proforma' | 'orcamento' | 'guia-remessa';
 type BuyerTab = 'faktura-id' | 'qr' | 'anonimo';
 type AnonMode = 'consumidor_final' | 'nif_manual';
 
@@ -439,11 +443,17 @@ export default function NovaFatura() {
 
   // Document type config
   const docTypes: { value: TipoDocumento; label: string; icon: React.ElementType }[] = [
-    { value: 'fatura', label: 'Fatura', icon: FileText },
-    { value: 'fatura-recibo', label: 'Fatura-Recibo', icon: FileCheck },
-    { value: 'recibo', label: 'Recibo', icon: Receipt },
-    { value: 'nota-credito', label: 'Nota de Crédito', icon: FileMinus },
-    { value: 'nota-debito', label: 'Nota de Débito', icon: FilePlus },
+    { value: 'fatura', label: 'Fatura (FT)', icon: FileText },
+    { value: 'fatura-recibo', label: 'Fatura-Recibo (FR)', icon: FileCheck },
+    { value: 'recibo', label: 'Recibo (RC)', icon: Receipt },
+    { value: 'nota-credito', label: 'Nota de Crédito (NC)', icon: FileMinus },
+    { value: 'nota-debito', label: 'Nota de Débito (ND)', icon: FilePlus },
+    { value: 'fatura-global', label: 'Fatura Global (FG)', icon: FileText },
+    { value: 'fatura-generica', label: 'Fatura Genérica (FGe)', icon: FileText },
+    { value: 'auto-faturacao', label: 'Auto-Faturação (AF)', icon: FileCheck },
+    { value: 'proforma', label: 'Pró-Forma (PF)', icon: FileText },
+    { value: 'orcamento', label: 'Orçamento (OR)', icon: FileText },
+    { value: 'guia-remessa', label: 'Guia de Remessa (GR)', icon: FileText },
   ];
 
   const paymentMethods = [
