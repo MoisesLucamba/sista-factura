@@ -180,16 +180,43 @@ export default function EmpresaMembros() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInviteMode('faktura_id')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold border ${inviteMode === 'faktura_id' ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted/40 border-border'}`}
+                >Por Faktura ID</button>
+                <button
+                  type="button"
+                  onClick={() => setInviteMode('email')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold border ${inviteMode === 'email' ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted/40 border-border'}`}
+                >Por Email</button>
+              </div>
+
+              {inviteMode === 'faktura_id' ? (
+                <div className="space-y-1">
+                  <Label className="text-xs">Faktura ID *</Label>
+                  <Input
+                    value={fakturaId}
+                    onChange={e => setFakturaId(e.target.value.toUpperCase())}
+                    placeholder="FK-244-XXXXXX"
+                    className="h-10 text-sm font-mono tracking-wider"
+                    maxLength={13}
+                  />
+                  <p className="text-[10px] text-muted-foreground">A pessoa receberá acesso imediato.</p>
+                </div>
+              ) : (
                 <div className="space-y-1">
                   <Label className="text-xs">Email *</Label>
                   <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="colega@empresa.ao" className="h-10 text-sm" />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Nome (opcional)</Label>
-                  <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: João Silva" className="h-10 text-sm" />
-                </div>
+              )}
+
+              <div className="space-y-1">
+                <Label className="text-xs">Nome (opcional)</Label>
+                <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: João Silva" className="h-10 text-sm" />
               </div>
+
               <div className="space-y-1">
                 <Label className="text-xs">Papel</Label>
                 <Select value={role} onValueChange={v => setRole(v as Membro['role'])}>
@@ -206,9 +233,14 @@ export default function EmpresaMembros() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={invite} disabled={inviting || !email.trim()} className="w-full gap-2 font-bold">
+              <Button
+                onClick={invite}
+                disabled={inviting || (inviteMode === 'email' ? !email.trim() : !fakturaId.trim())}
+                className="w-full gap-2 font-bold"
+              >
                 {inviting ? <><Loader2 className="w-4 h-4 animate-spin" /> A convidar…</> : <><Mail className="w-4 h-4" /> Enviar convite</>}
               </Button>
+            </CardContent>
             </CardContent>
           </Card>
         )}
