@@ -566,9 +566,9 @@ export async function generateMediumFormatPDF(
   center('Obrigado pela sua preferência!', y); y += 3;
   sz(5.5); B(); center('Sem a Faktura, não fakturo.', y); y += 3;
 
-  // Amber bottom bar
+  // Filete âmbar fino inferior
   doc.setFillColor(245, 166, 35);
-  doc.rect(0, y + 1, W, 2, 'F');
+  doc.rect(0, y + 1, W, 1, 'F');
 
   return doc.output('blob');
 }
