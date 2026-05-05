@@ -411,13 +411,13 @@ export async function generateMediumFormatPDF(
   const left = (text: string, yy: number) => doc.text(text, ML, yy);
   const right = (text: string, yy: number) => doc.text(text, W - MR, yy, { align: 'right' });
   const rule = (yy: number) => {
-    doc.setDrawColor(180, 180, 180);
+    doc.setDrawColor(200, 200, 200);
     doc.setLineWidth(0.2);
     doc.line(ML, yy, W - MR, yy);
   };
   const thickRule = (yy: number) => {
-    doc.setDrawColor(245, 166, 35);
-    doc.setLineWidth(0.5);
+    doc.setDrawColor(17, 17, 17);
+    doc.setLineWidth(0.4);
     doc.line(ML, yy, W - MR, yy);
   };
 
@@ -429,14 +429,22 @@ export async function generateMediumFormatPDF(
 
   tc(INK);
 
-  // ── Header ──
-  // Amber top bar
+  // ── Filete âmbar fino + Logo ──
   doc.setFillColor(245, 166, 35);
-  doc.rect(0, 0, W, 2, 'F');
-  y = 6;
+  doc.rect(0, 0, W, 1, 'F');
+  y = 5;
 
-  sz(11); B(); center('FAKTURA ANGOLA', y); y += 5;
-  sz(7); N(); center('www.faktura.ao', y); y += 4;
+  try {
+    const logoMod = await import('@/assets/faktura-logo.png');
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise<void>((ok, no) => { img.onload = () => ok(); img.onerror = () => no(); img.src = logoMod.default; });
+    doc.addImage(img, 'PNG', (W - 10) / 2, y, 10, 10);
+    y += 11;
+  } catch { /* skip */ }
+
+  sz(10); B(); center('FAKTURA ANGOLA', y); y += 4;
+  sz(6.5); N(); center('www.faktura.ao', y); y += 4;
   thickRule(y); y += 4;
 
   // Merchant block
@@ -558,9 +566,9 @@ export async function generateMediumFormatPDF(
   center('Obrigado pela sua preferência!', y); y += 3;
   sz(5.5); B(); center('Sem a Faktura, não fakturo.', y); y += 3;
 
-  // Amber bottom bar
+  // Filete âmbar fino inferior
   doc.setFillColor(245, 166, 35);
-  doc.rect(0, y + 1, W, 2, 'F');
+  doc.rect(0, y + 1, W, 1, 'F');
 
   return doc.output('blob');
 }
