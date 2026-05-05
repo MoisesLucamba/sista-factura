@@ -111,14 +111,14 @@ export default function EmpresaMembros() {
       toast.error('Erro: ' + error.message);
     } else {
       if (!resolvedUserId) {
-        // tentar vincular se já existir conta com esse email
         const { data: existing } = await supabase
-          .rpc('lookup_user_by_faktura_id', { _faktura_id: '___' })
-          .maybeSingle()
-          .then(() => supabase.from('profiles').select('user_id').eq('email', resolvedEmail).maybeSingle());
-        if (existing?.data?.user_id) {
+          .from('profiles')
+          .select('user_id')
+          .eq('email', resolvedEmail)
+          .maybeSingle();
+        if (existing?.user_id) {
           await supabase.from('empresa_membros')
-            .update({ membro_user_id: existing.data.user_id, status: 'active', accepted_at: new Date().toISOString() })
+            .update({ membro_user_id: existing.user_id, status: 'active', accepted_at: new Date().toISOString() })
             .eq('invite_token', token);
         }
       }
