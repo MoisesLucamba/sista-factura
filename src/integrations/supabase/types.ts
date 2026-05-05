@@ -1815,6 +1815,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      lookup_faktura_id_by_email: {
+        Args: { _email: string }
+        Returns: {
+          faktura_id: string
+          nome: string
+        }[]
+      }
+      lookup_user_by_faktura_id: {
+        Args: { _faktura_id: string }
+        Returns: {
+          email: string
+          nome: string
+          tipo: string
+          user_id: string
+        }[]
+      }
       mark_overdue_invoices: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
