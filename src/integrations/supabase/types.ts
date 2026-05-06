@@ -1512,33 +1512,42 @@ export type Database = {
         Row: {
           ativo: boolean
           created_at: string
+          descricao: string | null
+          dias_gratis: number
           faturas_max: number | null
           features: Json
           id: string
           marca_dagua: boolean
           nome: string
+          periodo: string
           preco_mensal: number
           updated_at: string
         }
         Insert: {
           ativo?: boolean
           created_at?: string
+          descricao?: string | null
+          dias_gratis?: number
           faturas_max?: number | null
           features?: Json
           id?: string
           marca_dagua?: boolean
           nome: string
+          periodo?: string
           preco_mensal?: number
           updated_at?: string
         }
         Update: {
           ativo?: boolean
           created_at?: string
+          descricao?: string | null
+          dias_gratis?: number
           faturas_max?: number | null
           features?: Json
           id?: string
           marca_dagua?: boolean
           nome?: string
+          periodo?: string
           preco_mensal?: number
           updated_at?: string
         }
@@ -1674,9 +1683,12 @@ export type Database = {
           created_at: string
           estado: string
           expira: string
+          granted_by: string | null
           id: string
           inicio: string
+          notes: string | null
           plan_id: string
+          trial_ends_at: string | null
           updated_at: string
           user_id: string
         }
@@ -1684,9 +1696,12 @@ export type Database = {
           created_at?: string
           estado?: string
           expira?: string
+          granted_by?: string | null
           id?: string
           inicio?: string
+          notes?: string | null
           plan_id: string
+          trial_ends_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1694,9 +1709,12 @@ export type Database = {
           created_at?: string
           estado?: string
           expira?: string
+          granted_by?: string | null
           id?: string
           inicio?: string
+          notes?: string | null
           plan_id?: string
+          trial_ends_at?: string | null
           updated_at?: string
           user_id?: string
         }
