@@ -75,12 +75,12 @@ export default function SubscriptionsManager() {
       .order('created_at', { ascending: false });
 
     if (subsData?.length) {
-      const userIds = [...new Set(subsData.map((s: any) => s.user_id))];
-      const planIds = [...new Set(subsData.map((s: any) => s.plan_id))];
+      const userIds = [...new Set(subsData.map((s: any) => s.user_id as string))];
+      const planIds = [...new Set(subsData.map((s: any) => s.plan_id as string))];
       const { data: profs } = await supabase.from('profiles').select('user_id, nome, email, faktura_id').in('user_id', userIds);
       const { data: pls } = await (supabase as any).from('subscription_plans').select('id, nome, preco_mensal, periodo').in('id', planIds);
-      const profMap = new Map((profs || []).map((p: any) => [p.user_id, p]));
-      const planMap = new Map((pls || []).map((p: any) => [p.id, p]));
+      const profMap = new Map<string, any>((profs || []).map((p: any) => [p.user_id, p]));
+      const planMap = new Map<string, any>((pls || []).map((p: any) => [p.id, p]));
       const enriched = subsData.map((s: any) => ({
         ...s,
         user_nome: profMap.get(s.user_id)?.nome,
