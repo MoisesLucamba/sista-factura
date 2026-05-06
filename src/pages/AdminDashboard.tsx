@@ -25,6 +25,7 @@ import {
   Filter, Download, Printer, Wallet,
 } from 'lucide-react';
 import GestaoFinanceira from '@/components/admin/GestaoFinanceira';
+import SubscriptionsManager from '@/components/admin/SubscriptionsManager';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/format';
 import {
@@ -522,6 +523,9 @@ export default function AdminDashboard() {
           <TabsTrigger value="financeira" className="gap-1.5">
             <Wallet className="w-3.5 h-3.5" />Gestão Financeira
           </TabsTrigger>
+          <TabsTrigger value="subscriptions" className="gap-1.5">
+            <Crown className="w-3.5 h-3.5" />Subscrições
+          </TabsTrigger>
           <TabsTrigger value="audit" className="gap-1.5">
             <History className="w-3.5 h-3.5" />Auditoria
           </TabsTrigger>
@@ -870,6 +874,11 @@ export default function AdminDashboard() {
         {/* TAB: GESTÃO FINANCEIRA */}
         <TabsContent value="financeira" className="space-y-4">
           <GestaoFinanceira />
+        </TabsContent>
+
+        {/* TAB: SUBSCRIÇÕES */}
+        <TabsContent value="subscriptions" className="space-y-4">
+          <SubscriptionsManager />
         </TabsContent>
 
         {/* ══════════════════════════════════════
