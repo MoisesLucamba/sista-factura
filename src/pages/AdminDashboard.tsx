@@ -22,7 +22,7 @@ import {
   ToggleRight, CreditCard, Receipt, FileCheck, Copy, ExternalLink,
   ChevronDown, ChevronUp, Globe, Settings, Package, Layers,
   DollarSign, TrendingDown, Info, AlertCircle, MoreHorizontal,
-  Filter, Download, Printer, Wallet,
+  Filter, Download, Printer, Wallet, Crown,
 } from 'lucide-react';
 import GestaoFinanceira from '@/components/admin/GestaoFinanceira';
 import SubscriptionsManager from '@/components/admin/SubscriptionsManager';
