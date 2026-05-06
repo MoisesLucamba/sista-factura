@@ -75,8 +75,8 @@ export default function SubscriptionsManager() {
       .order('created_at', { ascending: false });
 
     if (subsData?.length) {
-      const userIds = [...new Set(subsData.map((s: any) => s.user_id as string))];
-      const planIds = [...new Set(subsData.map((s: any) => s.plan_id as string))];
+      const userIds: string[] = Array.from(new Set(subsData.map((s: any) => s.user_id as string)));
+      const planIds: string[] = Array.from(new Set(subsData.map((s: any) => s.plan_id as string)));
       const { data: profs } = await supabase.from('profiles').select('user_id, nome, email, faktura_id').in('user_id', userIds);
       const { data: pls } = await (supabase as any).from('subscription_plans').select('id, nome, preco_mensal, periodo').in('id', planIds);
       const profMap = new Map<string, any>((profs || []).map((p: any) => [p.user_id, p]));
