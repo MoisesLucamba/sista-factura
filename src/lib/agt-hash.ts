@@ -110,6 +110,13 @@ export function getAGTValidationMessage(extracto4Chars: string): string {
 }
 
 /**
+ * Linha de software certificado AGT (rodapé do PDF)
+ */
+export function getAgtSoftwareLine(extracto4Chars: string): string {
+  return `${extracto4Chars}-Processado por programa válido nº31.1/AGT20`;
+}
+
+/**
  * Data/hora no formato AGT
  */
 export function getSystemDateTime(date: Date = new Date()): string {
