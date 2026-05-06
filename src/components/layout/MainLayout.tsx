@@ -98,17 +98,26 @@ export function MainLayout({
         !isMobile && (sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64'),
         isMobile && 'pb-20' // space for tabbar
       )}>
-        {/* Header with mobile menu button */}
+        {/* Header */}
         <div className="sticky top-0 z-40">
-          {isMobile && (
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-50">
-              <Button variant="ghost" size="icon" onClick={() => setIsMobileSidebarOpen(true)}>
-                <Menu className="w-5 h-5" />
-              </Button>
-            </div>
-          )}
           <Header />
         </div>
+
+        {/* Floating sidebar toggle (mobile only) — amber FAB right side */}
+        {isMobile && !isMobileSidebarOpen && (
+          <button
+            onClick={() => setIsMobileSidebarOpen(true)}
+            aria-label="Abrir menu"
+            className="fixed right-4 top-1/2 -translate-y-1/2 z-50 h-14 w-14 rounded-full shadow-xl flex items-center justify-center transition-transform active:scale-95 hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, #f5a623 0%, #f08b00 100%)',
+              color: '#fff',
+              boxShadow: '0 8px 24px rgba(245,166,35,0.45), 0 2px 6px rgba(0,0,0,0.15)',
+            }}
+          >
+            <Menu className="w-6 h-6" strokeWidth={2.5} />
+          </button>
+        )}
 
         <main className="flex-1 relative">
           {(title || description) && (
