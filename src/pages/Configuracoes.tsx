@@ -224,6 +224,9 @@ export default function ConfiguracoesProfessional() {
   const [defaultSendChannel, setDefaultSendChannel] = useState<'whatsapp' | 'sms' | 'email'>('whatsapp');
   const [autoSendInvoice, setAutoSendInvoice] = useState(false);
   const [invoiceLanguage, setInvoiceLanguage] = useState('pt-AO');
+  const [softwareCertNumber, setSoftwareCertNumber] = useState('');
+  const [productCompanyTaxId, setProductCompanyTaxId] = useState('');
+  const [softwareValidationNumber, setSoftwareValidationNumber] = useState('');
 
   const [showPublicKey, setShowPublicKey] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -245,6 +248,9 @@ export default function ConfiguracoesProfessional() {
       setDefaultSendChannel(config.default_send_channel || 'whatsapp');
       setAutoSendInvoice(config.auto_send_invoice || false);
       setInvoiceLanguage(config.invoice_language || 'pt-AO');
+      setSoftwareCertNumber((config as any).software_certificate_number || '31');
+      setProductCompanyTaxId((config as any).product_company_tax_id || '5002964031');
+      setSoftwareValidationNumber((config as any).software_validation_number || 'n31.1/AGT20');
     }
   }, [config]);
 
@@ -282,7 +288,10 @@ export default function ConfiguracoesProfessional() {
         default_send_channel: defaultSendChannel,
         auto_send_invoice: autoSendInvoice,
         invoice_language: invoiceLanguage,
-      });
+        software_certificate_number: softwareCertNumber || undefined,
+        product_company_tax_id: productCompanyTaxId || undefined,
+        software_validation_number: softwareValidationNumber || undefined,
+      } as any);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
@@ -684,6 +693,48 @@ export default function ConfiguracoesProfessional() {
                     className="h-9 text-sm font-mono"
                   />
                 </Field>
+              </div>
+
+              <Separator />
+
+              {/* Certificação AGT — números oficiais (Ponto 6 notificação AGT) */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Certificação AGT (SAF-T)</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Valores que aparecem no cabeçalho do SAF-T e no rodapé dos PDF</p>
+                </div>
+                <div className="grid gap-5 md:grid-cols-2">
+                  <Field id="softwareCertNumber" label="Nº de certificado" hint="SoftwareCertificateNumber no SAF-T">
+                    <Input
+                      id="softwareCertNumber"
+                      placeholder="31"
+                      value={softwareCertNumber}
+                      onChange={(e) => setSoftwareCertNumber(e.target.value)}
+                      className="h-9 text-sm font-mono"
+                    />
+                  </Field>
+                  <Field id="softwareValidationNumber" label="Nº de validação" hint="Aparece no rodapé do PDF — 'Processado por programa válido nº...'">
+                    <Input
+                      id="softwareValidationNumber"
+                      placeholder="n31.1/AGT20"
+                      value={softwareValidationNumber}
+                      onChange={(e) => setSoftwareValidationNumber(e.target.value)}
+                      className="h-9 text-sm font-mono"
+                    />
+                  </Field>
+                </div>
+                <Field id="productCompanyTaxId" label="NIF da empresa desenvolvedora" hint="ProductCompanyTaxID no SAF-T">
+                  <Input
+                    id="productCompanyTaxId"
+                    placeholder="5002964031"
+                    value={productCompanyTaxId}
+                    onChange={(e) => setProductCompanyTaxId(e.target.value)}
+                    className="h-9 text-sm font-mono"
+                  />
+                </Field>
+                <p className="text-[11px] text-amber-700 bg-amber-50/60 border border-amber-200 rounded-md px-3 py-2">
+                  ⚠️ Estes valores são fornecidos pela AGT após aprovação. Não alterar sem confirmação oficial.
+                </p>
               </div>
             </div>
           </div>

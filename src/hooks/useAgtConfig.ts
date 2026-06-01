@@ -28,6 +28,9 @@ export interface AgtConfig {
   cidade?: string;
   provincia?: string;
   logo_url?: string;
+  software_certificate_number?: string;
+  product_company_tax_id?: string;
+  software_validation_number?: string;
   created_at: string;
   updated_at: string;
 }
@@ -55,6 +58,9 @@ export interface AgtConfigInput {
   cidade?: string;
   provincia?: string;
   logo_url?: string;
+  software_certificate_number?: string;
+  product_company_tax_id?: string;
+  software_validation_number?: string;
 }
 
 export function useAgtConfig() {

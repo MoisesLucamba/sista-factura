@@ -347,11 +347,16 @@ export default function NovaFatura() {
           return;
         }
       }
-    } else if (buyerTab === 'anonimo' && anonMode === 'nif_manual' && manualNif.trim()) {
+    } else if (buyerTab === 'anonimo' && anonMode === 'nif_manual') {
+      // Ponto 8/9 AGT: nome é obrigatório mas NIF é opcional
+      if (!manualNome.trim()) {
+        toast.error('Nome do cliente é obrigatório');
+        return;
+      }
       try {
         const newClient = await createCliente.mutateAsync({
-          nome: manualNome.trim() || 'Consumidor Final',
-          nif: manualNif.trim(),
+          nome: manualNome.trim(),
+          nif: manualNif.trim(), // pode ser vazio — cliente identificado sem NIF
           endereco: manualEndereco.trim() || 'N/A',
           tipo: 'particular',
           whatsapp_consent: false,
@@ -687,8 +692,8 @@ export default function NovaFatura() {
                         <Input placeholder="Nome do cliente" value={manualNome} onChange={e => setManualNome(e.target.value)} className="h-10 text-sm" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">NIF *</Label>
-                        <Input placeholder="NIF" value={manualNif} onChange={e => setManualNif(e.target.value)} className="h-10 text-sm font-mono" />
+                        <Label className="text-xs">NIF (opcional)</Label>
+                        <Input placeholder="Deixar vazio se não tiver" value={manualNif} onChange={e => setManualNif(e.target.value)} className="h-10 text-sm font-mono" />
                       </div>
                     </div>
                     <div className="space-y-1">
@@ -726,6 +731,16 @@ export default function NovaFatura() {
               <div className="mt-3 space-y-1">
                 <Label className="text-xs">Referência ao documento original *</Label>
                 <Input placeholder="Nº do documento" value={notaCreditoRef} onChange={e => setNotaCreditoRef(e.target.value)} className="h-10 text-sm font-mono" />
+              </div>
+            )}
+            {tipo === 'auto-faturacao' && (
+              <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs leading-relaxed">
+                <p className="font-bold text-amber-700 mb-1">ℹ️ Auto-Faturação</p>
+                <p className="text-muted-foreground">
+                  Neste documento, és o <strong>comprador</strong> a emitir a fatura em nome do <strong>fornecedor</strong>.
+                  Preenche os dados do fornecedor no bloco "Cliente" acima (nome, NIF, morada do fornecedor).
+                  No SAF-T será marcado <code className="font-mono">SelfBillingIndicator=1</code>.
+                </p>
               </div>
             )}
           </CardContent>
@@ -837,9 +852,9 @@ export default function NovaFatura() {
                           </div>
                           <div className="space-y-1">
                             <Label className="text-[10px] text-muted-foreground">Desc. %</Label>
-                            <Input type="number" min="0" max="100" value={item.desconto}
+                            <Input type="number" min={0} max={100} step={0.01} value={item.desconto}
                               onChange={e => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
-                              className="h-8 text-xs" />
+                              className="h-8 text-xs" placeholder="0.00" />
                           </div>
                           <div className="space-y-1">
                             <Label className="text-[10px] text-muted-foreground">IVA %</Label>

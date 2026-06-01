@@ -38,8 +38,11 @@ export type Database = {
           morada: string | null
           nif_produtor: string | null
           nome_empresa: string | null
+          product_company_tax_id: string | null
           provincia: string | null
           public_key: string | null
+          software_certificate_number: string | null
+          software_validation_number: string | null
           telefone: string | null
           updated_at: string
           user_id: string
@@ -68,8 +71,11 @@ export type Database = {
           morada?: string | null
           nif_produtor?: string | null
           nome_empresa?: string | null
+          product_company_tax_id?: string | null
           provincia?: string | null
           public_key?: string | null
+          software_certificate_number?: string | null
+          software_validation_number?: string | null
           telefone?: string | null
           updated_at?: string
           user_id: string
@@ -98,8 +104,11 @@ export type Database = {
           morada?: string | null
           nif_produtor?: string | null
           nome_empresa?: string | null
+          product_company_tax_id?: string | null
           provincia?: string | null
           public_key?: string | null
+          software_certificate_number?: string | null
+          software_validation_number?: string | null
           telefone?: string | null
           updated_at?: string
           user_id?: string
@@ -376,7 +385,7 @@ export type Database = {
           email: string | null
           endereco: string
           id: string
-          nif: string
+          nif: string | null
           nome: string
           telefone: string | null
           tipo: string
@@ -390,7 +399,7 @@ export type Database = {
           email?: string | null
           endereco: string
           id?: string
-          nif: string
+          nif?: string | null
           nome: string
           telefone?: string | null
           tipo: string
@@ -404,7 +413,7 @@ export type Database = {
           email?: string | null
           endereco?: string
           id?: string
-          nif?: string
+          nif?: string | null
           nome?: string
           telefone?: string | null
           tipo?: string
@@ -593,7 +602,7 @@ export type Database = {
           serie: string
           signature_hash: string | null
           subtotal: number
-          system_entry_date: string | null
+          system_entry_date: string
           taxa_cambio: number | null
           tipo: string
           total: number
@@ -638,7 +647,7 @@ export type Database = {
           serie?: string
           signature_hash?: string | null
           subtotal?: number
-          system_entry_date?: string | null
+          system_entry_date?: string
           taxa_cambio?: number | null
           tipo: string
           total?: number
@@ -683,7 +692,7 @@ export type Database = {
           serie?: string
           signature_hash?: string | null
           subtotal?: number
-          system_entry_date?: string | null
+          system_entry_date?: string
           taxa_cambio?: number | null
           tipo?: string
           total?: number

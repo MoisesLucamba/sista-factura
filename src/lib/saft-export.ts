@@ -46,6 +46,9 @@ export async function exportSAFT(opts: SaftExportOptions): Promise<string> {
     .eq('user_id', userId)
     .maybeSingle();
 
+  const cfgSoftCert = (agt as any)?.software_certificate_number || AGT_SOFTWARE_CERT_NUMBER;
+  const cfgProductCompanyTaxId = (agt as any)?.product_company_tax_id || AGT_PRODUCT_COMPANY_TAX_ID;
+
   // 2) Faturas no período (excluir proforma/orcamento — incluir_saft=false)
   const { data: faturas } = await supabase
     .from('faturas')
@@ -107,17 +110,19 @@ export async function exportSAFT(opts: SaftExportOptions): Promise<string> {
     <CurrencyCode>AOA</CurrencyCode>
     <DateCreated>${dateCreated}</DateCreated>
     <TaxEntity>Global</TaxEntity>
-    <ProductCompanyTaxID>${AGT_PRODUCT_COMPANY_TAX_ID}</ProductCompanyTaxID>
-    <SoftwareCertificateNumber>${AGT_SOFTWARE_CERT_NUMBER}</SoftwareCertificateNumber>
+    <ProductCompanyTaxID>${esc(cfgProductCompanyTaxId)}</ProductCompanyTaxID>
+    <SoftwareCertificateNumber>${esc(cfgSoftCert)}</SoftwareCertificateNumber>
     <ProductID>${AGT_PRODUCT_ID}</ProductID>
     <ProductVersion>${AGT_PRODUCT_VERSION}</ProductVersion>
   </Header>`;
 
   // ─── Master Files ──────────────────────────────────────────
-  const customers = Array.from(clientesMap.values()).map((c: any) => `      <Customer>
+  const customers = Array.from(clientesMap.values()).map((c: any) => {
+    const nifValid = c.nif && String(c.nif).trim() !== '' && String(c.nif).trim() !== '999999999';
+    const taxIdXml = nifValid ? `\n        <CustomerTaxID>${esc(c.nif)}</CustomerTaxID>` : '';
+    return `      <Customer>
         <CustomerID>${esc(c.id)}</CustomerID>
-        <AccountID>Desconhecido</AccountID>
-        <CustomerTaxID>${esc(c.nif || '999999999')}</CustomerTaxID>
+        <AccountID>Desconhecido</AccountID>${taxIdXml}
         <CompanyName>${esc(c.nome)}</CompanyName>
         <BillingAddress>
           <AddressDetail>${esc(c.endereco || 'N/A')}</AddressDetail>
@@ -125,7 +130,8 @@ export async function exportSAFT(opts: SaftExportOptions): Promise<string> {
           <Country>AO</Country>
         </BillingAddress>
         <SelfBillingIndicator>0</SelfBillingIndicator>
-      </Customer>`).join('\n');
+      </Customer>`;
+  }).join('\n');
 
   const products = Array.from(produtosMap.values()).map((p: any) => `      <Product>
         <ProductType>${p.tipo === 'servico' ? 'S' : 'P'}</ProductType>
@@ -134,15 +140,18 @@ export async function exportSAFT(opts: SaftExportOptions): Promise<string> {
         <ProductNumberCode>${esc(p.barcode || p.codigo)}</ProductNumberCode>
       </Product>`).join('\n');
 
-  // Tax table — gather distinct rates used
-  const distinctRates = new Set<number>();
-  for (const it of allItens) distinctRates.add(Number(it.taxa_iva || 0));
-  const taxTable = Array.from(distinctRates).map(rate => `      <TaxTableEntry>
+  // Tax table — sempre incluir as três entradas oficiais (NOR/RED/ISE)
+  const fixedTaxTable = [
+    { code: 'NOR', rate: 14, desc: 'IVA — Taxa Normal' },
+    { code: 'RED', rate: 5,  desc: 'IVA — Taxa Reduzida' },
+    { code: 'ISE', rate: 0,  desc: 'IVA — Isento' },
+  ];
+  const taxTable = fixedTaxTable.map(t => `      <TaxTableEntry>
         <TaxType>IVA</TaxType>
         <TaxCountryRegion>AO</TaxCountryRegion>
-        <TaxCode>${getTaxCode(rate)}</TaxCode>
-        <Description>IVA ${rate}%</Description>
-        <TaxPercentage>${rate}</TaxPercentage>
+        <TaxCode>${t.code}</TaxCode>
+        <Description>${t.desc}</Description>
+        <TaxPercentage>${t.rate.toFixed(2)}</TaxPercentage>
       </TaxTableEntry>`).join('\n');
 
   const masterFiles = `  <MasterFiles>
@@ -207,8 +216,13 @@ ${taxTable || '      <!-- Sem taxas -->'}
       : '';
 
     const moeda = f.moeda || 'AOA';
+    const cambio = Number(f.taxa_cambio || 1) || 1;
+    // Ponto 7 AGT: NetTotal/TaxPayable/GrossTotal sempre em AOA no SAF-T
+    const netAOA = Number(f.subtotal || 0) * (moeda !== 'AOA' ? cambio : 1);
+    const ivaAOA = Number(f.total_iva || 0) * (moeda !== 'AOA' ? cambio : 1);
+    const grossAOA = Number(f.total || 0) * (moeda !== 'AOA' ? cambio : 1);
     const currencyXml = moeda !== 'AOA'
-      ? `\n          <Currency><CurrencyCode>${esc(moeda)}</CurrencyCode><CurrencyAmount>${num(f.total)}</CurrencyAmount><ExchangeRate>${num(f.taxa_cambio, 6)}</ExchangeRate></Currency>`
+      ? `\n          <Currency><CurrencyCode>${esc(moeda)}</CurrencyCode><CurrencyAmount>${num(f.total)}</CurrencyAmount><ExchangeRate>${num(cambio, 6)}</ExchangeRate></Currency>`
       : '';
 
     const period = f.periodo_contabilistico || (f.data_emissao || '').substring(5, 7);
@@ -235,9 +249,9 @@ ${taxTable || '      <!-- Sem taxas -->'}
         <CustomerID>${esc(f.cliente_id)}</CustomerID>${orderRefXml}
 ${linesXml}
         <DocumentTotals>
-          <TaxPayable>${num(f.total_iva)}</TaxPayable>
-          <NetTotal>${num(f.subtotal)}</NetTotal>
-          <GrossTotal>${num(f.total)}</GrossTotal>${settlementXml}${currencyXml}
+          <TaxPayable>${ivaAOA.toFixed(2)}</TaxPayable>
+          <NetTotal>${netAOA.toFixed(2)}</NetTotal>
+          <GrossTotal>${grossAOA.toFixed(2)}</GrossTotal>${settlementXml}${currencyXml}
         </DocumentTotals>
       </Invoice>`;
   }).join('\n');

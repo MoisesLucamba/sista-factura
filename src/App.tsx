@@ -47,6 +47,7 @@ const BuyerScanInvoice = lazy(() => import("./pages/BuyerScanInvoice"));
 const GestaoStock = lazy(() => import("./pages/GestaoStock"));
 const SaftExport = lazy(() => import("./pages/SaftExport"));
 const EmpresaMembros = lazy(() => import("./pages/EmpresaMembros"));
+const FerramentasAGT = lazy(() => import("./pages/FerramentasAGT"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -272,6 +273,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <EmpresaMembros />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agt/ferramentas"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <FerramentasAGT />
                 </ProtectedRoute>
               }
             />

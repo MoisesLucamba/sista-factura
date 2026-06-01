@@ -712,10 +712,11 @@ export default function POS() {
                       <Input
                         type="number"
                         value={item.desconto}
-                        onChange={e => updateDiscount(item.produto_id, Math.min(100, Math.max(0, Number(e.target.value))))}
-                        className="h-5 w-12 text-[10px] text-center px-1"
+                        onChange={e => updateDiscount(item.produto_id, Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
+                        className="h-5 w-14 text-[10px] text-center px-1"
                         min={0}
                         max={100}
+                        step={0.01}
                       />
                     </div>
                   </div>
