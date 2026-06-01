@@ -347,11 +347,16 @@ export default function NovaFatura() {
           return;
         }
       }
-    } else if (buyerTab === 'anonimo' && anonMode === 'nif_manual' && manualNif.trim()) {
+    } else if (buyerTab === 'anonimo' && anonMode === 'nif_manual') {
+      // Ponto 8/9 AGT: nome é obrigatório mas NIF é opcional
+      if (!manualNome.trim()) {
+        toast.error('Nome do cliente é obrigatório');
+        return;
+      }
       try {
         const newClient = await createCliente.mutateAsync({
-          nome: manualNome.trim() || 'Consumidor Final',
-          nif: manualNif.trim(),
+          nome: manualNome.trim(),
+          nif: manualNif.trim(), // pode ser vazio — cliente identificado sem NIF
           endereco: manualEndereco.trim() || 'N/A',
           tipo: 'particular',
           whatsapp_consent: false,
@@ -837,9 +842,9 @@ export default function NovaFatura() {
                           </div>
                           <div className="space-y-1">
                             <Label className="text-[10px] text-muted-foreground">Desc. %</Label>
-                            <Input type="number" min="0" max="100" value={item.desconto}
+                            <Input type="number" min={0} max={100} step={0.01} value={item.desconto}
                               onChange={e => updateItem(index, 'desconto', parseFloat(e.target.value) || 0)}
-                              className="h-8 text-xs" />
+                              className="h-8 text-xs" placeholder="0.00" />
                           </div>
                           <div className="space-y-1">
                             <Label className="text-[10px] text-muted-foreground">IVA %</Label>
