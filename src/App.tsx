@@ -48,6 +48,7 @@ const GestaoStock = lazy(() => import("./pages/GestaoStock"));
 const SaftExport = lazy(() => import("./pages/SaftExport"));
 const EmpresaMembros = lazy(() => import("./pages/EmpresaMembros"));
 const FerramentasAGT = lazy(() => import("./pages/FerramentasAGT"));
+const ApiKeys = lazy(() => import("./pages/ApiKeys"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -284,6 +285,15 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/api-keys"
+              element={
+                <ProtectedRoute>
+                  <ApiKeys />
+                </ProtectedRoute>
+              }
+            />
+            
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

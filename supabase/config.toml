@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.multicaixa-express]
 verify_jwt = false
+
+[functions.faktura-api]
+verify_jwt = false
