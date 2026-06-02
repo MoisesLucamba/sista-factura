@@ -285,6 +285,15 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/api-keys"
+              element={
+                <ProtectedRoute>
+                  <ApiKeys />
+                </ProtectedRoute>
+              }
+            />
+            
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
