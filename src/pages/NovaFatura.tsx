@@ -141,14 +141,14 @@ export default function NovaFatura() {
     setBuyerData(null);
     try {
       const fakturaId = `FK-244-${digits}`;
-      const { data, error } = await supabase.rpc('lookup_buyer_by_faktura_id', {
+      const { data, error } = await (supabase.rpc as any)('lookup_profile_by_faktura_id', {
         _faktura_id: fakturaId,
       });
       if (error) throw error;
       if (data && data.length > 0) {
         const buyer = data[0] as { user_id: string; nome: string; nif: string; telefone: string; email: string };
         setBuyerData(buyer);
-        toast.success('Comprador identificado!');
+        toast.success('Identificado!');
       } else {
         toast.error('ID não encontrado. Verifica os dígitos.');
       }

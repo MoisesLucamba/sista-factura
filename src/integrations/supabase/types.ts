@@ -1885,6 +1885,17 @@ export type Database = {
           nome: string
         }[]
       }
+      lookup_profile_by_faktura_id: {
+        Args: { _faktura_id: string }
+        Returns: {
+          email: string
+          nif: string
+          nome: string
+          telefone: string
+          tipo: string
+          user_id: string
+        }[]
+      }
       lookup_user_by_faktura_id: {
         Args: { _faktura_id: string }
         Returns: {

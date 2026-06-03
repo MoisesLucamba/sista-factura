@@ -37,44 +37,13 @@ export default function PendingApproval() {
   };
 
   const triggerVerification = async () => {
-    if (!user) return;
-    setVerifying(true);
-    setStatus('verifying');
-    try {
-      const profileData = await supabase.from('profiles').select('tipo').eq('user_id', user.id).single();
-      const dest = profileData.data?.tipo === 'comprador' ? '/comprador' : '/dashboard';
-      const { data, error } = await supabase.functions.invoke('verify-buyer-id', {
-        body: { user_id: user.id },
-      });
-
-      if (error) throw error;
-
-      if (data.status === 'approved') {
-        toast.success('Verificação concluída! A sua conta foi aprovada.');
-        setStatus('approved');
-        setTimeout(() => navigate(dest), 2000);
-      } else if (data.status === 'rejected') {
-        setStatus('rejected');
-        setRejectionReason(data.reason);
-        toast.error('Verificação falhou. O número de identificação não corresponde.');
-      } else if (data.status === 'pending_manual') {
-        setStatus('pending');
-        toast.info('A verificação automática não foi possível. Um administrador irá verificar manualmente.');
-      }
-    } catch (err) {
-      console.error('Verification error:', err);
-      toast.error('Erro ao verificar. Tente novamente.');
-      setStatus('pending');
-    } finally {
-      setVerifying(false);
-    }
+    // AI verification disabled — admin will review documents manually.
+    setStatus('pending');
   };
 
-  // Auto-trigger verification on first load if pending
+  // AI auto-verification disabled. Account stays pending until an admin approves.
   useEffect(() => {
-    if (status === 'pending' && !verifying) {
-      triggerVerification();
-    }
+    if (status === 'verifying') setStatus('pending');
   }, [status]);
 
   return (
