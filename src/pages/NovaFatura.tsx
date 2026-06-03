@@ -390,12 +390,14 @@ export default function NovaFatura() {
       }
     }
 
+    const isNCND = tipo === 'nota-credito' || tipo === 'nota-debito';
+
     const faturaInput: FaturaInput = {
       tipo: tipo as any,
       cliente_id: finalClienteId,
       data_emissao: new Date().toISOString().split('T')[0],
-      data_vencimento: dataVencimento,
-      observacoes: (tipo === 'nota-credito' || tipo === 'nota-debito')
+      data_vencimento: dataVencimento || new Date().toISOString().split('T')[0],
+      observacoes: isNCND
         ? `Ref. documento original: ${notaCreditoRef.trim()}${observacoes ? '\n' + observacoes : ''}`
         : observacoes || undefined,
       metodo_pagamento: metodoPagamento || undefined,
@@ -404,6 +406,8 @@ export default function NovaFatura() {
       desconto_global: descontoGlobal || 0,
       moeda,
       taxa_cambio: taxaCambio || 1,
+      // AGT: NC/ND require reference to original document
+      order_reference_numero: isNCND ? notaCreditoRef.trim() : undefined,
       itens: itens.map(item => ({
         produto_id: item.produto_id,
         quantidade: item.quantidade,
@@ -427,8 +431,11 @@ export default function NovaFatura() {
       if (isAutoSendEnabled && result?.id) {
         autoSend(result.id);
       }
-    } catch {
-      toast.error('Erro ao emitir fatura');
+    } catch (err: any) {
+      // Surface the real error so we don't mask the cause
+      console.error('[NovaFatura] emit error:', err);
+      const msg = err?.message || err?.error_description || err?.hint || 'Erro desconhecido';
+      toast.error(`Erro ao emitir documento: ${msg}`);
     }
   };
 
