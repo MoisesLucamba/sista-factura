@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Copy, Key, Loader2, Plus, ShieldOff, BookOpen } from 'lucide-react';
+import { Copy, Key, Loader2, Plus, ShieldOff, BookOpen, Download } from 'lucide-react';
+import { API_DOCS_MARKDOWN } from '@/lib/api-docs';
 
 async function sha256Hex(str: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
