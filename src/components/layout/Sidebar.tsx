@@ -38,6 +38,8 @@ const mainNavItems: NavItem[] = [
 ];
 
 const secondaryNavItems: NavItem[] = [
+  { icon: CreditCard,  label: 'Subscrição',     href: '/subscricao'    },
+  { icon: Code2,       label: 'API',            href: '/api-keys'      },
   { icon: ShieldCheck, label: 'Admin',          href: '/admin'         },
   { icon: Building2,   label: 'Empresa',        href: '/empresa'       },
   { icon: Settings,    label: 'Configurações',  href: '/configuracoes' },
