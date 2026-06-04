@@ -62,6 +62,18 @@ export default function ApiKeys() {
     load();
   };
 
+  const downloadDocs = () => {
+    const blob = new Blob([API_DOCS_MARKDOWN], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `faktura-api-docs-v1.md`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Documentação descarregada');
+  };
+
   return (
     <MainLayout>
       <div className="container mx-auto py-6 max-w-3xl space-y-6">
@@ -69,10 +81,13 @@ export default function ApiKeys() {
           <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
             <Key className="w-5 h-5 text-primary" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-black tracking-tight">API & Integrações</h1>
             <p className="text-xs text-muted-foreground">Use a API Faktura para emitir facturas a partir de outros sistemas.</p>
           </div>
+          <Button onClick={downloadDocs} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" /> Baixar documentação
+          </Button>
         </div>
 
         <Card className="border-primary/30 bg-primary/5">
@@ -82,7 +97,7 @@ export default function ApiKeys() {
               https://ewfjvgzachtonehujvom.supabase.co/functions/v1/faktura-api
             </code>
             <p className="text-xs text-muted-foreground">
-              Autenticação por header <code>x-api-key</code>. Documentação completa partilhada com a equipa de integração.
+              Autenticação por header <code>x-api-key</code>. Clique em <strong>Baixar documentação</strong> para o guia completo (Markdown).
             </p>
           </CardContent>
         </Card>
