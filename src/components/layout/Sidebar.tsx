@@ -7,6 +7,7 @@ import {
   BarChart3, Settings, Building2, Truck,
   Receipt, Search, LogOut, ChevronLeft,
   ChevronRight, Bell, X, ShieldCheck, Store, MapPin, ScanLine,
+  Code2, CreditCard,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
