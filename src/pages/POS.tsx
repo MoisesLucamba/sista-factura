@@ -47,11 +47,11 @@ function recalcItem(item: CartItem): CartItem {
 }
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string }[] = [
-  { value: 'cash', label: 'Numerário', icon: '💵' },
-  { value: 'wallet', label: 'Carteira Faktura', icon: '👛' },
-  { value: 'multicaixa', label: 'Multicaixa Express', icon: '📱' },
-  { value: 'transferencia', label: 'Transferência', icon: '🏦' },
-  { value: 'pendente', label: 'Pendente', icon: '⏳' },
+  { value: 'cash', label: 'Numerário', icon: 'fa-solid fa-money-bill-wave' },
+  { value: 'wallet', label: 'Carteira Faktura', icon: 'fa-solid fa-wallet' },
+  { value: 'multicaixa', label: 'Multicaixa Express', icon: 'fa-solid fa-mobile-screen-button' },
+  { value: 'transferencia', label: 'Transferência', icon: 'fa-solid fa-building-columns' },
+  { value: 'pendente', label: 'Pendente', icon: 'fa-solid fa-hourglass-half' },
 ];
 
 // Quick cash amounts in Kz
