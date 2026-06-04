@@ -294,6 +294,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/subscricao"
+              element={
+                <ProtectedRoute>
+                  <Subscricao />
+                </ProtectedRoute>
+              }
+            />
             
             
             {/* Catch-all route */}
