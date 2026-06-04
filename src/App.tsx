@@ -49,6 +49,7 @@ const SaftExport = lazy(() => import("./pages/SaftExport"));
 const EmpresaMembros = lazy(() => import("./pages/EmpresaMembros"));
 const FerramentasAGT = lazy(() => import("./pages/FerramentasAGT"));
 const ApiKeys = lazy(() => import("./pages/ApiKeys"));
+const Subscricao = lazy(() => import("./pages/Subscricao"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -290,6 +291,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ApiKeys />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/subscricao"
+              element={
+                <ProtectedRoute>
+                  <Subscricao />
                 </ProtectedRoute>
               }
             />

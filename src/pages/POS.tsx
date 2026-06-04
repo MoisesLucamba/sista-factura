@@ -47,11 +47,11 @@ function recalcItem(item: CartItem): CartItem {
 }
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string }[] = [
-  { value: 'cash', label: 'Numerário', icon: '💵' },
-  { value: 'wallet', label: 'Carteira Faktura', icon: '👛' },
-  { value: 'multicaixa', label: 'Multicaixa Express', icon: '📱' },
-  { value: 'transferencia', label: 'Transferência', icon: '🏦' },
-  { value: 'pendente', label: 'Pendente', icon: '⏳' },
+  { value: 'cash', label: 'Numerário', icon: 'fa-solid fa-money-bill-wave' },
+  { value: 'wallet', label: 'Carteira Faktura', icon: 'fa-solid fa-wallet' },
+  { value: 'multicaixa', label: 'Multicaixa Express', icon: 'fa-solid fa-mobile-screen-button' },
+  { value: 'transferencia', label: 'Transferência', icon: 'fa-solid fa-building-columns' },
+  { value: 'pendente', label: 'Pendente', icon: 'fa-solid fa-hourglass-half' },
 ];
 
 // Quick cash amounts in Kz
@@ -864,7 +864,7 @@ export default function POS() {
                       : 'hover:bg-muted text-foreground border border-border/50'
                   }`}
                 >
-                  <span className="text-sm">{opt.icon}</span>
+                  <i className={`${opt.icon} text-sm w-4 text-center`} aria-hidden="true"></i>
                   <span className="flex-1 text-left">{opt.label}</span>
                   {paymentMethod === opt.value && (
                     <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />

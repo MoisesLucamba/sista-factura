@@ -7,6 +7,7 @@ import {
   BarChart3, Settings, Building2, Truck,
   Receipt, Search, LogOut, ChevronLeft,
   ChevronRight, Bell, X, ShieldCheck, Store, MapPin, ScanLine,
+  Code2, CreditCard,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,6 +38,8 @@ const mainNavItems: NavItem[] = [
 ];
 
 const secondaryNavItems: NavItem[] = [
+  { icon: CreditCard,  label: 'Subscrição',     href: '/subscricao'    },
+  { icon: Code2,       label: 'API',            href: '/api-keys'      },
   { icon: ShieldCheck, label: 'Admin',          href: '/admin'         },
   { icon: Building2,   label: 'Empresa',        href: '/empresa'       },
   { icon: Settings,    label: 'Configurações',  href: '/configuracoes' },
