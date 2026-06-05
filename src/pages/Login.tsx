@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Loader2, AlertCircle, ArrowRight, Zap, Shield, BarChart3,
   CheckCircle, FileText, BadgeDollarSign, Sparkles,
-  Users, TrendingUp, Lock, Eye, EyeOff, X, Mail, Smartphone,
+  Users, TrendingUp, Lock, Eye, EyeOff, X,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import logoFaktura from '@/assets/faktura-logo.png';
@@ -97,606 +98,277 @@ export default function Login() {
   const formatCountdown = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
   return (
-    <div className="min-h-screen flex overflow-hidden" style={{ background: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen flex overflow-hidden bg-background">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
-        *, *::before, *::after { box-sizing: border-box; }
+        @keyframes shimmer       { 0%{background-position:-200% center} 100%{background-position:200% center} }
+        @keyframes float         { 0%,100%{transform:translateY(0)}           50%{transform:translateY(-10px)} }
+        @keyframes float2        { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-14px) rotate(2deg)} }
+        @keyframes float3        { 0%,100%{transform:translateY(0)}           50%{transform:translateY(-8px)} }
+        @keyframes pulse-ring    { 0%{transform:scale(1);opacity:.45} 100%{transform:scale(1.9);opacity:0} }
+        @keyframes glow-pulse    { 0%,100%{box-shadow:0 0 20px hsl(var(--primary)/.25)} 50%{box-shadow:0 0 50px hsl(var(--primary)/.55)} }
+        @keyframes panel-slide-l { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes panel-slide-r { from{opacity:0;transform:translateX(40px)}  to{opacity:1;transform:translateX(0)} }
+        @keyframes fade-up       { from{opacity:0;transform:translateY(22px)}  to{opacity:1;transform:translateY(0)} }
 
-        @keyframes shimmer-grad { 0%{background-position:0% 50%} 100%{background-position:300% 50%} }
-        @keyframes float-a  { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-14px) rotate(1.5deg)} }
-        @keyframes float-b  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        @keyframes float-c  { 0%,100%{transform:translateY(0) rotate(-1deg)} 60%{transform:translateY(-16px) rotate(.5deg)} }
-        @keyframes pulse-ring { 0%{transform:scale(1);opacity:.55} 100%{transform:scale(2.5);opacity:0} }
-        @keyframes blink-dot  { 0%,100%{opacity:1;box-shadow:0 0 8px rgba(252,211,77,.9)} 50%{opacity:.2;box-shadow:none} }
-        @keyframes glow-btn   { 0%,100%{box-shadow:0 4px 28px rgba(217,119,6,.35)} 50%{box-shadow:0 6px 44px rgba(217,119,6,.6),0 0 0 5px rgba(217,119,6,.08)} }
-        @keyframes grid-drift { from{background-position:0 0} to{background-position:56px 56px} }
-        @keyframes scan-down  { 0%{top:-4px;opacity:0} 8%{opacity:1} 92%{opacity:.5} 100%{top:100%;opacity:0} }
-        @keyframes slide-l    { from{opacity:0;transform:translateX(-52px)} to{opacity:1;transform:translateX(0)} }
-        @keyframes slide-r    { from{opacity:0;transform:translateX(52px)}  to{opacity:1;transform:translateX(0)} }
-        @keyframes fade-up    { from{opacity:0;transform:translateY(26px)}  to{opacity:1;transform:translateY(0)} }
-        @keyframes spin-cw    { to{transform:rotate(360deg)} }
-        @keyframes spin-ccw   { to{transform:rotate(-360deg)} }
-        @keyframes data-drift { 0%{opacity:0;transform:translateY(10px)} 20%{opacity:1} 80%{opacity:.5} 100%{opacity:0;transform:translateY(-52px)} }
+        .reg-panel-l { animation: panel-slide-l .85s cubic-bezier(.22,1,.36,1) both; }
+        .reg-panel-r { animation: panel-slide-r .85s cubic-bezier(.22,1,.36,1) .08s both; }
+        .fu-1 { animation: fade-up .6s cubic-bezier(.4,0,.2,1) .20s both; }
+        .fu-2 { animation: fade-up .6s cubic-bezier(.4,0,.2,1) .33s both; }
+        .fu-3 { animation: fade-up .6s cubic-bezier(.4,0,.2,1) .46s both; }
+        .fu-4 { animation: fade-up .6s cubic-bezier(.4,0,.2,1) .59s both; }
+        .fu-5 { animation: fade-up .6s cubic-bezier(.4,0,.2,1) .72s both; }
+        .fu-6 { animation: fade-up .6s cubic-bezier(.4,0,.2,1) .85s both; }
 
-        .l-panel { animation:slide-l .95s cubic-bezier(.22,1,.36,1) both; }
-        .r-panel { animation:slide-r .95s cubic-bezier(.22,1,.36,1) .1s both; }
+        .af  { animation: float  4s ease-in-out infinite; }
+        .af2 { animation: float2 5.5s ease-in-out infinite; }
+        .af3 { animation: float3 3.5s ease-in-out 1s infinite; }
+        .ag  { animation: glow-pulse 3s ease-in-out infinite; }
 
-        .fu1{animation:fade-up .65s cubic-bezier(.4,0,.2,1) .2s  both}
-        .fu2{animation:fade-up .65s cubic-bezier(.4,0,.2,1) .35s both}
-        .fu3{animation:fade-up .65s cubic-bezier(.4,0,.2,1) .5s  both}
-        .fu4{animation:fade-up .65s cubic-bezier(.4,0,.2,1) .65s both}
-        .fu5{animation:fade-up .65s cubic-bezier(.4,0,.2,1) .8s  both}
-        .fu6{animation:fade-up .65s cubic-bezier(.4,0,.2,1) .95s both}
-
-        .fl-a{animation:float-a 5s ease-in-out infinite}
-        .fl-b{animation:float-b 4s ease-in-out infinite}
-        .fl-c{animation:float-c 6.5s ease-in-out 1.2s infinite}
-
-        /* ── HERO PANEL ── */
-        .hero-panel {
-          width:52%; position:relative; overflow:hidden;
-          display:flex; flex-direction:column;
-        }
-        .hero-photo { position:absolute; inset:0; }
-        .hero-photo img { width:100%; height:100%; object-fit:cover; object-position:center 25%; }
-        .hero-photo::after {
+        .auth-photo { position:absolute; inset:0; overflow:hidden; }
+        .auth-photo img { width:100%; height:100%; object-fit:cover; object-position:center 30%; }
+        .auth-photo::after {
           content:''; position:absolute; inset:0;
-          background:
-            linear-gradient(180deg,rgba(6,5,26,.75) 0%,rgba(6,5,26,.18) 36%,rgba(6,5,26,.4) 68%,rgba(6,5,26,.94) 100%),
-            linear-gradient(105deg,rgba(217,119,6,.58) 0%,transparent 52%);
+          background: linear-gradient(180deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,.18) 35%, rgba(0,0,0,.38) 65%, rgba(0,0,0,.84) 100%),
+                      linear-gradient(90deg, rgba(0,0,0,.52) 0%, transparent 58%);
         }
-
-        /* Tech overlay grid on photo */
-        .hero-grid {
-          position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.06;
-          background-image:
-            linear-gradient(rgba(252,211,77,1) 1px,transparent 1px),
-            linear-gradient(90deg,rgba(252,211,77,1) 1px,transparent 1px);
-          background-size:56px 56px;
-          animation:grid-drift 12s linear infinite;
-        }
-        .scanline {
-          position:absolute; left:0; right:0; height:3px; z-index:2; pointer-events:none;
-          background:linear-gradient(90deg,transparent,rgba(252,211,77,.5),rgba(255,255,255,.4),rgba(252,211,77,.5),transparent);
-          animation:scan-down 8s ease-in-out infinite;
-        }
-
-        /* Orbs */
-        .h-orb { position:absolute; border-radius:50%; pointer-events:none; z-index:1; filter:blur(72px); }
-
-        /* Spinning rings */
-        .spin-ring { position:absolute; border-radius:50%; border:1px solid rgba(245,158,11,.16); pointer-events:none; z-index:1; }
-
-        /* Data particles */
-        .d-par {
-          position:absolute; font-family:'JetBrains Mono',monospace;
-          font-size:10px; color:rgba(252,211,77,.18);
-          pointer-events:none; user-select:none; z-index:2;
-          animation:data-drift 9s ease-in-out infinite;
-        }
-
-        .hero-content {
-          position:relative; z-index:3;
-          display:flex; flex-direction:column; justify-content:space-between;
-          height:100%; padding:36px 44px;
-        }
-
-        /* Live pill */
-        .live-pill {
-          display:inline-flex; align-items:center; gap:8px;
-          background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.22);
-          backdrop-filter:blur(12px); border-radius:100px;
-          padding:6px 14px; font-size:11px; font-weight:800;
-          color:#fff; letter-spacing:.07em; text-transform:uppercase;
-          width:fit-content; margin-bottom:22px;
-        }
-        .l-dot {
-          width:7px; height:7px; border-radius:50%; background:#FCD34D;
-          animation:blink-dot 2s infinite; flex-shrink:0;
-        }
-
-        /* Hero title */
-        .h-title {
-          font-family:'Plus Jakarta Sans',sans-serif;
-          font-size:clamp(2.4rem,4vw,4.4rem); font-weight:900;
-          letter-spacing:-.04em; line-height:.9; color:#fff; margin-bottom:14px;
-        }
-        .h-accent {
-          background:linear-gradient(90deg,#fff 0%,#FCD34D 30%,#F59E0B 60%,#fff 100%);
-          background-size:300% auto;
-          -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-          animation:shimmer-grad 4s linear infinite; display:block;
-        }
-
-        /* Feature items */
-        .feat-item {
-          display:flex; align-items:center; gap:12px;
-          background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
-          backdrop-filter:blur(16px); border-radius:14px;
-          padding:11px 16px; cursor:default; margin-bottom:8px;
-          transition:all .25s ease;
-        }
-        .feat-item:hover { background:rgba(255,255,255,.15); transform:translateX(7px); border-color:rgba(252,211,77,.45); }
-        .feat-ico { width:34px; height:34px; border-radius:9px; background:rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-
-        /* Stat chips */
-        .stat-bar { display:flex; flex-wrap:wrap; gap:10px; }
-        .s-chip {
-          display:flex; align-items:center; gap:8px;
-          background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
-          backdrop-filter:blur(12px); border-radius:11px; padding:8px 14px;
-          transition:all .25s;
-        }
-        .s-chip:hover { background:rgba(255,255,255,.15); transform:translateY(-3px); }
-
-        /* Floating badge cards */
-        .f-card {
-          position:absolute; z-index:20;
-          background:rgba(255,255,255,.97); border:1px solid rgba(245,158,11,.2);
-          border-radius:16px; padding:12px 16px;
-          display:flex; align-items:center; gap:12px;
-          box-shadow:0 12px 44px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.06);
-          backdrop-filter:blur(20px);
-        }
-        .p-ring { position:absolute; inset:-6px; border-radius:50%; border:2px solid rgba(245,158,11,.45); animation:pulse-ring 2.2s ease-out infinite; }
-
-        /* ── FORM PANEL ── */
-        .form-panel {
-          flex:1; display:flex; align-items:center; justify-content:center;
-          padding:48px; background:#fff; overflow-y:auto; position:relative; z-index:2;
-        }
-        /* Subtle background grid on form side */
-        .form-panel::before {
-          content:''; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.022;
-          background-image:
-            linear-gradient(rgba(217,119,6,1) 1px,transparent 1px),
-            linear-gradient(90deg,rgba(217,119,6,1) 1px,transparent 1px);
-          background-size:48px 48px;
-        }
-        .form-inner { width:100%; max-width:420px; position:relative; z-index:1; }
-
-        /* The main form box */
-        .form-box {
-          background:#fff; border:1.5px solid rgba(245,158,11,.2);
-          border-radius:26px; padding:40px 36px;
-          box-shadow:0 4px 60px rgba(217,119,6,.09),0 0 0 1px rgba(245,158,11,.06);
-          position:relative; overflow:hidden;
-        }
-        /* Top shimmer line */
-        .form-box::before {
-          content:''; position:absolute; top:0; left:0; right:0; height:2px;
-          background:linear-gradient(90deg,transparent,rgba(245,158,11,.7),rgba(252,211,77,1),rgba(245,158,11,.7),transparent);
-        }
-        /* Corner radial glow */
-        .form-box::after {
-          content:''; position:absolute; bottom:0; right:0; width:140px; height:140px; pointer-events:none;
-          background:radial-gradient(circle at bottom right,rgba(245,158,11,.07),transparent 70%);
-        }
-
-        /* Field labels */
-        .f-lbl {
-          font-size:11.5px; font-weight:800; color:#64748b;
-          text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px;
-          display:flex; align-items:center; justify-content:space-between;
-        }
-        .f-grp { margin-bottom:18px; }
-
-        /* ID field */
-        .id-wrap {
-          display:flex; align-items:center; height:52px;
-          border-radius:15px; overflow:hidden;
-          border:1.5px solid rgba(245,158,11,.22);
-          background:#fffbeb; transition:all .25s;
-        }
-        .id-wrap.on {
-          border-color:rgba(245,158,11,.7);
-          box-shadow:0 0 0 3px rgba(245,158,11,.12),0 2px 18px rgba(245,158,11,.1);
-          background:#fff;
-        }
-        .id-pfx {
-          display:flex; align-items:center; justify-content:center;
-          padding:0 14px; height:100%;
-          background:linear-gradient(135deg,rgba(217,119,6,.1),rgba(245,158,11,.07));
-          border-right:1.5px solid rgba(245,158,11,.16);
-          font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
-          color:rgba(217,119,6,.85); letter-spacing:.04em; user-select:none; white-space:nowrap;
-        }
-        .id-in {
-          flex:1; height:100%; padding:0 12px;
-          background:transparent; border:none; outline:none;
-          font-family:'JetBrains Mono',monospace !important;
-          font-size:16px; font-weight:700; letter-spacing:.35em; color:#1c1007;
-        }
-        .id-in::placeholder { color:rgba(245,158,11,.22); letter-spacing:.4em; }
-        .id-in:disabled { opacity:.5; }
-        .id-prev { font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(245,158,11,.55); padding:5px 4px 0; letter-spacing:.04em; }
-
-        /* Password */
-        .pw-wrap {
-          position:relative; height:52px;
-          border-radius:15px; overflow:hidden;
-          border:1.5px solid rgba(245,158,11,.22); background:#fffbeb;
-          display:flex; align-items:center; transition:all .25s;
-        }
-        .pw-wrap.on {
-          border-color:rgba(245,158,11,.7);
-          box-shadow:0 0 0 3px rgba(245,158,11,.12),0 2px 18px rgba(245,158,11,.1);
-          background:#fff;
-        }
-        .pw-in {
-          flex:1; height:100%; padding:0 46px 0 16px;
-          background:transparent; border:none; outline:none;
-          font-size:14px; color:#1c1007; font-family:'Plus Jakarta Sans',sans-serif;
-        }
-        .pw-in::placeholder { color:rgba(245,158,11,.28); }
-        .pw-tog {
-          position:absolute; right:12px; top:50%; transform:translateY(-50%);
-          background:none; border:none; cursor:pointer; padding:5px; border-radius:8px;
-          color:rgba(245,158,11,.45); transition:all .2s;
-          display:flex; align-items:center; justify-content:center;
-        }
-        .pw-tog:hover { background:rgba(245,158,11,.1); color:rgba(217,119,6,.9); }
-
-        /* Submit */
-        .sub-btn {
-          width:100%; height:54px; border-radius:16px; border:none;
-          background:linear-gradient(135deg,#D97706 0%,#F59E0B 60%,#FBBF24 100%);
-          color:#fff; font-size:14px; font-weight:800;
-          letter-spacing:.08em; text-transform:uppercase;
-          cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;
-          position:relative; overflow:hidden; transition:all .25s;
-          animation:glow-btn 3.5s ease-in-out infinite;
-          font-family:'Plus Jakarta Sans',sans-serif;
-        }
-        .sub-btn::before {
-          content:''; position:absolute; inset:0;
-          background:linear-gradient(135deg,rgba(255,255,255,.16) 0%,transparent 55%);
-          pointer-events:none;
-        }
-        .sub-btn:hover:not(:disabled) {
-          transform:translateY(-2px) scale(1.01);
-          box-shadow:0 14px 52px rgba(217,119,6,.58),0 0 0 1px rgba(245,158,11,.4) !important;
-          animation:none;
-        }
-        .sub-btn:active:not(:disabled) { transform:scale(.98); }
-        .sub-btn:disabled { opacity:.55; cursor:not-allowed; animation:none; }
-        .sub-btn .arr { transition:transform .2s; }
-        .sub-btn:hover:not(:disabled) .arr { transform:translateX(5px); }
-
-        /* Alerts */
-        .e-box {
-          display:flex; align-items:flex-start; gap:10px;
-          background:#fef2f2; border:1px solid #fecaca;
-          border-radius:13px; padding:12px 14px; margin-bottom:18px;
-          font-size:13px; color:#b91c1c; font-weight:500;
-        }
-        .lk-box {
-          display:flex; align-items:flex-start; gap:10px;
-          background:#fffbeb; border:1px solid #fcd34d;
-          border-radius:13px; padding:12px 14px; margin-bottom:18px;
-          font-size:13px; color:#92400e; font-weight:500;
-        }
-
-        /* Links */
-        .a-p { color:#D97706; font-size:12px; font-weight:700; text-decoration:none; transition:all .2s; }
-        .a-p:hover { color:#F59E0B; }
-        .a-sm { color:#999; font-size:13px; font-weight:500; text-decoration:none; transition:color .2s; }
-        .a-sm:hover { color:#D97706; }
-        .a-sm span { color:#D97706; font-weight:700; }
-
-        /* Divider */
-        .dvdr { display:flex; align-items:center; gap:10px; margin:20px 0; }
-        .dv-l { flex:1; height:1px; background:rgba(245,158,11,.15); }
-        .dv-t { font-size:10.5px; font-weight:800; color:#bbb; letter-spacing:.08em; white-space:nowrap; }
-
-        /* Recovery links */
-        .rec-a {
-          display:flex; align-items:center; gap:9px;
-          color:#D97706; font-size:13px; font-weight:700;
-          text-decoration:none; padding:10px 16px; border-radius:13px;
-          border:1.5px solid rgba(245,158,11,.2); background:rgba(245,158,11,.04);
-          transition:all .22s; justify-content:center;
-          font-family:'Plus Jakarta Sans',sans-serif;
-        }
-        .rec-a:hover { background:rgba(245,158,11,.1); border-color:rgba(245,158,11,.45); transform:translateY(-2px); box-shadow:0 4px 20px rgba(217,119,6,.12); }
-
-        /* Sec row */
-        .sec-r { display:flex; align-items:center; justify-content:center; gap:6px; font-size:11px; color:#ccc; margin-top:20px; }
-
-        @media(max-width:900px){
-          .hero-panel{ display:none !important; }
-          .form-panel{ padding:28px 20px; }
-        }
+        .glass-pill { background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.20); backdrop-filter:blur(14px); }
+        .glass-stat { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); backdrop-filter:blur(18px); transition:all .3s ease; }
+        .glass-stat:hover { background:rgba(255,255,255,.13); transform:translateY(-3px); }
+        .float-badge { background:rgba(255,255,255,.95); backdrop-filter:blur(20px); box-shadow:0 8px 32px rgba(0,0,0,.18); }
+        .dark .float-badge { background:rgba(18,18,26,.96); }
+        .pulse-ring::before { content:''; position:absolute; inset:-6px; border-radius:inherit; border:2px solid hsl(var(--primary)/.4); animation:pulse-ring 2s ease-out infinite; }
+        .auth-grid { position:absolute; inset:0; pointer-events:none; z-index:1; opacity:.035; background-image: linear-gradient(rgba(255,255,255,1) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px); background-size:80px 80px; }
+        .shimmer-text { background:linear-gradient(90deg,hsl(var(--primary)) 0%,hsl(var(--primary)/.5) 40%,hsl(var(--primary)) 80%); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:shimmer 3s linear infinite; }
+        .shimmer-white { background:linear-gradient(90deg,hsl(var(--primary)) 0%,#fff 45%,hsl(var(--primary)) 90%); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; filter:drop-shadow(0 0 20px hsl(var(--primary)/.4)); animation:shimmer 3s linear infinite; }
+        .auth-input { height:2.75rem; border-radius:.75rem; border:2px solid hsl(var(--border)/.7); background:hsl(var(--muted)/.4); font-size:.875rem; padding:0 1rem; transition:border-color .25s,box-shadow .25s,background .25s; width:100%; }
+        .auth-input:hover { border-color:hsl(var(--border)); }
+        .auth-input:focus { border-color:hsl(var(--primary)/.55) !important; box-shadow:0 0 0 3px hsl(var(--primary)/.12) !important; background:hsl(var(--background)) !important; outline:none; }
+        .btn-glow:hover { box-shadow:0 8px 32px hsl(var(--primary)/.45) !important; }
+        .auth-divider { display:flex; align-items:center; gap:10px; }
+        .auth-divider::before,.auth-divider::after { content:''; flex:1; height:1px; background:hsl(var(--border)); }
       `}</style>
 
-      {/* ══════════════ LEFT HERO PANEL ══════════════ */}
-      <div className="hero-panel l-panel">
-        {/* Background photo */}
-        <div className="hero-photo">
-          <img src={heroBusiness} alt="Empresários angolanos com Faktura" />
-        </div>
-
-        {/* Tech overlays */}
-        <div className="hero-grid" />
-        <div className="scanline" />
-
-        {/* Orb glows */}
-        <div className="h-orb" style={{ width:520, height:520, background:'radial-gradient(circle,rgba(217,119,6,.42) 0%,transparent 70%)', top:'-170px', left:'-90px' }} />
-        <div className="h-orb" style={{ width:320, height:320, background:'radial-gradient(circle,rgba(245,158,11,.24) 0%,transparent 70%)', bottom:'-60px', right:'8%', animationDelay:'1.8s' }} />
-
-        {/* Spinning rings */}
-        <div style={{ position:'absolute', top:'50%', left:'56%', transform:'translate(-50%,-50%)', zIndex:1, pointerEvents:'none' }}>
-          <div className="spin-ring" style={{ width:400, height:400, borderTopColor:'rgba(245,158,11,.5)', animation:'spin-cw 24s linear infinite', position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)' }} />
-          <div className="spin-ring" style={{ width:272, height:272, borderRightColor:'rgba(252,211,77,.38)', animation:'spin-ccw 16s linear infinite', position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)' }} />
-          <div className="spin-ring" style={{ width:180, height:180, borderBottomColor:'rgba(217,119,6,.3)', animation:'spin-cw 10s linear infinite', position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)' }} />
-        </div>
-
-        {/* Data particles */}
-        {['FK-244','AGT✓','TLS','0xA3','AES','2048b','244.aok','HASH','SHA'].map((t,i) => (
-          <div key={i} className="d-par" style={{ left:`${4+i*11}%`, top:`${10+(i%4)*18}%`, animationDelay:`${i*1.05}s`, animationDuration:`${8+i*.8}s` }}>{t}</div>
-        ))}
-
-        {/* Main content */}
-        <div className="hero-content">
-          {/* Logo */}
-          <Link to="/" style={{ display:'inline-block' }}>
-            <img src={logoFaktura} alt="Faktura Angola" style={{ height:120, objectFit:'contain', filter:'drop-shadow(0 4px 22px rgba(217,119,6,.5))' }} />
-          </Link>
-
-          {/* Hero body */}
-          <div style={{ marginTop:'auto', marginBottom:'auto' }}>
-            <div className="live-pill">
-              <div className="l-dot" />
-              Plataforma #1 de faturação em Angola
-              <div className="l-dot" style={{ animationDelay:'.6s' }} />
+      {/* Left Panel — Hero */}
+      <div className="hidden lg:flex lg:w-[48%] xl:w-[50%] relative flex-col reg-panel-l overflow-hidden">
+        <div className="auth-photo"><img src={heroBusiness} alt="Empresarios angolanos com Faktura" /></div>
+        <div className="auth-grid" />
+        <div className="absolute z-[3] pointer-events-none rounded-full" style={{ width:520,height:520,background:'hsl(var(--primary)/.26)',filter:'blur(115px)',top:'8%',left:'-6%' }} />
+        <div className="absolute z-[3] pointer-events-none rounded-full" style={{ width:300,height:300,background:'hsl(var(--primary)/.15)',filter:'blur(80px)',bottom:'12%',right:'8%' }} />
+        <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
+          <Link to="/" className="self-start"><img src={logoFaktura} alt="Faktura Angola" className="h-20 object-contain" /></Link>
+          <div className="my-auto">
+            <div className="inline-flex items-center gap-2 glass-pill rounded-full px-4 py-2 mb-7 cursor-default">
+              <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+              <span className="text-xs font-bold text-white tracking-wide">Plataforma #1 de faturação em Angola</span>
             </div>
-
-            <h2 className="h-title">
-              Faturação<br />
-              <span className="h-accent">simplificada.</span>
+            <h2 className="font-black text-white mb-4 leading-[.88]" style={{ fontSize:'clamp(2.4rem,4.5vw,4.5rem)',letterSpacing:'-0.025em' }}>
+              Faturação<br /><span className="shimmer-white">simplificada.</span>
             </h2>
-
-            <p style={{ color:'rgba(255,255,255,.52)', maxWidth:285, lineHeight:1.72, fontSize:13, fontWeight:500, marginBottom:28 }}>
+            <p className="text-white/65 max-w-xs leading-relaxed mb-9 font-medium" style={{ fontSize:'clamp(.9rem,1.1vw,1.05rem)' }}>
               Rápida, segura e em conformidade total com a AGT. Tudo num só lugar.
             </p>
-
-            <div>
-              {[
-                { icon:<Zap size={15} color="#FCD34D" />,       label:'Emissão de faturas em segundos' },
-                { icon:<Shield size={15} color="#FCD34D" />,    label:'Conformidade total com a AGT' },
-                { icon:<BarChart3 size={15} color="#FCD34D" />, label:'Relatórios e métricas em tempo real' },
-              ].map(({ icon, label }, i) => (
-                <div key={i} className="feat-item">
-                  <div className="feat-ico">{icon}</div>
-                  <span style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,.75)' }}>{label}</span>
+            <div className="flex flex-col gap-2.5">
+              {[{icon:Zap,label:'Emissão de faturas em segundos'},{icon:Shield,label:'Conformidade total com a AGT'},{icon:BarChart3,label:'Relatórios e métricas em tempo real'}].map(({icon:I,label},idx) => (
+                <div key={idx} className="glass-stat rounded-xl px-4 py-3 flex items-center gap-3 cursor-default">
+                  <div className="w-8 h-8 rounded-lg bg-white/12 flex items-center justify-center flex-shrink-0"><I className="w-4 h-4 text-white" /></div>
+                  <span className="text-white/80 text-sm font-semibold">{label}</span>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Stats */}
-          <div className="stat-bar">
-            {[
-              { icon:<Users size={13} color="rgba(255,255,255,.5)" />,      v:'500+',  l:'Empresas' },
-              { icon:<FileText size={13} color="rgba(255,255,255,.5)" />,   v:'50k+',  l:'Faturas' },
-              { icon:<TrendingUp size={13} color="rgba(255,255,255,.5)" />, v:'99%',   l:'Uptime' },
-            ].map(({ icon,v,l },i) => (
-              <div key={i} className="s-chip">
-                {icon}
-                <span style={{ fontSize:13, fontWeight:900, color:'#fff' }}>{v}</span>
-                <span style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,.36)' }}>{l}</span>
+          <div className="flex flex-wrap gap-2.5">
+            {[{icon:Users,v:'500+',l:'Empresas'},{icon:FileText,v:'50.000+',l:'Faturas'},{icon:TrendingUp,v:'99%',l:'Uptime'}].map(({icon:I,v,l},idx) => (
+              <div key={idx} className="glass-stat rounded-xl px-3 py-2 flex items-center gap-2 cursor-default">
+                <I className="w-3.5 h-3.5 text-white/60 flex-shrink-0" />
+                <span className="text-white font-black text-sm tabular-nums">{v}</span>
+                <span className="text-white/45 text-xs font-semibold">{l}</span>
               </div>
             ))}
           </div>
         </div>
-
-        {/* ── Floating badge cards ── */}
-        {/* AGT badge */}
-        <div className="f-card fl-a" style={{ top:'22%', right:'-3%' }}>
-          <div style={{ position:'relative' }}>
-            <div className="p-ring" />
-            <div style={{ width:38, height:38, borderRadius:'50%', background:'rgba(245,158,11,.12)', border:'1px solid rgba(245,158,11,.25)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <CheckCircle size={17} color="#D97706" />
-            </div>
+        <div className="af2 absolute right-8 top-[28%] z-20 float-badge rounded-2xl px-4 py-3 flex items-center gap-3 border border-white/10">
+          <div className="relative pulse-ring w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+            <CheckCircle className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <p style={{ fontSize:13, fontWeight:800, color:'#1c1007', margin:0, fontFamily:"'Plus Jakarta Sans',sans-serif" }}>Conformidade AGT</p>
-            <p style={{ fontSize:11, color:'#888', margin:0 }}>100% certificado</p>
-          </div>
-        </div>
-
-        {/* Invoice badge */}
-        <div className="f-card fl-b" style={{ top:'49%', right:'13%' }}>
-          <div style={{ width:34, height:34, borderRadius:9, background:'rgba(245,158,11,.1)', border:'1px solid rgba(245,158,11,.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-            <FileText size={15} color="#D97706" />
-          </div>
-          <div>
-            <p style={{ fontSize:12, fontWeight:700, color:'#1c1007', margin:0, fontFamily:"'JetBrains Mono',monospace" }}>FT 2026/1284</p>
-            <p style={{ fontSize:11, color:'#D97706', margin:0, fontWeight:700 }}>✓ Enviada via WhatsApp</p>
-          </div>
-        </div>
-
-        {/* Credit badge */}
-        <div className="f-card fl-c" style={{ bottom:'22%', right:'1%' }}>
-          <div style={{ width:34, height:34, borderRadius:9, background:'rgba(29,158,117,.1)', border:'1px solid rgba(29,158,117,.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-            <BadgeDollarSign size={15} color="#1D9E75" />
-          </div>
-          <div>
-            <p style={{ fontSize:12, fontWeight:700, color:'#1c1007', margin:0 }}>+50 Kz creditados</p>
-            <p style={{ fontSize:11, color:'#888', margin:0, fontFamily:"'JetBrains Mono',monospace" }}>FK-244-000244 · agora</p>
+            <p className="text-sm font-black text-foreground leading-tight">Conformidade AGT</p>
+            <p className="text-xs text-muted-foreground">100% certificado</p>
           </div>
         </div>
       </div>
 
-      {/* ══════════════ RIGHT FORM PANEL ══════════════ */}
-      <div className="form-panel r-panel">
-        <div className="form-inner">
-
-          {/* Mobile only logo */}
-          <div className="fu1" style={{ display:'flex', justifyContent:'center', marginBottom:28 }}>
-            <Link to="/" style={{ display:'inline-block' }} className="lg:hidden">
-              <img src={logoFaktura} alt="Faktura Angola" style={{ height:110, objectFit:'contain' }} />
-            </Link>
+      {/* Right Panel — Form */}
+      <div className="flex-1 flex items-center justify-center p-6 md:p-10 reg-panel-r overflow-y-auto">
+        <div className="w-full max-w-sm py-6">
+          <div className="lg:hidden flex justify-center mb-8">
+            <Link to="/"><img src={logoFaktura} alt="Faktura" className="h-24 object-contain" /></Link>
           </div>
 
-          {/* Title */}
-          <div className="fu1" style={{ textAlign:'center', marginBottom:26 }}>
-            <h1 style={{ fontSize:26, fontWeight:900, letterSpacing:'-.04em', color:'#1c1007', margin:'0 0 4px' }}>
-              Bem-vindo à{' '}
-              <span style={{
-                background:'linear-gradient(90deg,#D97706 0%,#F59E0B 35%,#FCD34D 65%,#D97706 100%)',
-                backgroundSize:'300% auto',
-                WebkitBackgroundClip:'text',
-                WebkitTextFillColor:'transparent',
-                animation:'shimmer-grad 4s linear infinite',
-              }}>Faktura</span>
-            </h1>
-            <p style={{ fontSize:13, color:'#999', fontWeight:500, margin:0 }}>
-              Acede à tua conta com o teu ID pessoal
-            </p>
-          </div>
-
-          {/* Form card */}
-          <div className="form-box fu2">
-
-            {/* Sparkle icon */}
-            <div style={{ display:'flex', justifyContent:'center', marginBottom:24 }}>
-              <div style={{
-                width:52, height:52, borderRadius:'50%',
-                background:'linear-gradient(135deg,rgba(217,119,6,.1),rgba(245,158,11,.07))',
-                border:'1.5px solid rgba(245,158,11,.22)',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                boxShadow:'0 0 24px rgba(245,158,11,.16)',
-              }}>
-                <Sparkles size={22} color="#F59E0B" />
-              </div>
+          {/* Header */}
+          <div className="fu-1 mb-5">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-4 cursor-default">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs font-bold">Bem-vindo de volta</span>
             </div>
+            <h1 className="text-3xl font-black tracking-tight leading-tight mb-2">
+              Entre na <span className="shimmer-text">Faktura</span>
+            </h1>
+            <p className="text-muted-foreground text-sm">Acede à tua conta com o teu ID pessoal</p>
+          </div>
 
-            {/* Errors */}
-            {error && (
-              <div className="e-box fu2">
-                <AlertCircle size={15} style={{ flexShrink:0, marginTop:1 }} />
-                <span>{error}</span>
-              </div>
-            )}
-            {isLocked && (
-              <div className="lk-box fu2">
-                <Lock size={15} style={{ flexShrink:0, marginTop:1 }} />
-                <span>Conta bloqueada. Tenta em <strong>{formatCountdown(countdown)}</strong></span>
-              </div>
-            )}
+          {/* Error / Lock */}
+          {error && (
+            <div className="fu-2 mb-4">
+              <Alert variant="destructive" className="border-destructive/30 bg-destructive/5 rounded-xl">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-sm">{error}</AlertDescription>
+              </Alert>
+            </div>
+          )}
+          {isLocked && (
+            <div className="fu-2 mb-4">
+              <Alert className="border-amber-500/30 bg-amber-500/5 rounded-xl">
+                <Lock className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-sm text-amber-700">
+                  Conta bloqueada. Tenta em <strong>{formatCountdown(countdown)}</strong>
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
 
-            <form onSubmit={handleSubmit}>
-              {/* Faktura ID */}
-              <div className="f-grp fu3">
-                <div className="f-lbl">O teu ID Faktura</div>
-                <div className={`id-wrap ${focused === 'digits' ? 'on' : ''}`}>
-                  <div className="id-pfx">FK · 244</div>
-                  <input
-                    ref={digitsRef}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={15}
-                    value={digits}
-                    onChange={e => handleDigitsChange(e.target.value)}
-                    onFocus={() => setFocused('digits')}
-                    onBlur={() => setFocused(null)}
-                    onPaste={e => {
-                      const pasted = e.clipboardData.getData('text');
-                      const match = pasted.match(/FK-244-(\d{1,6})/i);
-                      if (match) { e.preventDefault(); handleDigitsChange(pasted); }
-                    }}
-                    disabled={loading || isLocked}
-                    placeholder="_ _ _ _ _ _"
-                    className="id-in"
-                    autoComplete="off"
-                  />
-                  {digits.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => { setDigits(''); digitsRef.current?.focus(); }}
-                      style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(245,158,11,.45)', padding:'4px 10px 4px 4px', display:'flex', alignItems:'center' }}
-                    >
-                      <X size={13} />
-                    </button>
-                  )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Faktura ID */}
+            <div className="fu-2 space-y-1.5">
+              <label className="text-sm font-bold flex items-center justify-between">
+                <span>O teu ID Faktura</span>
+              </label>
+              <div className={`flex items-center h-[2.75rem] rounded-xl overflow-hidden border-2 transition-all ${focused === 'digits' ? 'border-primary/55 bg-background shadow-[0_0_0_3px_hsl(var(--primary)/.12)]' : 'border-border/70 bg-muted/40'}`}>
+                <div className="flex items-center justify-center px-3 h-full bg-primary/10 border-r-2 border-border/70 text-xs font-bold text-primary/85 whitespace-nowrap select-none">
+                  FK · 244
                 </div>
+                <input
+                  ref={digitsRef}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={15}
+                  value={digits}
+                  onChange={e => handleDigitsChange(e.target.value)}
+                  onFocus={() => setFocused('digits')}
+                  onBlur={() => setFocused(null)}
+                  onPaste={e => {
+                    const pasted = e.clipboardData.getData('text');
+                    const match = pasted.match(/FK-244-(\d{1,6})/i);
+                    if (match) { e.preventDefault(); handleDigitsChange(pasted); }
+                  }}
+                  disabled={loading || isLocked}
+                  placeholder="_ _ _ _ _ _"
+                  className="flex-1 h-full px-3 bg-transparent border-none outline-none text-sm font-mono font-bold tracking-[0.25em] text-foreground placeholder:text-muted-foreground/30"
+                  autoComplete="off"
+                />
                 {digits.length > 0 && (
-                  <div className="id-prev">FK-244-{digits.padEnd(6, '_')}</div>
+                  <button
+                    type="button"
+                    onClick={() => { setDigits(''); digitsRef.current?.focus(); }}
+                    className="px-2 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
                 )}
               </div>
+              {digits.length > 0 && (
+                <p className="text-[11px] text-muted-foreground font-mono px-1">FK-244-{digits.padEnd(6, '_')}</p>
+              )}
+            </div>
 
-              {/* Password */}
-              <div className="f-grp fu3">
-                <div className="f-lbl">
-                  <span>Código de acesso</span>
-                  <Link to="/recuperar-senha" className="a-p">Esqueceste o código?</Link>
-                </div>
-                <div className={`pw-wrap ${focused === 'password' ? 'on' : ''}`}>
-                  <input
-                    ref={passwordRef}
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    onFocus={() => setFocused('password')}
-                    onBlur={() => setFocused(null)}
-                    required
-                    disabled={loading || isLocked}
-                    className="pw-in"
-                  />
-                  <button type="button" className="pw-tog" onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Submit */}
-              <div className="fu4">
-                <button type="submit" className="sub-btn" disabled={loading || isLocked}>
-                  {loading
-                    ? <><Loader2 size={16} className="animate-spin" /> A entrar...</>
-                    : <>ENTRAR <ArrowRight size={16} className="arr" /></>
-                  }
+            {/* Password */}
+            <div className="fu-3 space-y-1.5">
+              <label className="text-sm font-bold flex items-center justify-between">
+                <span>Código de acesso</span>
+                <Link to="/recuperar-senha" className="text-xs text-primary font-bold hover:underline">Esqueceste o código?</Link>
+              </label>
+              <div className={`flex items-center h-[2.75rem] rounded-xl overflow-hidden border-2 transition-all ${focused === 'password' ? 'border-primary/55 bg-background shadow-[0_0_0_3px_hsl(var(--primary)/.12)]' : 'border-border/70 bg-muted/40'}`}>
+                <input
+                  ref={passwordRef}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  onFocus={() => setFocused('password')}
+                  onBlur={() => setFocused(null)}
+                  required
+                  disabled={loading || isLocked}
+                  className="flex-1 h-full px-3 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/30"
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="px-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-            </form>
-
-            {/* Recovery */}
-            <div className="dvdr">
-              <div className="dv-l" />
-              <span className="dv-t">RECUPERAR ACESSO</span>
-              <div className="dv-l" />
             </div>
 
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }} className="fu5">
-              <Link to="/recuperar-id" className="rec-a">
-                <Mail size={14} />
-                Reenviar ID por Email
-              </Link>
-              <Link to="/recuperar-id" className="rec-a">
-                <Smartphone size={14} />
-                Reenviar ID por SMS
-              </Link>
+            {/* Submit */}
+            <div className="fu-4 pt-1">
+              <Button type="submit" disabled={loading || isLocked}
+                className="w-full h-12 text-base font-black rounded-xl shadow-lg shadow-primary/25 btn-glow ag hover:scale-[1.02] transition-all group gap-2">
+                {loading ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> A entrar...</>
+                ) : (
+                  <>ENTRAR <ArrowRight className="h-4 w-4 group-hover:translate-x-1.5 transition-transform" /></>
+                )}
+              </Button>
             </div>
+          </form>
+
+          {/* Recovery divider */}
+          <div className="fu-5 mt-5 mb-4">
+            <div className="auth-divider">
+              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-widest px-1 whitespace-nowrap">Recuperar acesso</span>
+            </div>
+          </div>
+
+          {/* Recovery links */}
+          <div className="fu-5 grid grid-cols-2 gap-3 mb-4">
+            <Link to="/recuperar-id">
+              <Button variant="outline" className="w-full h-11 text-xs font-bold rounded-xl border-2 hover:bg-primary/5 hover:border-primary/40 transition-all gap-1.5">
+                <BadgeDollarSign className="w-3.5 h-3.5" /> Reenviar ID
+              </Button>
+            </Link>
+            <Link to="/recuperar-senha">
+              <Button variant="outline" className="w-full h-11 text-xs font-bold rounded-xl border-2 hover:bg-primary/5 hover:border-primary/40 transition-all gap-1.5">
+                <Lock className="w-3.5 h-3.5" /> Nova senha
+              </Button>
+            </Link>
           </div>
 
           {/* Register link */}
-          <div className="fu5" style={{ textAlign:'center', marginTop:22 }}>
-            <Link to="/registar" className="a-sm">
-              Ainda não tens ID? <span>Criar Faktura ID →</span>
+          <div className="fu-5 mt-4 mb-4">
+            <div className="auth-divider">
+              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-widest px-1 whitespace-nowrap">Ainda não tens ID?</span>
+            </div>
+          </div>
+
+          <div className="fu-6">
+            <Link to="/registar">
+              <Button variant="outline" className="w-full h-12 text-sm font-bold rounded-xl border-2 hover:bg-primary/5 hover:border-primary/40 hover:scale-[1.02] transition-all gap-2">
+                Criar Faktura ID <ArrowRight className="h-4 w-4" />
+              </Button>
             </Link>
           </div>
 
-          {/* Security */}
-          <div className="sec-r fu6">
-            <Lock size={11} />
+          <div className="mt-5 text-center">
+            <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors font-medium group">
+              <ArrowRight className="w-3.5 h-3.5 rotate-180 group-hover:-translate-x-0.5 transition-transform" />
+              Voltar à página inicial
+            </Link>
+          </div>
+
+          <div className="mt-7 flex items-center justify-center gap-2 text-xs text-muted-foreground/50">
+            <Lock className="w-3.5 h-3.5" />
             <span>Ligação segura · Dados encriptados TLS/SSL</span>
           </div>
 
-          <div style={{ textAlign:'center', marginTop:10 }}>
-            <p style={{ fontSize:11, color:'#ddd', fontStyle:'italic' }}>Sem a Faktura, não fakturo.</p>
+          <div className="mt-2 text-center">
+            <p className="text-[11px] text-muted-foreground/40 italic">Sem a Faktura, não fakturo.</p>
           </div>
         </div>
       </div>
