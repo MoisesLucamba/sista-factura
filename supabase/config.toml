@@ -6,3 +6,9 @@ verify_jwt = false
 
 [functions.faktura-api]
 verify_jwt = false
+
+[functions.subscription-billing]
+verify_jwt = false
+
+[functions.saft-submit]
+verify_jwt = false
