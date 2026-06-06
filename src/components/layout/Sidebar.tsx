@@ -33,6 +33,7 @@ const mainNavItems: NavItem[] = [
   { icon: Receipt,         label: 'Documentos',   href: '/documentos'   },
   { icon: BarChart3,       label: 'Relatórios',   href: '/relatorios'   },
   { icon: FileText,        label: 'SAF-T (AGT)',  href: '/relatorios/saft' },
+  { icon: FileText,        label: 'Envios SAF-T', href: '/saft-envios'  },
   { icon: Store,           label: 'Lojas',        href: '/lojas'        },
   { icon: MapPin,          label: 'Directório',   href: '/directorio'   },
 ];

@@ -1378,6 +1378,54 @@ export type Database = {
           },
         ]
       }
+      saft_submissions: {
+        Row: {
+          agt_reference: string | null
+          attempts: number
+          created_at: string
+          error_message: string | null
+          id: string
+          last_attempt_at: string | null
+          period: string
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+          xml_hash: string | null
+          xml_path: string | null
+        }
+        Insert: {
+          agt_reference?: string | null
+          attempts?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          period: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+          xml_hash?: string | null
+          xml_path?: string | null
+        }
+        Update: {
+          agt_reference?: string | null
+          attempts?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          period?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          xml_hash?: string | null
+          xml_path?: string | null
+        }
+        Relationships: []
+      }
       shared_products: {
         Row: {
           avg_price: number
@@ -1553,6 +1601,77 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_invoices: {
+        Row: {
+          attempts: number
+          created_at: string
+          documents_count: number
+          documents_fee: number
+          error_message: string | null
+          id: string
+          last_attempt_at: string | null
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          period_end: string
+          period_start: string
+          plan_fee: number
+          status: string
+          subscription_id: string
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          documents_count?: number
+          documents_fee?: number
+          error_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          period_end: string
+          period_start: string
+          plan_fee?: number
+          status?: string
+          subscription_id: string
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          documents_count?: number
+          documents_fee?: number
+          error_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          period_end?: string
+          period_start?: string
+          plan_fee?: number
+          status?: string
+          subscription_id?: string
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           ativo: boolean
@@ -1595,6 +1714,57 @@ export type Database = {
           periodo?: string
           preco_mensal?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          auto_renew: boolean
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          grace_until: string | null
+          id: string
+          multicaixa_token: string | null
+          next_billing_at: string
+          payment_method: string
+          per_doc_fee: number
+          plan_fee: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          grace_until?: string | null
+          id?: string
+          multicaixa_token?: string | null
+          next_billing_at?: string
+          payment_method?: string
+          per_doc_fee?: number
+          plan_fee?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          grace_until?: string | null
+          id?: string
+          multicaixa_token?: string | null
+          next_billing_at?: string
+          payment_method?: string
+          per_doc_fee?: number
+          plan_fee?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
