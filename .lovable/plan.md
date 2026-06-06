@@ -1,85 +1,94 @@
-# Plano — Correcções AGT + API Pública Faktura
+## Objectivo
 
-Vou executar em 4 blocos sequenciais. Cada bloco é commitable e testável.
-
----
-
-## BLOCO 1 — Bugs bloqueantes (entrega imediata)
-
-**1.1 — Erro 400 em `/rest/v1/faturas?select=*`**
-Investigar a query. A causa mais provável **não** é RLS (as policies já estão correctas conforme schema injectado) — é uma coluna inexistente referenciada num `select` ou um filtro mal formado após o último migration. Vou:
-- Capturar a request real via `code--read_network_requests`
-- Identificar o caller (provavelmente `useFaturas.ts` ou `Faturas.tsx`)
-- Corrigir o `select(...)` ou filtro
-
-**1.2 — Subtotal errado em FT/2026/000023**
-Bug em `NovaFatura.tsx` (e `POS.tsx`): o subtotal mostrado provavelmente usa só a primeira linha em vez de `reduce`. Corrigir o cálculo do total e do `subtotal` da fatura para somar TODAS as linhas. Adicionar teste rápido.
-
-**1.3 — Hash vazio em FT/2026/000020 (convertida de PF)**
-No hook `useProformaConversion.ts` a fatura nova provavelmente é inserida sem passar pelo pipeline de assinatura. Garantir que após conversão se gera `hash_doc`, `hash_extracto`, `hash_anterior` via `agt-hash.ts` + `invoice-signing.ts`.
+1. **Cobrança mensal automática** na página Subscrição — débito recorrente de 8.000 Kz + 1 Kz/documento, integrado com Multicaixa Express, com renovação automática até ao fim do ciclo.
+2. **Envio programático do SAF-T à AGT** até ao dia 5 de cada mês, com cron/fila, logs de submissão e estado (`pendente / enviado / erro`) por período.
 
 ---
 
-## BLOCO 2 — Documentos AGT em falta no UI
+## 1. Base de dados (migration)
 
-A maioria já existe em `agt-constants.ts` mas pode não estar visível no selector de `/faturas/nova` e `/pos`. Vou:
-- Garantir que o `<Select>` de tipo de documento expõe **TODOS** os 11 tipos (FT, FR, RC, NC, ND, FG, FGe, AF, GR, PF, OR) com labels claros
-- Para **NC/ND**: forçar campo "Documento de origem" (procurar fatura existente) e gerar `order_reference_id` + `order_reference_numero`
-- Para **GR**: mostrar campos `guia_morada_carga`, `guia_morada_descarga`, `guia_matricula_viatura`, `guia_data_transporte`
-- Para **FG**: mostrar `periodo_global_inicio/fim`
-- Para **AF**: badge visível "Auto-Faturação" no PDF
-- Para **moeda estrangeira**: select de moeda + campo taxa de câmbio manual (já existem colunas)
-- **Taxa 8.8%**: o campo IVA por linha já é numérico livre — vou garantir que aceita decimais (`step=0.01`) e adicionar no preset rápido junto com 14/5/0
+**Novas tabelas:**
+
+- `subscriptions` — assinatura activa do utilizador
+  - `user_id`, `status` (`active` | `grace` | `suspended` | `cancelled`)
+  - `plan_fee` (default 8000), `per_doc_fee` (default 1)
+  - `current_period_start`, `current_period_end`, `next_billing_at`
+  - `auto_renew` (bool), `payment_method` (`multicaixa` | `wallet` | `transferencia`)
+  - `multicaixa_token` (referência reutilizável quando disponível)
+
+- `subscription_invoices` — fatura mensal gerada pelo ciclo
+  - `subscription_id`, `user_id`, `period_start`, `period_end`
+  - `plan_fee`, `documents_count`, `documents_fee`, `total`
+  - `status` (`pending` | `paid` | `failed` | `overdue`)
+  - `paid_at`, `payment_reference`, `attempts`
+
+- `saft_submissions` — registo de submissão à AGT
+  - `user_id`, `period` (YYYY-MM), `xml_url` (storage), `xml_hash`
+  - `status` (`pending` | `sent` | `error`), `agt_reference`, `error_message`
+  - `submitted_at`, `attempts`, `last_attempt_at`
+
+Tudo com RLS (owner-only + admin via `has_role`), `GRANT` ao `authenticated` e `service_role`, triggers `update_updated_at_column`.
+
+## 2. Edge functions
+
+- `subscription-billing` (cron mensal, dia 1):
+  - itera utilizadores activos, calcula `documents_count` do mês anterior, gera `subscription_invoices`, tenta debitar (wallet → Multicaixa), actualiza `status`, dispara notificação.
+- `subscription-charge` (chamada manual / retry): tenta cobrar uma fatura pendente via Multicaixa Express (reutiliza `multicaixa-express` existente) ou debita carteira.
+- `saft-submit` (cron mensal, dia 5 às 06:00):
+  - para cada `user_id` com docs no mês anterior: gera XML via lógica equivalente a `saft-export.ts`, faz upload para storage bucket `saft`, regista em `saft_submissions`, faz POST para endpoint AGT (configurável via secret `AGT_SAFT_ENDPOINT` + `AGT_SAFT_TOKEN`), grava `agt_reference` ou `error_message`, com retries.
+- Agendamento via `pg_cron` + `pg_net` (inserir SQL com a anon key — usar tool `insert`, não migration).
+
+## 3. Storage
+
+- Novo bucket privado `saft` — só admin e dono lê.
+
+## 4. Frontend
+
+**`src/pages/Subscricao.tsx`** (reescrito):
+- Cartão "Assinatura activa": estado, próximo débito, método.
+- Toggle **renovação automática**.
+- Selector de método (Multicaixa Express / Carteira).
+- Botão **Activar subscrição** (cria registo `subscriptions` + cobra 1º mês).
+- Histórico das `subscription_invoices` com badge de estado, botão "Pagar agora" para `pending/failed`.
+- Manter secção de carregamento de carteira.
+
+**Nova página `src/pages/SaftSubmissions.tsx`** + rota `/saft-envios`:
+- Tabela: `Período | Status | Submetido em | Ref. AGT | Tentativas | Acções`.
+- Botão "Reenviar" para `error`. Botão "Submeter agora" para o período actual.
+- Link na sidebar (secção AGT).
+
+**Admin (`AdminDashboard` ou `GestaoFinanceira`)**: vista global das `subscription_invoices` e `saft_submissions` com filtros e acção de reenvio manual.
+
+## 5. Cron (via `supabase--insert`)
+
+```sql
+select cron.schedule('subscription-billing-monthly', '0 3 1 * *', $$ ... net.http_post ... $$);
+select cron.schedule('saft-submit-monthly',         '0 6 5 * *', $$ ... net.http_post ... $$);
+```
+
+## 6. Configuração / secrets
+
+Pedir confirmação para `AGT_SAFT_ENDPOINT` e `AGT_SAFT_TOKEN` (necessários para o POST real à AGT). Enquanto não configurados, o envio fica em modo `dry-run` (gera XML, guarda, marca `pending` com nota "AGT endpoint não configurado").
 
 ---
 
-## BLOCO 3 — SAF-T XML refinements
+## Detalhes técnicos resumidos
 
-Rever `src/lib/saft-export.ts`:
-- ✅ `OrderReferences` já existe quando `order_reference_numero` está preenchido — garantir que o trigger de conversão preenche este campo (Bloco 1.3 cobre)
-- ✅ `SettlementAmount` já existe — verificar
-- ✅ `TaxExemptionReason/Code` já existe por linha
-- ✅ `UnitPrice` já em 4 decimais
-- Confirmar `Period` extraído como número 1-12 (não YYYY-MM)
-- Confirmar `HashControl` preenchido (não `'0'` quando há hash real)
+- `documents_count` = `select count(*) from faturas where user_id=$ and incluir_saft=true and data_emissao between period_start and period_end`.
+- Total = `plan_fee + documents_count * per_doc_fee`.
+- Falha de cobrança → status `grace` por 7 dias → depois `suspended` (`ProtectedRoute` pode bloquear emissão de novos documentos quando suspenso, sem afectar leitura).
+- Hash do XML em SHA-256 para auditoria.
+- Notificações via tabela `notifications` em cada evento (gerado / pago / falhou / SAF-T enviado / SAF-T erro).
 
 ---
 
-## BLOCO 4 — API pública Faktura
+## Ordem de implementação
 
-**4.1 — Edge function `faktura-api`** (`/functions/v1/faktura-api/*`)
-Endpoints REST simplificados com autenticação por **API Key própria** (tabela nova `api_keys` com `key_hash`, `user_id`, `scopes`, `last_used`):
-- `POST /faktura-api/v1/invoices` — criar fatura completa (cliente + items + emitir)
-- `GET  /faktura-api/v1/invoices/:id` — consultar
-- `GET  /faktura-api/v1/invoices/:id/pdf` — URL do PDF
-- `POST /faktura-api/v1/clients` — criar cliente
-- `GET  /faktura-api/v1/products` — listar produtos
-- `GET  /faktura-api/v1/health`
+1. Migration (tabelas + RLS + grants + triggers + bucket).
+2. Edge functions (`subscription-billing`, `subscription-charge`, `saft-submit`).
+3. Pedir secrets AGT.
+4. Cron jobs via insert.
+5. Reescrever `Subscricao.tsx` + criar `SaftSubmissions.tsx` + sidebar + rotas.
+6. Painel admin.
 
-Header: `x-api-key: fkt_live_...`
-
-**4.2 — Gestão de API Keys no UI**
-Página `/configuracoes` ganha aba "API & Integrações" para gerar/revogar chaves.
-
-**4.3 — Documentação**
-- Markdown: `/mnt/documents/faktura-api-docs.md` com endpoints, schemas, exemplos curl e JS
-- Versão PDF gerada do mesmo (com `pdf-lib`/`jspdf`)
-- Artifact partilhável
-
----
-
-## Detalhes técnicos
-
-- **Migrations novas**: `api_keys` (com `key_prefix`, `key_hash` SHA-256, `user_id`, `name`, `scopes text[]`, `last_used_at`, `revoked_at`)
-- **Edge function**: `supabase/functions/faktura-api/index.ts`, `verify_jwt = false`, valida `x-api-key` contra hash em DB, opera com `service_role` mas filtra por `user_id` da key
-- **Sem alteração de branding/design** — apenas adições UI mínimas no selector de tipo e na aba de API
-- Após cada bloco verifico via build + (quando aplicável) `read_network_requests` ou query directa à DB
-
-## Ordem de execução
-
-1. Bloco 1 (bugs) — primeiro commit
-2. Bloco 2 (UI docs) — segundo commit
-3. Bloco 3 (SAF-T) — terceiro commit
-4. Bloco 4 (API + docs) — quarto commit + artifact
-
-Confirmar para arrancar pelo Bloco 1.
+Pronto para começar pela migration?
