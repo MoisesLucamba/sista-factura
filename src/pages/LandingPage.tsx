@@ -22,6 +22,7 @@ import logoPlaka from '@/assets/logos/plaka.jpg';
 import logoAgrilink from '@/assets/logos/agrilink.png';
 import logoAlphadata from '@/assets/logos/alphadata.png';
 import teamCollab from '@/assets/team-collab.jpg';
+import ArquivosSection from '@/components/landing/ArquivosSection';
 
 /* ─── Hooks ─────────────────────────────────────────────── */
 function useInView(threshold = 0.15): [React.RefObject<any>, boolean] {
