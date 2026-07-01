@@ -1813,6 +1813,9 @@ export default function LandingPage() {
 
           {/* ══ ARQUIVOS PRODUCT SECTION ══ */}
           <ArquivosSection />
+        </>
+      )}
+
 
 
       {/* ── FOOTER ── */}
