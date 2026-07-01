@@ -22,6 +22,7 @@ import logoPlaka from '@/assets/logos/plaka.jpg';
 import logoAgrilink from '@/assets/logos/agrilink.png';
 import logoAlphadata from '@/assets/logos/alphadata.png';
 import teamCollab from '@/assets/team-collab.jpg';
+import ArquivosSection from '@/components/landing/ArquivosSection';
 
 /* ─── Hooks ─────────────────────────────────────────────── */
 function useInView(threshold = 0.15): [React.RefObject<any>, boolean] {
@@ -1029,8 +1030,8 @@ export default function LandingPage() {
   }, [activePage]);
 
   const footerLinks: Record<string, [string, string, string | null][]> = {
-    'Produto': [['#features', 'Funcionalidades', null], ['#pricing', 'Precos', null], ['integracoes', 'Integracoes', 'integracoes']],
-    'Empresa': [['sobre', 'Sobre Nos', 'sobre'], ['blog', 'Blog', 'blog'], ['carreiras', 'Carreiras', 'carreiras']],
+    'Produto': [['#features', 'Faktura', null], ['#arquivos', 'Arquivos', null], ['integracoes', 'Integracoes', 'integracoes']],
+    'Empresa': [['sobre', 'Sobre Nos', 'sobre'], ['carreiras', 'Carreiras', 'carreiras']],
     'Legal': [['termos', 'Termos de Uso', 'termos'], ['privacidade', 'Privacidade', 'privacidade'], ['seguranca', 'Seguranca', 'seguranca']],
   };
 
@@ -1209,7 +1210,7 @@ export default function LandingPage() {
                   <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Inicio
                 </button>
               ) : (
-                [['features', 'Funcionalidades'], ['ecosystem', 'Ecossistema'], ['pricing', 'Precos'], ['faq', 'FAQ']].map(([h, l]) => (
+                [['features', 'Faktura'], ['arquivos', 'Arquivos'], ['ecosystem', 'Ecossistema']].map(([h, l]) => (
                   <a key={h} href={"#" + h} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{l}</a>
                 ))
               )}
@@ -1284,24 +1285,16 @@ export default function LandingPage() {
 
               <p className="heroS text-white/75 max-w-2xl mb-10 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
-                Emita faturas, gere links de pagamento, aceite Multicaixa Express e processe pagamentos digitais com total segurança —
-                a plataforma de faturação e intermediação de pagamentos feita para Angola.
+                A plataforma angolana de faturação certificada AGT e intermediação de pagamentos digitais.
               </p>
 
-              <div className="heroC flex flex-col sm:flex-row items-start gap-4 mb-12">
+              <div className="heroC flex items-start gap-4 mb-12">
                 <Link to="/registar">
                   <Button size="lg" className="h-14 px-10 text-lg font-black shadow-2xl shadow-primary/50 btn-glow hover:scale-[1.04] transition-all group gap-2.5">
                     Começar Grátis
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
                   </Button>
                 </Link>
-                <a href="#id-fiscal">
-                  <Button size="lg" variant="outline"
-                    className="h-14 px-8 text-lg font-bold border-2 border-white/35 text-white bg-white/10 hover:bg-white/18 hover:border-white/60 hover:scale-[1.04] transition-all group gap-2.5 backdrop-blur-md">
-                    <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    O Meu ID Fiscal
-                  </Button>
-                </a>
               </div>
 
               <div className="heroSt flex flex-wrap gap-3">
@@ -1818,95 +1811,12 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* ── PRICING ── */}
-          <section id="pricing" className="py-24 bg-muted/30 relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[150px]" />
-            </div>
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <FadeIn direction="up">
-                <div className="text-center mb-16">
-                  <h2 className="text-4xl lg:text-5xl font-black mb-4">Precos <span className="shimmer-text">simples</span></h2>
-                  <p className="text-lg text-muted-foreground mb-6">Sem surpresas. Comece gratis e cresca connosco.</p>
-                  <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2">
-                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                    <span className="text-sm font-bold">Poupe 10% no plano trimestral!</span>
-                  </div>
-                </div>
-              </FadeIn>
-              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                {[
-                  { name: 'Basico', price: '7.500', trim: '20.250', features: ['Ate 100 faturas/mes', 'Faturas, Recibos e Proformas', 'Gestao de clientes', 'Dashboard basico', 'Envio por email', 'Suporte por email'], popular: false },
-                  { name: 'Completo', price: '10.000', trim: '27.000', features: ['Faturas ilimitadas', 'Todos os tipos de documentos', 'Multi-canal (WhatsApp, SMS, Email)', 'Intermediacao de pagamentos', 'Relatorios avancados', 'Suporte prioritario'], popular: true },
-                  { name: 'Empresa', price: null, trim: null, features: ['Tudo do Completo', 'Multi-empresa', 'API dedicada', 'Gestor de conta dedicado', 'SLA personalizado'], popular: false },
-                ].map((p, i) => (
-                  <FadeIn key={i} delay={i * 120} direction="up">
-                    <div className={`pc rounded-2xl p-8 border-2 h-full flex flex-col ${p.popular ? 'border-primary shadow-2xl shadow-primary/15 ag relative' : 'border-border/50 bg-card hover:border-primary/20 hover:shadow-xl'}`}>
-                      {p.popular && (
-                        <>
-                          <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-black px-5 py-1.5 rounded-full shadow-lg">MAIS POPULAR</div>
-                          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
-                        </>
-                      )}
-                      <div className="mb-6">
-                        <h3 className="text-xl font-bold mb-3">{p.name}</h3>
-                        {p.price ? (
-                          <>
-                            <div className="mb-1 flex items-end gap-1"><span className="text-4xl font-black">{p.price}</span><span className="text-muted-foreground mb-1">Kz/mes</span></div>
-                            <p className="text-sm text-muted-foreground">ou <span className="font-bold">{p.trim} Kz</span>/trim. <span className="text-primary font-bold">(−10%)</span></p>
-                          </>
-                        ) : (
-                          <><div className="mb-1"><span className="text-3xl font-black">Sob medida</span></div><p className="text-sm text-muted-foreground">Contacte-nos para um plano personalizado</p></>
-                        )}
-                      </div>
-                      <ul className="space-y-3 mb-8 flex-1">
-                        {p.features.map((x, j) => (
-                          <li key={j} className="flex items-center gap-2.5 text-sm">
-                            <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />{x}
-                          </li>
-                        ))}
-                      </ul>
-                      <Link to="/registar" className="block">
-                        {p.popular
-                          ? <Button className="w-full h-12 font-bold shadow-lg shadow-primary/25 btn-glow hover:scale-105 transition-all">Escolher Completo</Button>
-                          : p.price
-                            ? <Button variant="outline" className="w-full h-12 font-bold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all">Comecar Agora</Button>
-                            : <Button variant="outline" className="w-full h-12 font-bold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all">Contactar Vendas</Button>
-                        }
-                      </Link>
-                    </div>
-                  </FadeIn>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* ── FAQ ── */}
-          <section id="faq" className="py-24">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <FadeIn direction="up">
-                <div className="text-center mb-16">
-                  <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-4">
-                    <HelpCircle className="w-4 h-4 text-primary" /><span className="text-sm font-bold">FAQ</span>
-                  </div>
-                  <h2 className="text-4xl lg:text-5xl font-black mb-4">Perguntas <span className="shimmer-text">Frequentes</span></h2>
-                  <p className="text-lg text-muted-foreground">Tudo que precisa saber sobre faturacao e pagamentos em Angola.</p>
-                </div>
-              </FadeIn>
-              <FadeIn direction="up" delay={150}>
-                <Accordion type="single" collapsible className="space-y-3">
-                  {faqs.map((f, i) => (
-                    <AccordionItem key={i} value={`item-${i}`} className="bg-card rounded-2xl border border-border/50 px-6 hover:border-primary/20 transition-colors overflow-hidden">
-                      <AccordionTrigger className="text-left font-bold hover:no-underline py-5 hover:text-primary transition-colors">{f.q}</AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground pb-5 text-sm leading-relaxed">{f.a}</AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </FadeIn>
-            </div>
-          </section>
+          {/* ══ ARQUIVOS PRODUCT SECTION ══ */}
+          <ArquivosSection />
         </>
       )}
+
+
 
       {/* ── FOOTER ── */}
       <footer className="bg-accent text-accent-foreground py-16 relative overflow-hidden">
