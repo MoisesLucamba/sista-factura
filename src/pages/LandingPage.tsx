@@ -1285,24 +1285,16 @@ export default function LandingPage() {
 
               <p className="heroS text-white/75 max-w-2xl mb-10 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
-                Emita faturas, gere links de pagamento, aceite Multicaixa Express e processe pagamentos digitais com total segurança —
-                a plataforma de faturação e intermediação de pagamentos feita para Angola.
+                A plataforma angolana de faturação certificada AGT e intermediação de pagamentos digitais.
               </p>
 
-              <div className="heroC flex flex-col sm:flex-row items-start gap-4 mb-12">
+              <div className="heroC flex items-start gap-4 mb-12">
                 <Link to="/registar">
                   <Button size="lg" className="h-14 px-10 text-lg font-black shadow-2xl shadow-primary/50 btn-glow hover:scale-[1.04] transition-all group gap-2.5">
                     Começar Grátis
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
                   </Button>
                 </Link>
-                <a href="#id-fiscal">
-                  <Button size="lg" variant="outline"
-                    className="h-14 px-8 text-lg font-bold border-2 border-white/35 text-white bg-white/10 hover:bg-white/18 hover:border-white/60 hover:scale-[1.04] transition-all group gap-2.5 backdrop-blur-md">
-                    <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    O Meu ID Fiscal
-                  </Button>
-                </a>
               </div>
 
               <div className="heroSt flex flex-wrap gap-3">
