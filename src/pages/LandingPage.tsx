@@ -74,12 +74,6 @@ function FadeIn({ children, delay = 0, direction = 'up', className = '' }: {
 }
 
 /* ─── Static data ─────────────────────────────────────────── */
-const stats = [
-  { value: '500+', label: 'Empresas Activas', icon: Users },
-  { value: '50000+', label: 'Faturas Emitidas', icon: FileText },
-  { value: '99', label: 'Uptime %', icon: TrendingUp },
-  { value: '24', label: 'Suporte 24/7', icon: Clock },
-];
 
 const features = [
   {
