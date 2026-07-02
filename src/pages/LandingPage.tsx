@@ -1789,7 +1789,11 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="border-t border-accent-foreground/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-accent-foreground/30">© {new Date().getFullYear()} Faktura Angola. Todos os direitos reservados.</p>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-6 text-sm text-accent-foreground/30">
+              <p>© {new Date().getFullYear()} Faktura Angola. Todos os direitos reservados.</p>
+              <span className="hidden sm:inline text-accent-foreground/20">·</span>
+              <p>NIF: <span className="text-accent-foreground/60 font-semibold">5002964031</span></p>
+            </div>
             <p className="text-sm text-accent-foreground/20 italic">Com a Faktura, todos fakturam.</p>
           </div>
         </div>
