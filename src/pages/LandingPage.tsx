@@ -1692,44 +1692,6 @@ export default function LandingPage() {
                 </FadeIn>
               </div>
 
-              {/* Earnings */}
-              <FadeIn direction="up" delay={150}>
-                <div className="bg-card border border-border/50 rounded-3xl p-8 lg:p-12 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-                  <div className="relative grid lg:grid-cols-2 gap-10 items-center">
-                    <div>
-                      <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-4">
-                        <Repeat className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-bold">Exemplo de recompensas</span>
-                      </div>
-                      <h3 className="text-3xl font-black mb-4">Quanto pode ganhar<br />por mes?</h3>
-                      <p className="text-muted-foreground leading-relaxed">Cada vez que fizer uma compra acima de 1.500 Kz numa empresa que usa a Faktura, recebe automaticamente <strong className="text-foreground">50 Kz</strong> de recompensa. Quanto mais comprar, mais ganha.</p>
-                    </div>
-                    <div className="space-y-4">
-                      {[
-                        { f: 10, t: 500, l: 'Compras ocasionais' },
-                        { f: 30, t: 1500, l: 'Compras regulares' },
-                        { f: 60, t: 3000, l: 'Comprador activo' },
-                      ].map(({ f, t, l }, i) => (
-                        <div key={i} className="bg-muted/50 rounded-xl p-4">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-sm font-semibold">{l}</span>
-                            <span className="text-sm font-black text-primary">{t} Kz/mes</span>
-                          </div>
-                          <div className="h-2 bg-border rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${(f / 60) * 100}%` }} />
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">{f} faturas x 50 Kz</p>
-                        </div>
-                      ))}
-                      <div className="bg-primary/8 border border-primary/20 rounded-xl p-4 flex items-center gap-3">
-                        <BadgeDollarSign className="w-5 h-5 text-primary flex-shrink-0" />
-                        <p className="text-sm text-muted-foreground">As recompensas sao creditadas automaticamente e podem ser levantadas via Multicaixa Express.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </FadeIn>
             </div>
           </section>
 
