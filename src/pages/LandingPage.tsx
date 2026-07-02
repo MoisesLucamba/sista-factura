@@ -342,34 +342,6 @@ function SectionAutoFaturacao() {
           </div>
         </FadeIn>
 
-        <FadeIn direction="up" delay={200}>
-          <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden text-center">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-            <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-primary/15 rounded-full px-4 py-1.5 mb-4">
-                <ScanLine className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-accent-foreground">Em breve — Lista de espera aberta</span>
-              </div>
-              <h3 className="text-3xl lg:text-4xl font-black text-accent-foreground mb-4">
-                Seja o primeiro a ter<br />auto-faturação no seu negócio
-              </h3>
-              <p className="text-accent-foreground/60 text-sm leading-relaxed max-w-xl mx-auto mb-8">
-                Faturação por proximidade e auto-faturação QR chegam em breve à Faktura. Registe o seu interesse e seja notificado em primeiro lugar.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/registar">
-                  <Button size="lg" className="h-13 px-10 font-black shadow-2xl shadow-primary/40 btn-glow hover:scale-105 transition-all gap-2">
-                    Entrar na lista de espera <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Button size="lg" variant="outline" className="h-13 px-8 font-bold border-2 border-accent-foreground/20 text-accent-foreground hover:bg-accent-foreground/5 transition-all gap-2">
-                  Saber mais <ChevronRight className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
       </div>
     </section>
   );
