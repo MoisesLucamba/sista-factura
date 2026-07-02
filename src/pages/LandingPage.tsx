@@ -74,12 +74,6 @@ function FadeIn({ children, delay = 0, direction = 'up', className = '' }: {
 }
 
 /* ─── Static data ─────────────────────────────────────────── */
-const stats = [
-  { value: '500+', label: 'Empresas Activas', icon: Users },
-  { value: '50000+', label: 'Faturas Emitidas', icon: FileText },
-  { value: '99', label: 'Uptime %', icon: TrendingUp },
-  { value: '24', label: 'Suporte 24/7', icon: Clock },
-];
 
 const features = [
   {
@@ -342,34 +336,6 @@ function SectionAutoFaturacao() {
           </div>
         </FadeIn>
 
-        <FadeIn direction="up" delay={200}>
-          <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden text-center">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-            <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-primary/15 rounded-full px-4 py-1.5 mb-4">
-                <ScanLine className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-accent-foreground">Em breve — Lista de espera aberta</span>
-              </div>
-              <h3 className="text-3xl lg:text-4xl font-black text-accent-foreground mb-4">
-                Seja o primeiro a ter<br />auto-faturação no seu negócio
-              </h3>
-              <p className="text-accent-foreground/60 text-sm leading-relaxed max-w-xl mx-auto mb-8">
-                Faturação por proximidade e auto-faturação QR chegam em breve à Faktura. Registe o seu interesse e seja notificado em primeiro lugar.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/registar">
-                  <Button size="lg" className="h-13 px-10 font-black shadow-2xl shadow-primary/40 btn-glow hover:scale-105 transition-all gap-2">
-                    Entrar na lista de espera <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Button size="lg" variant="outline" className="h-13 px-8 font-bold border-2 border-accent-foreground/20 text-accent-foreground hover:bg-accent-foreground/5 transition-all gap-2">
-                  Saber mais <ChevronRight className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
       </div>
     </section>
   );
@@ -1256,12 +1222,16 @@ export default function LandingPage() {
             />
 
             <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-              <div className="heroB mb-7">
+              <div className="heroB mb-7 flex flex-wrap gap-2.5">
                 <div className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-default">
                   <Sparkles className="w-4 h-4 text-white animate-pulse" />
-                  <span className="text-sm font-bold text-white tracking-wide">Faturação + Pagamentos Digitais Seguros — Tudo numa só plataforma</span>
+                  <span className="text-sm font-bold text-white tracking-wide">Faturação AGT + Pagamentos Digitais</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 </div>
+                <a href="#arquivos" className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-pointer hover:bg-white/15 transition-colors">
+                  <BookOpen className="w-4 h-4 text-white" />
+                  <span className="text-sm font-bold text-white tracking-wide">Arquivos — Gestão Documental Inteligente</span>
+                </a>
               </div>
 
               <div className="max-w-3xl mb-7">
@@ -1283,37 +1253,27 @@ export default function LandingPage() {
                 </h1>
               </div>
 
-              <p className="heroS text-white/75 max-w-2xl mb-10 leading-relaxed font-medium"
+              <p className="heroS text-white/75 max-w-2xl mb-4 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
                 A plataforma angolana de faturação certificada AGT e intermediação de pagamentos digitais.
               </p>
+              <p className="heroS text-white/60 max-w-2xl mb-10 leading-relaxed font-medium text-sm md:text-base">
+                E também <span className="text-primary font-bold">Arquivos</span> — empresa do grupo dedicada à gestão documental inteligente: organiza, digitaliza e encontra qualquer documento em 60 segundos.
+              </p>
 
-              <div className="heroC flex items-start gap-4 mb-12">
+              <div className="heroC flex flex-wrap items-start gap-4 mb-12">
                 <Link to="/registar">
                   <Button size="lg" className="h-14 px-10 text-lg font-black shadow-2xl shadow-primary/50 btn-glow hover:scale-[1.04] transition-all group gap-2.5">
                     Começar Grátis
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
                   </Button>
                 </Link>
-              </div>
-
-              <div className="heroSt flex flex-wrap gap-3">
-                {[
-                  { icon: Users, v: '500+', l: 'Empresas activas' },
-                  { icon: FileText, v: '50.000+', l: 'Faturas emitidas' },
-                  { icon: TrendingUp, v: '99%', l: 'Uptime garantido' },
-                  { icon: Clock, v: '24/7', l: 'Suporte incluído' },
-                ].map(({ icon: I, v, l }, i) => (
-                  <div key={i} className="glass-stat rounded-2xl px-4 py-3 flex items-center gap-3 cursor-default">
-                    <div className="w-8 h-8 rounded-lg bg-white/12 flex items-center justify-center flex-shrink-0">
-                      <I className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-base font-black text-white leading-none tabular-nums">{v}</p>
-                      <p className="text-[11px] text-white/55 font-semibold mt-0.5 leading-tight whitespace-nowrap">{l}</p>
-                    </div>
-                  </div>
-                ))}
+                <a href="#arquivos">
+                  <Button size="lg" variant="outline" className="h-14 px-8 text-base font-bold bg-white/5 backdrop-blur border-white/25 text-white hover:bg-white/15 hover:text-white transition-all gap-2.5">
+                    <BookOpen className="h-5 w-5" />
+                    Começar Arquivos
+                  </Button>
+                </a>
               </div>
             </div>
 
@@ -1823,7 +1783,11 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="border-t border-accent-foreground/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-accent-foreground/30">© {new Date().getFullYear()} Faktura Angola. Todos os direitos reservados.</p>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-6 text-sm text-accent-foreground/30">
+              <p>© {new Date().getFullYear()} Faktura Angola. Todos os direitos reservados.</p>
+              <span className="hidden sm:inline text-accent-foreground/20">·</span>
+              <p>NIF: <span className="text-accent-foreground/60 font-semibold">5002964031</span></p>
+            </div>
             <p className="text-sm text-accent-foreground/20 italic">Com a Faktura, todos fakturam.</p>
           </div>
         </div>

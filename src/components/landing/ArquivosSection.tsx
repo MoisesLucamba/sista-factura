@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertTriangle, FileWarning, Scale, Search, Package, Monitor,
+  Lock, ClipboardList, ShieldCheck, Activity, Phone, Clock,
+  FileCheck, Zap, MessageSquare, Sparkles, ArrowRight, Check,
+} from 'lucide-react';
 
-/* ── Local in-view hook (mirrors LandingPage) ── */
+/* ── Local in-view hook ── */
 function useInView(threshold = 0.15): [React.RefObject<any>, boolean] {
   const ref = useRef<any>(null);
   const [visible, setVisible] = useState(false);
@@ -33,7 +38,7 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
   );
 }
 
-/* ── ARQUIVOS SECTION — deep navy + gold accents ── */
+/* ── ARQUIVOS SECTION — deep navy + gold accents, lucide icons only ── */
 export default function ArquivosSection() {
   return (
     <div id="arquivos" className="arquivos-root">
@@ -53,21 +58,22 @@ export default function ArquivosSection() {
         }
         .arq-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(245,166,35,.25); }
 
-        @keyframes arq-underline { from { width: 0 } to { width: 100% } }
-        .arq-underline-anim {
-          position: relative; display: inline-block;
-          color: var(--arq-gold); font-style: italic; font-weight: 700;
+        .arq-icon-chip {
+          width: 44px; height: 44px; border-radius: 10px;
+          background: rgba(245,166,35,.14);
+          display: inline-flex; align-items: center; justify-content: center;
+          color: var(--arq-gold);
         }
+
+        @keyframes arq-underline { from { width: 0 } to { width: 100% } }
+        .arq-underline-anim { position: relative; display: inline-block; color: var(--arq-gold); font-style: italic; font-weight: 700; }
         .arq-underline-anim::after {
           content:''; position:absolute; left:0; bottom:-6px; height:2px; width:0;
           background: var(--arq-gold);
           animation: arq-underline .9s ease-out .4s forwards;
         }
 
-        @keyframes arq-countdown {
-          from { stroke-dashoffset: 0; }
-          to   { stroke-dashoffset: 691; }
-        }
+        @keyframes arq-countdown { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 691; } }
         .arq-ring { animation: arq-countdown 4s linear infinite; transform-origin: center; }
 
         @keyframes arq-badge-glow {
@@ -76,10 +82,7 @@ export default function ArquivosSection() {
         }
         .arq-badge-pulse { animation: arq-badge-glow 2.4s ease-in-out infinite; }
 
-        @keyframes arq-shimmer {
-          0%   { transform: translateX(-120%); }
-          100% { transform: translateX(220%); }
-        }
+        @keyframes arq-shimmer { 0% { transform: translateX(-120%); } 100% { transform: translateX(220%); } }
         .arq-cta-primary { position: relative; overflow: hidden; }
         .arq-cta-primary::after {
           content:''; position:absolute; top:0; left:0; width:40%; height:100%;
@@ -99,7 +102,7 @@ export default function ArquivosSection() {
         .arq-dot:nth-child(2) { animation-delay: .2s }
         .arq-dot:nth-child(3) { animation-delay: .4s }
 
-        .arq-flip { transform: rotateY(0deg); transition: transform .5s ease, box-shadow .3s ease; transform-style: preserve-3d; }
+        .arq-flip { transition: transform .5s ease, box-shadow .3s ease; }
         .arq-flip:hover { transform: scale(1.03); box-shadow: 0 16px 36px rgba(0,0,0,.15); }
 
         @media (prefers-reduced-motion: reduce) {
@@ -107,7 +110,7 @@ export default function ArquivosSection() {
         }
       `}</style>
 
-      {/* Visual separator between Faktura and Arquivos */}
+      {/* Visual separator */}
       <div className="w-full py-10 flex items-center justify-center gap-4 bg-background">
         <div className="h-px w-24 bg-border" />
         <span className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">Outro produto do grupo</span>
@@ -125,15 +128,15 @@ export default function ArquivosSection() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
             {[
-              { icon: '⚠️', t: 'Auditorias AGT sem resposta a tempo' },
-              { icon: '📄', t: 'Contratos que não se provam por falta de original' },
-              { icon: '⚖️', t: 'Processos legais prolongados por desorganização' },
-              { icon: '🔍', t: 'Decisões atrasadas por falta de informação' },
-            ].map((c, i) => (
+              { Icon: AlertTriangle, t: 'Auditorias AGT sem resposta a tempo' },
+              { Icon: FileWarning, t: 'Contratos que não se provam por falta de original' },
+              { Icon: Scale, t: 'Processos legais prolongados por desorganização' },
+              { Icon: Search, t: 'Decisões atrasadas por falta de informação' },
+            ].map(({ Icon, t }, i) => (
               <Reveal key={i} delay={i * 200}>
                 <div className="arq-card h-full">
-                  <div className="text-3xl mb-3">{c.icon}</div>
-                  <p className="text-sm leading-relaxed text-white/90">{c.t}</p>
+                  <div className="arq-icon-chip mb-4"><Icon className="w-5 h-5" /></div>
+                  <p className="text-sm leading-relaxed text-white/90">{t}</p>
                 </div>
               </Reveal>
             ))}
@@ -176,8 +179,9 @@ export default function ArquivosSection() {
             <p className="text-lg text-muted-foreground mb-8">
               Ou pagamos a penalização. Contratualmente.
             </p>
-            <div className="inline-block arq-badge-pulse rounded-full px-6 py-3 font-bold text-sm"
+            <div className="inline-flex items-center gap-2 arq-badge-pulse rounded-full px-6 py-3 font-bold text-sm"
                  style={{ background: '#F5A623', color: '#0D1117' }}>
+              <ShieldCheck className="w-4 h-4" />
               Penalização contratual até AOA 50.000.000 por violação
             </div>
           </Reveal>
@@ -193,24 +197,26 @@ export default function ArquivosSection() {
 
           <div className="grid md:grid-cols-3 gap-8 relative">
             {[
-              { icon: '🔍', t: 'Avaliação Gratuita', d: 'Diagnóstico completo do arquivo actual sem custo nem compromisso. Visita de 30 minutos nas vossas instalações.', b: '30 minutos • Sem compromisso' },
-              { icon: '📦', t: 'Organização e Digitalização', d: 'Estrutura física e digital aprovada pelo cliente. Cada documento recebe um código único físico e digital.', b: 'Código único por documento' },
-              { icon: '🖥️', t: 'Gestão Contínua', d: 'Equipa residente nas vossas instalações, plataforma digital de rastreio, relatórios periódicos entregues à Direcção.', b: 'Equipa residente • Relatórios à Direcção' },
-            ].map((s, i) => (
+              { Icon: Search, t: 'Avaliação Gratuita', d: 'Diagnóstico completo do arquivo actual sem custo nem compromisso. Visita de 30 minutos nas vossas instalações.', b: '30 minutos • Sem compromisso' },
+              { Icon: Package, t: 'Organização e Digitalização', d: 'Estrutura física e digital aprovada pelo cliente. Cada documento recebe um código único físico e digital.', b: 'Código único por documento' },
+              { Icon: Monitor, t: 'Gestão Contínua', d: 'Equipa residente nas vossas instalações, plataforma digital de rastreio, relatórios periódicos entregues à Direcção.', b: 'Equipa residente • Relatórios à Direcção' },
+            ].map(({ Icon, t, d, b }, i) => (
               <Reveal key={i} delay={i * 200}>
                 <div className="relative text-center">
-                  <div className="mx-auto mb-5 w-20 h-20 rounded-full flex items-center justify-center text-3xl"
+                  <div className="mx-auto mb-5 w-20 h-20 rounded-full flex items-center justify-center"
                        style={{ background: '#F5A623', color: '#0D1117' }}>
-                    {s.icon}
+                    <Icon className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-black mb-3 text-white">{s.t}</h3>
-                  <p className="text-sm text-white/70 leading-relaxed mb-4 max-w-xs mx-auto">{s.d}</p>
+                  <h3 className="text-xl font-black mb-3 text-white">{t}</h3>
+                  <p className="text-sm text-white/70 leading-relaxed mb-4 max-w-xs mx-auto">{d}</p>
                   <span className="inline-block text-xs font-semibold rounded-full px-3 py-1"
                         style={{ background: 'rgba(245,166,35,.15)', color: '#F5A623' }}>
-                    {s.b}
+                    {b}
                   </span>
                   {i < 2 && (
-                    <div className="hidden md:block absolute top-10 -right-4 text-2xl" style={{ color: '#F5A623' }}>→</div>
+                    <div className="hidden md:block absolute top-10 -right-4" style={{ color: '#F5A623' }}>
+                      <ArrowRight className="w-6 h-6" />
+                    </div>
                   )}
                 </div>
               </Reveal>
@@ -245,9 +251,9 @@ export default function ArquivosSection() {
                   }}
                 >
                   {c.recommended && (
-                    <span className="absolute top-3 right-3 text-[10px] font-black tracking-wider rounded-full px-2 py-1"
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[10px] font-black tracking-wider rounded-full px-2 py-1"
                           style={{ background: '#F5A623', color: '#0D1117' }}>
-                      RECOMENDADO
+                      <Sparkles className="w-3 h-3" /> RECOMENDADO
                     </span>
                   )}
                   <h3 className="text-xl font-black mb-1">{c.title}</h3>
@@ -255,7 +261,7 @@ export default function ArquivosSection() {
                   <ul className="space-y-2.5">
                     {c.features.map((f, j) => (
                       <li key={j} className="flex items-start gap-2 text-sm">
-                        <span style={{ color: '#F5A623' }} className="font-black mt-0.5">✓</span>
+                        <Check className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#F5A623' }} />
                         <span>{f}</span>
                       </li>
                     ))}
@@ -273,24 +279,26 @@ export default function ArquivosSection() {
           <Reveal>
             <div className="rounded-2xl p-6" style={{ background: '#1C2333', border: '1px solid rgba(245,166,35,.2)' }}>
               <div className="space-y-4 text-sm">
-                <div className="rounded-lg p-3 max-w-[85%]" style={{ background: 'rgba(255,255,255,.06)' }}>
+                <div className="rounded-lg p-3 max-w-[85%] flex items-start gap-2" style={{ background: 'rgba(255,255,255,.06)' }}>
+                  <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
                   <span className="arq-typing block text-white/90">Quais os contratos do Bloco 15 de 2024?</span>
                 </div>
                 <div className="rounded-lg p-3 max-w-[60%] ml-auto flex items-center gap-1"
                      style={{ background: 'rgba(245,166,35,.12)' }}>
                   <span className="arq-dot" /><span className="arq-dot" /><span className="arq-dot" />
                 </div>
-                <div className="rounded-lg p-3 max-w-[90%] ml-auto text-white/90" style={{ background: 'rgba(245,166,35,.12)' }}>
-                  Encontrei 3 documentos relacionados. Contrato PSA-2024-B15 localizado em Sala 2 • Estante 4 • Prateleira 3...
+                <div className="rounded-lg p-3 max-w-[90%] ml-auto text-white/90 flex items-start gap-2" style={{ background: 'rgba(245,166,35,.12)' }}>
+                  <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: '#F5A623' }} />
+                  <span>Encontrei 3 documentos relacionados. Contrato PSA-2024-B15 localizado em Sala 2 • Estante 4 • Prateleira 3...</span>
                 </div>
               </div>
             </div>
           </Reveal>
 
           <Reveal delay={150}>
-            <span className="inline-block text-xs font-black tracking-widest mb-3 px-3 py-1 rounded-full"
+            <span className="inline-flex items-center gap-1.5 text-xs font-black tracking-widest mb-3 px-3 py-1 rounded-full"
                   style={{ background: 'rgba(245,166,35,.15)', color: '#F5A623' }}>
-              EM BREVE
+              <Sparkles className="w-3 h-3" /> EM BREVE
             </span>
             <h2 className="text-3xl md:text-5xl font-black text-white mb-4">Arquivo AI</h2>
             <p className="text-white/70 mb-6 leading-relaxed">
@@ -316,16 +324,16 @@ export default function ArquivosSection() {
           </Reveal>
           <div className="grid md:grid-cols-2 gap-x-10 gap-y-5">
             {[
-              'NDA assinado no mesmo dia do contrato',
-              'Registo automático de cada acesso a documentos',
-              'Relatório de auditoria periódico entregue à Direcção',
-              'Plataforma digital com rastreabilidade total',
-              'Protocolo de resposta a incidentes em menos de 2 horas',
-              'Penalizações contratuais por violação — AOA 5.000.000 a 50.000.000',
-            ].map((t, i) => (
+              { Icon: Lock, t: 'NDA assinado no mesmo dia do contrato' },
+              { Icon: Activity, t: 'Registo automático de cada acesso a documentos' },
+              { Icon: ClipboardList, t: 'Relatório de auditoria periódico entregue à Direcção' },
+              { Icon: Monitor, t: 'Plataforma digital com rastreabilidade total' },
+              { Icon: Zap, t: 'Protocolo de resposta a incidentes em menos de 2 horas' },
+              { Icon: ShieldCheck, t: 'Penalizações contratuais por violação — AOA 5.000.000 a 50.000.000' },
+            ].map(({ Icon, t }, i) => (
               <Reveal key={i} delay={i * 100}>
                 <div className="flex items-start gap-3 py-4 border-b border-black/5">
-                  <span className="text-lg font-black flex-shrink-0" style={{ color: '#F5A623' }}>✓</span>
+                  <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: '#F5A623' }} />
                   <span className="text-sm md:text-base">{t}</span>
                 </div>
               </Reveal>
@@ -346,25 +354,27 @@ export default function ArquivosSection() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
               <Button
-                className="arq-cta-primary h-14 px-8 font-black text-base rounded-lg"
+                className="arq-cta-primary h-14 px-8 font-black text-base rounded-lg gap-2"
                 style={{ background: '#F5A623', color: '#0D1117' }}
                 onClick={() => window.location.href = 'tel:+244922717574'}
               >
+                <FileCheck className="w-5 h-5" />
                 Agendar Avaliação Gratuita
               </Button>
               <Button
                 variant="outline"
-                className="h-14 px-8 font-bold text-base rounded-lg bg-transparent"
+                className="h-14 px-8 font-bold text-base rounded-lg bg-transparent gap-2"
                 style={{ borderColor: '#F5A623', color: '#F5A623' }}
                 onClick={() => window.location.href = 'tel:+244922717574'}
               >
+                <Phone className="w-5 h-5" />
                 +244 922 717 574
               </Button>
             </div>
             <div className="flex flex-wrap gap-6 justify-center text-sm text-white/60">
-              <span>🔒 Confidencialidade garantida</span>
-              <span>📋 Diagnóstico escrito em 48h</span>
-              <span>⚡ Resposta em 60 segundos</span>
+              <span className="inline-flex items-center gap-2"><Lock className="w-4 h-4" style={{ color: '#F5A623' }} /> Confidencialidade garantida</span>
+              <span className="inline-flex items-center gap-2"><ClipboardList className="w-4 h-4" style={{ color: '#F5A623' }} /> Diagnóstico escrito em 48h</span>
+              <span className="inline-flex items-center gap-2"><Clock className="w-4 h-4" style={{ color: '#F5A623' }} /> Resposta em 60 segundos</span>
             </div>
           </Reveal>
         </div>
