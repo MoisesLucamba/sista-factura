@@ -1228,12 +1228,16 @@ export default function LandingPage() {
             />
 
             <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-              <div className="heroB mb-7">
+              <div className="heroB mb-7 flex flex-wrap gap-2.5">
                 <div className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-default">
                   <Sparkles className="w-4 h-4 text-white animate-pulse" />
-                  <span className="text-sm font-bold text-white tracking-wide">Faturação + Pagamentos Digitais Seguros — Tudo numa só plataforma</span>
+                  <span className="text-sm font-bold text-white tracking-wide">Faturação AGT + Pagamentos Digitais</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 </div>
+                <a href="#arquivos" className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-pointer hover:bg-white/15 transition-colors">
+                  <BookOpen className="w-4 h-4 text-white" />
+                  <span className="text-sm font-bold text-white tracking-wide">Arquivos — Gestão Documental Inteligente</span>
+                </a>
               </div>
 
               <div className="max-w-3xl mb-7">
@@ -1255,37 +1259,27 @@ export default function LandingPage() {
                 </h1>
               </div>
 
-              <p className="heroS text-white/75 max-w-2xl mb-10 leading-relaxed font-medium"
+              <p className="heroS text-white/75 max-w-2xl mb-4 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
                 A plataforma angolana de faturação certificada AGT e intermediação de pagamentos digitais.
               </p>
+              <p className="heroS text-white/60 max-w-2xl mb-10 leading-relaxed font-medium text-sm md:text-base">
+                E também <span className="text-primary font-bold">Arquivos</span> — empresa do grupo dedicada à gestão documental inteligente: organiza, digitaliza e encontra qualquer documento em 60 segundos.
+              </p>
 
-              <div className="heroC flex items-start gap-4 mb-12">
+              <div className="heroC flex flex-wrap items-start gap-4 mb-12">
                 <Link to="/registar">
                   <Button size="lg" className="h-14 px-10 text-lg font-black shadow-2xl shadow-primary/50 btn-glow hover:scale-[1.04] transition-all group gap-2.5">
                     Começar Grátis
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
                   </Button>
                 </Link>
-              </div>
-
-              <div className="heroSt flex flex-wrap gap-3">
-                {[
-                  { icon: Users, v: '500+', l: 'Empresas activas' },
-                  { icon: FileText, v: '50.000+', l: 'Faturas emitidas' },
-                  { icon: TrendingUp, v: '99%', l: 'Uptime garantido' },
-                  { icon: Clock, v: '24/7', l: 'Suporte incluído' },
-                ].map(({ icon: I, v, l }, i) => (
-                  <div key={i} className="glass-stat rounded-2xl px-4 py-3 flex items-center gap-3 cursor-default">
-                    <div className="w-8 h-8 rounded-lg bg-white/12 flex items-center justify-center flex-shrink-0">
-                      <I className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-base font-black text-white leading-none tabular-nums">{v}</p>
-                      <p className="text-[11px] text-white/55 font-semibold mt-0.5 leading-tight whitespace-nowrap">{l}</p>
-                    </div>
-                  </div>
-                ))}
+                <a href="#arquivos">
+                  <Button size="lg" variant="outline" className="h-14 px-8 text-base font-bold bg-white/5 backdrop-blur border-white/25 text-white hover:bg-white/15 hover:text-white transition-all gap-2.5">
+                    <BookOpen className="h-5 w-5" />
+                    Começar Arquivos
+                  </Button>
+                </a>
               </div>
             </div>
 
