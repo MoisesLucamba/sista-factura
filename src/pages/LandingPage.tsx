@@ -979,6 +979,68 @@ function PageSeguranca() {
   );
 }
 
+/* ══ WAITLIST BANNER ══════════════════════════════════ */
+function WaitlistBanner() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast({ title: 'Email inválido', description: 'Introduza um email válido.', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    const { error } = await (supabase as any).from('waitlist_leads').insert({ email: email.trim().toLowerCase(), source: 'landing' });
+    setLoading(false);
+    if (error && !error.message.toLowerCase().includes('duplicate')) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setDone(true);
+    toast({ title: 'Registo confirmado', description: 'Avisamos assim que a plataforma abrir.' });
+  };
+
+  return (
+    <div className="relative z-20 rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent backdrop-blur-md p-5 md:p-6 mb-8 shadow-2xl shadow-primary/20">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+        <div className="flex items-start gap-3 flex-1">
+          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Plataforma em construção</p>
+            <p className="text-sm md:text-base text-white font-medium leading-snug">
+              A plataforma de faturação estará disponível no <strong className="text-primary">final de Julho de 2026</strong>. Registe o seu interesse e seja dos primeiros a aceder.
+            </p>
+          </div>
+        </div>
+        {done ? (
+          <div className="flex items-center gap-2 rounded-lg bg-emerald-500/15 border border-emerald-400/40 px-4 py-3 text-emerald-100 text-sm font-semibold">
+            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+            Obrigado! Vamos avisá-lo.
+          </div>
+        ) : (
+          <form onSubmit={submit} className="flex gap-2 w-full lg:w-auto">
+            <Input
+              type="email"
+              required
+              placeholder="o.seu.email@empresa.ao"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-11 min-w-0 lg:w-64 bg-white/10 border-white/25 text-white placeholder:text-white/50 focus-visible:ring-primary"
+            />
+            <Button type="submit" disabled={loading} className="h-11 px-5 font-bold whitespace-nowrap shadow-lg shadow-primary/40">
+              {loading ? 'A registar…' : 'Registar'}
+            </Button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ══ MAIN LANDING PAGE ══════════════════════════════════ */
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
