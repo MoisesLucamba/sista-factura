@@ -14,6 +14,9 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
 import { useState, useEffect, useRef } from 'react';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import logoFaktura from '@/assets/faktura-logo.png';
 import heroBusiness from '@/assets/hero-business.jpg';
 import logoOrbislink from '@/assets/logos/orbislink.png';
