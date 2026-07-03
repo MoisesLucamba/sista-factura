@@ -1,1794 +1,259 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
-  ArrowRight, Zap, Shield, BarChart3, FileText, Users, Globe,
-  CheckCircle, ChevronRight, Sparkles, Clock, Play, HelpCircle,
-  TrendingUp, UserPlus, Building2, BadgeDollarSign, ScanLine,
-  Repeat, MessageSquare, Smartphone, Mail, Code2, Webhook,
-  Target, Heart, Coffee, Laptop, Briefcase, MapPin, BookOpen,
-  AlertTriangle, Server, Key, RefreshCw, Lock, Eye, UserCheck,
-  Bell, Phone, ExternalLink, CreditCard, Link2, Banknote,
-  ArrowLeftRight, ShieldCheck,
+  ArrowRight, Clock, ShieldCheck, Building2, FileText, FolderArchive,
+  Sparkles, CheckCircle2, Mail, Phone, MapPin, Loader2,
 } from 'lucide-react';
-import {
-  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
-} from '@/components/ui/accordion';
-import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import logoFaktura from '@/assets/faktura-logo.png';
-import heroBusiness from '@/assets/hero-business.jpg';
-import logoOrbislink from '@/assets/logos/orbislink.png';
-import logoCalmind from '@/assets/logos/calmind.png';
-import logoPlaka from '@/assets/logos/plaka.jpg';
-import logoAgrilink from '@/assets/logos/agrilink.png';
-import logoAlphadata from '@/assets/logos/alphadata.png';
-import teamCollab from '@/assets/team-collab.jpg';
-import ArquivosSection from '@/components/landing/ArquivosSection';
 
-/* ─── Hooks ─────────────────────────────────────────────── */
-function useInView(threshold = 0.15): [React.RefObject<any>, boolean] {
-  const ref = useRef<any>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return [ref, visible];
-}
+const ARQUIVOS_URL = 'https://arquivos.faktura.ao';
+const NIF = '5002964031';
 
-function AnimatedCounter({ value }: { value: string }) {
-  const [count, setCount] = useState(0);
-  const [ref, visible] = useInView(0.5);
-  const num = parseInt(value.replace(/\D/g, '')) || 0;
-  useEffect(() => {
-    if (!visible) return;
-    let start = 0;
-    const step = (ts: number) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / 1800, 1);
-      setCount(Math.floor((1 - Math.pow(1 - p, 3)) * num));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [visible, num]);
-  const d = value.includes('+') ? count.toLocaleString() + '+' : value.includes('%') ? count + '%' : value.includes('/') ? value : String(count);
-  return <span ref={ref}>{d}</span>;
-}
+function WaitlistForm() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
 
-function FadeIn({ children, delay = 0, direction = 'up', className = '' }: {
-  children: React.ReactNode;
-  delay?: number;
-  direction?: 'up' | 'left' | 'right' | 'down';
-  className?: string;
-}) {
-  const [ref, visible] = useInView();
-  const t = direction === 'up' ? 'translateY(36px)' : direction === 'left' ? 'translateX(-36px)' : direction === 'right' ? 'translateX(36px)' : 'translateY(-36px)';
-  return (
-    <div ref={ref} className={className} style={{ opacity: visible ? 1 : 0, transform: visible ? 'translate(0,0)' : t, transition: `opacity .7s cubic-bezier(.4,0,.2,1) ${delay}ms, transform .7s cubic-bezier(.4,0,.2,1) ${delay}ms` }}>
-      {children}
-    </div>
-  );
-}
-
-/* ─── Static data ─────────────────────────────────────────── */
-
-const features = [
-  {
-    icon: FileText, title: 'Faturas Instantâneas',
-    description: 'Emita faturas (FT), recibos (RC), proformas (PRO) e faturas-recibo (FR) em segundos. Todos com QR code, assinatura digital e numeração sequencial conforme AGT.',
-    detail: 'Cada documento gerado inclui os campos obrigatórios por lei: NIF do emitente e receptor, data, descrição dos bens/serviços, valor base, IVA aplicável e valor total. Armazenamento automático por 5+ anos.',
-  },
-  {
-    icon: ArrowLeftRight, title: 'Intermediação de Pagamentos',
-    description: 'Facilitamos pagamentos digitais seguros entre compradores e empresas. Coordenamos o fluxo de pagamento sem armazenar fundos — cada transacção é rastreada, validada e confirmada em tempo real.',
-    detail: 'A Faktura actua como intermediário digital: coordena a comunicação entre o pagador, o banco ou operador e a empresa emissora da fatura. Nunca detemos fundos — garantimos apenas que o pagamento chega correctamente ao destinatário e que a fatura é marcada como liquidada.',
-  },
-  {
-    icon: CreditCard, title: 'Multicaixa Express',
-    description: 'Aceite pagamentos por referência Multicaixa directamente na fatura. Gere referências EMIS e receba confirmação automática de pagamento.',
-    detail: 'Integração com o sistema EMIS para gerar referências de pagamento. O cliente paga no Multicaixa Express e a fatura é marcada como paga automaticamente.',
-  },
-  {
-    icon: Link2, title: 'Links de Pagamento em Segundos',
-    description: 'Gere links únicos com QR code para clientes pagarem faturas online. Partilhe via WhatsApp, SMS ou email com um clique.',
-    detail: 'Links com expiração configurável, limites de uso e rastreamento em tempo real. Veja quando o cliente abriu e efectuou o pagamento.',
-  },
-  {
-    icon: Shield, title: 'Conformidade AGT 100%',
-    description: 'Certificação digital, QR codes e assinaturas electrónicas em conformidade total com as normas da Administração Geral Tributária de Angola.',
-    detail: 'Integração directa com o portal e-Fatura da AGT para validação automática. Nunca emita um documento inválido — a Faktura valida tudo antes de enviar.',
-  },
-  {
-    icon: Repeat, title: 'Reconciliação Bancária',
-    description: 'Reconcilie pagamentos bancários com faturas automaticamente. Compare extractos bancários com documentos emitidos num só ecrã.',
-    detail: 'Carregue extractos bancários e o sistema identifica automaticamente quais faturas foram pagas. Reduza horas de trabalho manual a minutos.',
-  },
-  {
-    icon: MapPin, title: 'Faturação por Proximidade',
-    description: 'Quando o cliente entra na sua loja, a Faktura detecta-o automaticamente via Bluetooth/NFC e pré-carrega os seus dados — pronto para faturar antes de chegar ao caixa.',
-    detail: 'Tecnologia BLE (Bluetooth Low Energy) e NFC integrada. O comprador activa a funcionalidade na app e autoriza a detecção. A empresa vê o cliente a aproximar-se e a fatura é pré-preenchida em segundos. Ideal para lojas, restaurantes e postos de combustível.',
-  },
-  {
-    icon: ScanLine, title: 'Auto-Faturação no Caixa',
-    description: 'Chega de perder minutos nos supermercados. O cliente lê o QR da compra com o telemóvel e confirma a auto-faturação — a fatura é emitida automaticamente, sem intervenção do operador.',
-    detail: 'O operador imprime ou exibe o QR da compra. O cliente abre a app Faktura, aponta o telemóvel e confirma. A fatura é emitida em conformidade AGT, enviada por WhatsApp/email e a fila avança. Zero burocracia, experiência moderna.',
-  },
-];
-
-const clientLogos = [
-  { name: 'Orbis.Link', logo: logoOrbislink },
-  { name: 'CalMind', logo: logoCalmind },
-  { name: 'Plaka', logo: logoPlaka },
-  { name: 'AgriLink', logo: logoAgrilink },
-  { name: 'AlphaData', logo: logoAlphadata },
-];
-
-const faqs = [
-  { q: 'Quais tipos de documentos posso emitir?', a: 'Pode emitir Fatura (FT) — documento fiscal oficial; Recibo (RC) — comprovante de pagamento; Proforma (PRO) — documento não fiscal que antecipa valores; e Fatura-Recibo (FR) — documento híbrido. Todos incluem QR code, assinatura digital e são válidos perante a AGT.' },
-  { q: 'O que é faturação electrónica em Angola?', a: 'É o processo legal de emissão, envio e armazenamento de faturas em formato digital, conforme as normas da AGT. Permite maior eficiência, segurança e conformidade fiscal — e é cada vez mais obrigatório para empresas angolanas.' },
-  { q: 'Posso enviar documentos pelo WhatsApp?', a: 'Sim! Configure a integração WhatsApp Business em 2 minutos e os seus clientes recebem faturas instantaneamente no telemóvel. Também disponível por SMS e email.' },
-  { q: 'Como funciona o programa de ID de comprador?', a: 'O comprador regista-se gratuitamente e recebe um ID único (ex: M20XV). Ao fazer compras, partilha o ID — a empresa usa-o para preencher automaticamente os seus dados. Por cada fatura acima de 1.500 Kz emitida com o seu ID, recebe 50 Kz de recompensa automaticamente.' },
-  { q: 'A Faktura armazena ou detém os meus fundos?', a: 'Não. A Faktura actua exclusivamente como intermediário de pagamentos: coordenamos e validamos o fluxo de pagamento entre o comprador e a empresa, mas nunca detemos fundos. Todas as transacções passam pelos canais bancários e operadores habilitados (EMIS, Multicaixa Express), com rastreamento completo.' },
-  { q: 'Quais planos estão disponíveis?', a: 'Básico (7.500 Kz/mês ou 20.250 Kz/trimestre): até 100 faturas, funcionalidades essenciais. Completo (10.000 Kz/mês ou 27.000 Kz/trimestre): faturas ilimitadas, multi-canal, relatórios avançados. Empresa: preço sob medida para grandes volumes. Poupe 10% em qualquer plano trimestral.' },
-  { q: 'É obrigatório armazenar as faturas?', a: 'Sim. Todos os documentos devem ser armazenados digitalmente por pelo menos 5 anos, conforme a legislação fiscal angolana. A Faktura faz isso automaticamente em nuvem segura.' },
-  { q: 'A plataforma serve qualquer tipo de negócio?', a: 'Sim. A Faktura é adaptável para micro, pequenas e médias empresas de qualquer sector em Angola — comércio, serviços, restauração, tecnologia, saúde, construção e muito mais.' },
-  { q: 'Existe suporte técnico?', a: 'Sim! Suporte disponível 24/7 por chat, email e telefone. O plano Completo inclui suporte prioritário com tempo de resposta garantido.' },
-];
-
-/* ─── Sub-page components ── */
-function SubPageShell({ children }: { children: React.ReactNode }) {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-  return (
-    <div className="min-h-screen pt-24 pb-24">
-      {children}
-    </div>
-  );
-}
-
-/* ══ AUTO-FATURAÇÃO & PROXIMIDADE ══ */
-function SectionAutoFaturacao() {
-  return (
-    <section id="autofaturacao" className="py-28 relative overflow-hidden bg-muted/20">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-primary/4 rounded-full blur-[130px]" />
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1.5px, transparent 1.5px)', backgroundSize: '56px 56px' }} />
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeIn direction="up">
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
-              <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-              <span className="text-sm font-bold">Inovação Angolana</span>
-            </div>
-            <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5 leading-tight">
-              Chega de filas.<br />
-              <span className="shimmer-text">A fatura vem ter consigo.</span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Faturação por proximidade e auto-faturação com QR — duas formas de tornar o acto de comprar e faturar instantâneo, sem burocracia.
-            </p>
-          </div>
-        </FadeIn>
-
-        <div className="grid lg:grid-cols-2 gap-8 mb-16">
-          {/* Card 1 — Proximidade */}
-          <FadeIn direction="left" delay={100}>
-            <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-              <div className="flex items-center gap-4 mb-7">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <MapPin className="w-8 h-8 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-0.5">Novo</p>
-                  <h3 className="text-2xl font-black">Faturação por Proximidade</h3>
-                </div>
-              </div>
-              <p className="text-muted-foreground leading-relaxed mb-7 text-sm">
-                Quando o cliente com ID Faktura entra na sua loja, o sistema detecta-o automaticamente via <strong className="text-foreground">Bluetooth / NFC</strong> e pré-carrega os seus dados fiscais — a fatura está pronta antes de chegar ao caixa.
-              </p>
-              <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7 space-y-3">
-                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-3">Como funciona</p>
-                {[
-                  { s: '01', t: 'Cliente entra na loja', d: 'App Faktura detecta o beacon BLE da loja', icon: MapPin },
-                  { s: '02', t: 'Dados pré-carregados', d: 'NIF, nome e contacto prontos em <2 segundos', icon: Zap },
-                  { s: '03', t: 'Operador confirma', d: 'Um toque e a fatura é emitida — sem digitar nada', icon: CheckCircle },
-                ].map(({ s, t, d, icon: Ico }) => (
-                  <div key={s} className="flex items-center gap-3 bg-card rounded-xl p-3 border border-border/40">
-                    <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0">
-                      <Ico className="w-4 h-4 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold leading-tight">{t}</p>
-                      <p className="text-xs text-muted-foreground">{d}</p>
-                    </div>
-                    <span className="text-xs font-black text-primary/40">{s}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-2 mb-7">
-                {['Bluetooth Low Energy', 'NFC', 'Sem app do cliente aberta', 'Lojas · Restaurantes · Postos'].map(t => (
-                  <span key={t} className="text-xs bg-primary/8 border border-primary/20 text-primary font-semibold px-3 py-1 rounded-full">{t}</span>
-                ))}
-              </div>
-              <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl p-4">
-                <Clock className="w-5 h-5 text-primary flex-shrink-0" />
-                <p className="text-sm text-muted-foreground"><strong className="text-foreground">Redução de 80%</strong> no tempo de preenchimento de dados no caixa.</p>
-              </div>
-            </div>
-          </FadeIn>
-
-          {/* Card 2 — Auto-Faturação QR */}
-          <FadeIn direction="right" delay={200}>
-            <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
-              <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-              <div className="flex items-center gap-4 mb-7">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <ScanLine className="w-8 h-8 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-0.5">Novo</p>
-                  <h3 className="text-2xl font-black">Auto-Faturação no Caixa</h3>
-                </div>
-              </div>
-              <p className="text-muted-foreground leading-relaxed mb-7 text-sm">
-                Chega de perder minutos nos supermercados. O operador apresenta o <strong className="text-foreground">QR da compra</strong> — o cliente aponta o telemóvel, confirma, e a fatura é emitida automaticamente em conformidade AGT. Sem filas. Sem espera.
-              </p>
-              <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7">
-                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-4">Experiência no caixa</p>
-                <div className="grid grid-cols-3 gap-3 items-center">
-                  <div className="text-center">
-                    <div className="w-full aspect-square bg-card border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center mb-2 relative overflow-hidden group-hover:border-primary/60 transition-colors">
-                      <div className="absolute inset-2 grid grid-cols-5 grid-rows-5 gap-0.5 opacity-40">
-                        {Array.from({ length: 25 }).map((_, i) => (
-                          <div key={i} className={`rounded-[1px] ${[0, 1, 5, 6, 2, 10, 12, 14, 18, 20, 23, 24, 19].includes(i) ? 'bg-primary' : 'bg-transparent'}`} />
-                        ))}
-                      </div>
-                      <ScanLine className="w-7 h-7 text-primary relative z-10" />
-                    </div>
-                    <p className="text-xs font-semibold text-muted-foreground">QR da compra</p>
-                  </div>
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <ArrowRight className="w-4 h-4 text-primary" />
-                    </div>
-                    <p className="text-[10px] text-muted-foreground text-center font-medium">cliente lê com a app</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-full aspect-square bg-primary/10 border-2 border-primary/30 rounded-xl flex flex-col items-center justify-center mb-2 gap-1">
-                      <CheckCircle className="w-6 h-6 text-primary" />
-                      <p className="text-[9px] font-black text-primary">FT 2025/1285</p>
-                    </div>
-                    <p className="text-xs font-semibold text-muted-foreground">Fatura emitida</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center gap-2 text-primary text-xs font-bold">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  Tempo médio: 4 segundos
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 mb-7">
-                {['Supermercados', 'Farmácias', 'Postos de combustível', 'Restauração', 'Zero papel'].map(t => (
-                  <span key={t} className="text-xs bg-primary/8 border border-primary/20 text-primary font-semibold px-3 py-1 rounded-full">{t}</span>
-                ))}
-              </div>
-              <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl p-4">
-                <Users className="w-5 h-5 text-primary flex-shrink-0" />
-                <p className="text-sm text-muted-foreground"><strong className="text-foreground">Fila anda 3× mais rápido</strong> — operador não precisa digitar nenhum dado do cliente.</p>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-
-        {/* Comparação Antes / Depois */}
-        <FadeIn direction="up" delay={150}>
-          <div className="bg-card border border-border/50 rounded-3xl p-8 lg:p-12 relative overflow-hidden mb-10">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-            <h3 className="text-2xl font-black text-center mb-10">Antes vs Depois da Faktura</h3>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full px-4 py-1.5 mb-5 text-sm font-bold">
-                  <AlertTriangle className="w-4 h-4" /> Antes — Processo tradicional
-                </div>
-                <div className="space-y-3">
-                  {[
-                    'Cliente chega ao caixa e diz o NIF verbalmente',
-                    'Operador digita o NIF e espera validação',
-                    'Digita o nome manualmente — erros frequentes',
-                    'Emite a fatura — 3 a 5 minutos por cliente',
-                    'Fila acumula, clientes frustram-se',
-                  ].map((x, i) => (
-                    <div key={i} className="flex items-start gap-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 rounded-xl px-4 py-3">
-                      <span className="w-5 h-5 rounded-full bg-red-200 dark:bg-red-800/40 text-red-600 dark:text-red-400 text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">✕</span>
-                      <p className="text-sm text-muted-foreground">{x}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 mb-5 text-sm font-bold">
-                  <CheckCircle className="w-4 h-4" /> Depois — Com a Faktura
-                </div>
-                <div className="space-y-3">
-                  {[
-                    'App detecta o cliente por proximidade automaticamente',
-                    'Dados pré-carregados — NIF, nome, contacto',
-                    'Ou: cliente lê o QR da compra em 4 segundos',
-                    'Fatura emitida e enviada por WhatsApp — <10 seg',
-                    'Fila anda 3× mais rápido, experiência moderna',
-                  ].map((x, i) => (
-                    <div key={i} className="flex items-start gap-3 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3">
-                      <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-muted-foreground">{x}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-
-      </div>
-    </section>
-  );
-}
-
-/* ══ INTEGRAÇÕES ══════════════════════════════════════════ */
-const integrations = [
-  {
-    category: 'Comunicação', items: [
-      { icon: MessageSquare, name: 'WhatsApp Business', desc: 'Envie faturas e recibos directamente para o WhatsApp. Confirmação de leitura em tempo real.', status: 'Disponível' },
-      { icon: Smartphone, name: 'SMS Angola', desc: 'Notificações automáticas via SMS para qualquer número angolano. Taxa de entrega >98%.', status: 'Disponível' },
-      { icon: Mail, name: 'Email', desc: 'Envio por email com templates profissionais personalizáveis com a sua marca.', status: 'Disponível' },
-    ]
-  },
-  {
-    category: 'Fiscal & Governo', items: [
-      { icon: Shield, name: 'AGT — Portal e-Fatura', desc: 'Integração directa com o portal fiscal da AGT para validação e submissão automática.', status: 'Disponível' },
-      { icon: Globe, name: 'ERCA Angola', desc: 'Sincronização com o sistema de registo fiscal angolano para grandes contribuintes.', status: 'Em breve' },
-    ]
-  },
-  {
-    category: 'Pagamentos', items: [
-      { icon: BarChart3, name: 'Multicaixa Express', desc: 'Intermediação de pagamentos por referência Multicaixa directamente na fatura. Confirmação automática via EMIS.', status: 'Em breve' },
-      { icon: Zap, name: 'Unitel Money', desc: 'Intermediação com carteira móvel Unitel para pagamentos instantâneos por telemóvel.', status: 'Em breve' },
-      { icon: RefreshCw, name: 'Pagamentos Recorrentes', desc: 'Débito automático mensal para clientes com subscrições activas e serviços recorrentes.', status: 'Disponível' },
-    ]
-  },
-  {
-    category: 'Desenvolvimento', items: [
-      { icon: Code2, name: 'REST API', desc: 'API completa com documentação detalhada para integrar a Faktura em qualquer sistema.', status: 'Disponível' },
-      { icon: Webhook, name: 'Webhooks', desc: 'Notificações em tempo real sobre qualquer evento: fatura emitida, paga, enviada.', status: 'Disponível' },
-    ]
-  },
-];
-
-function PageIntegracoes() {
-  return (
-    <SubPageShell>
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[100px]" />
-        </div>
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
-            <Globe className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">Integrações</span>
-          </div>
-          <h1 className="text-5xl lg:text-6xl font-black tracking-tight mb-6">
-            Conecte ao seu <span className="shimmer-text">ecossistema</span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
-            WhatsApp, AGT, Multicaixa, API — tudo integrado numa só plataforma.
-          </p>
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        {integrations.map(({ category, items }) => (
-          <div key={category} className="mb-14">
-            <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-2xl font-black">{category}</h2>
-              <div className="flex-1 h-px bg-border/50" />
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {items.map(({ icon: Icon, name, desc, status }) => (
-                <div key={name} className="bg-card border border-border/50 rounded-2xl p-6 group hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <Icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${status === 'Disponível' ? 'bg-primary/15 text-primary' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
-                      {status}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-lg mb-2">{name}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-accent rounded-3xl p-12 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-          <div className="relative grid lg:grid-cols-2 gap-10 items-center z-10">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-primary/15 rounded-full px-4 py-1.5 mb-4">
-                <Code2 className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-accent-foreground">Para Developers</span>
-              </div>
-              <h2 className="text-3xl font-black text-accent-foreground mb-4">Construa com a nossa API</h2>
-              <p className="text-accent-foreground/60 text-sm leading-relaxed">REST API completa, SDKs, webhooks e documentação interactiva. Integre faturação e intermediação de pagamentos em qualquer sistema em horas, não semanas.</p>
-            </div>
-            <div className="bg-accent-foreground/5 rounded-2xl p-6 border border-accent-foreground/10 font-mono text-sm">
-              <p className="text-accent-foreground/40 mb-2"># Emitir fatura via API</p>
-              <p className="text-primary font-bold">POST https://api.faktura.ao/v1/faturas</p>
-              <div className="mt-4 space-y-1 text-accent-foreground/60 text-xs">
-                <p><span className="text-primary">"cliente_id"</span>: <span className="text-amber-400">"M20XV"</span></p>
-                <p><span className="text-primary">"valor"</span>: <span className="text-blue-400">25000</span></p>
-                <p><span className="text-primary">"descricao"</span>: <span className="text-amber-400">"Servico de consultoria"</span></p>
-              </div>
-              <div className="mt-4 flex items-center gap-2 text-primary text-xs">
-                <CheckCircle className="w-3.5 h-3.5" />
-                <span>200 OK — FT 2025/1284 emitida</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </SubPageShell>
-  );
-}
-
-/* ══ SOBRE NÓS ══════════════════════════════════════════ */
-const teamMembers = [
-  { name: 'Carlos Mendes', role: 'CEO & Co-fundador', init: 'CM', color: 'bg-blue-100 text-blue-700' },
-  { name: 'Ana Ferreira', role: 'CTO & Co-fundadora', init: 'AF', color: 'bg-purple-100 text-purple-700' },
-  { name: 'Pedro Santos', role: 'Head of Product', init: 'PS', color: 'bg-amber-100 text-amber-700' },
-  { name: 'Sofia Lopes', role: 'Head of Design', init: 'SL', color: 'bg-amber-100 text-amber-700' },
-  { name: 'Miguel Costa', role: 'Lead Engineer', init: 'MC', color: 'bg-rose-100 text-rose-700' },
-  { name: 'Beatriz Neto', role: 'Head of Sales', init: 'BN', color: 'bg-teal-100 text-teal-700' },
-];
-const milestones = [
-  { year: '2022', t: 'Fundação', d: 'A Faktura nasceu em Luanda com a missão de modernizar a faturação em Angola.' },
-  { year: '2023', t: 'Primeiro produto', d: 'Lançamento da plataforma com integração AGT e envio por WhatsApp.' },
-  { year: '2024', t: 'Crescimento', d: 'Ultrapassámos 500 empresas activas e 50.000 faturas emitidas.' },
-  { year: '2025', t: 'Ecossistema', d: 'Lançamento do programa de compradores com ID único e intermediação de pagamentos digitais seguros.' },
-];
-
-function PageSobreNos() {
-  return (
-    <SubPageShell>
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[100px]" />
-        </div>
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
-            <Heart className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">Sobre Nós</span>
-          </div>
-          <h1 className="text-5xl lg:text-6xl font-black tracking-tight mb-6">Feitos em Angola, <span className="shimmer-text">para Angola</span></h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            A Faktura nasceu da frustração de ver empresas angolanas a perder horas em faturação manual. Decidimos resolver isso de uma vez por todas.
-          </p>
-        </div>
-      </section>
-
-      <section className="py-12 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-5">
-                <Target className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold">A nossa missão</span>
-              </div>
-              <h2 className="text-3xl font-black mb-5 tracking-tight">Simplificar a faturação para cada empresa angolana</h2>
-              <p className="text-muted-foreground leading-relaxed mb-4 text-sm">Acreditamos que nenhuma empresa deve falhar por causa de burocracia fiscal. A nossa missão é tornar a faturação tão simples que qualquer pessoa — com ou sem formação contabilística — consiga emitir documentos legais em segundos.</p>
-              <p className="text-muted-foreground leading-relaxed text-sm">Combinamos tecnologia moderna com profundo conhecimento da legislação angolana para criar uma plataforma que protege o seu negócio e liberta o seu tempo.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {([
-                { v: '500+', l: 'Empresas activas', I: Users },
-                { v: '50K+', l: 'Faturas emitidas', I: FileText },
-                { v: '99%', l: 'Uptime garantido', I: TrendingUp },
-                { v: '2022', l: 'Fundada em Luanda', I: Heart },
-              ] as const).map(({ v, l, I }, i) => (
-                <div key={i} className="bg-card border border-border/50 rounded-2xl p-5 text-center group hover:border-primary/30 transition-all">
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
-                    <I className="w-4 h-4 text-primary" />
-                  </div>
-                  <p className="text-2xl font-black mb-0.5">{v}</p>
-                  <p className="text-xs text-muted-foreground font-semibold">{l}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-black text-center mb-10">A nossa história</h2>
-          <div className="relative">
-            <div className="absolute left-6 top-0 bottom-0 w-px bg-border" />
-            <div className="space-y-8">
-              {milestones.map(({ year, t, d }) => (
-                <div key={year} className="relative flex gap-6 items-start">
-                  <div className="relative z-10 w-12 h-12 rounded-full bg-card border-2 border-primary/30 flex items-center justify-center flex-shrink-0">
-                    <div className="w-3 h-3 rounded-full bg-primary" />
-                  </div>
-                  <div className="flex-1 bg-card border border-border/50 rounded-2xl p-5 hover:border-primary/20 transition-colors">
-                    <span className="text-xs font-black text-primary uppercase tracking-widest">{year}</span>
-                    <h3 className="font-bold text-lg mt-1 mb-1">{t}</h3>
-                    <p className="text-sm text-muted-foreground">{d}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 bg-muted/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-black text-center mb-10">A nossa equipa</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {teamMembers.map(({ name, role, init, color }) => (
-              <div key={name} className="bg-card border border-border/50 rounded-2xl p-5 flex items-center gap-4 hover:border-primary/30 transition-all group">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-black flex-shrink-0 ${color} group-hover:scale-110 transition-transform`}>
-                  {init}
-                </div>
-                <div>
-                  <p className="font-bold">{name}</p>
-                  <p className="text-sm text-muted-foreground">{role}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </SubPageShell>
-  );
-}
-
-/* ══ BLOG ══════════════════════════════════════════════ */
-const blogPosts = [
-  { cat: 'Faturação', tag: true, title: 'O que mudou na faturação electrónica em Angola em 2025', excerpt: 'A AGT reforçou os requisitos para emissão de faturas digitais. Veja o que mudou e como a Faktura já cumpre todos os novos critérios.', author: 'Equipa Faktura', date: '15 Jan 2025', read: '6 min', init: 'EF', c: 'bg-primary/15 text-primary' },
-  { cat: 'Dicas', title: 'Como evitar os 5 erros mais comuns na emissão de faturas', excerpt: 'Erros simples podem causar problemas sérios com o fisco. Descubra quais são e como a Faktura os elimina automaticamente.', author: 'Carlos Mendes', date: '8 Jan 2025', read: '4 min', init: 'CM', c: 'bg-blue-100 text-blue-700' },
-  { cat: 'Produto', title: 'Novo: ID de comprador — ganhe 50 Kz por cada fatura', excerpt: 'Registe-se, partilhe o seu ID e receba automaticamente 50 Kz de recompensa por cada compra faturada acima de 1.500 Kz.', author: 'Ana Ferreira', date: '2 Jan 2025', read: '3 min', init: 'AF', c: 'bg-purple-100 text-purple-700' },
-  { cat: 'Negócio', title: 'Faturação recorrente: automatize cobranças mensais', excerpt: 'Se tem clientes com serviços mensais, a faturação recorrente da Faktura vai poupar horas de trabalho repetitivo.', author: 'Pedro Santos', date: '28 Dez 2024', read: '5 min', init: 'PS', c: 'bg-amber-100 text-amber-700' },
-  { cat: 'Conformidade', title: 'Guia completo: NIF, IBAN e dados obrigatórios na fatura', excerpt: 'Saiba exactamente quais campos são legalmente obrigatórios e como preenchê-los correctamente.', author: 'Beatriz Neto', date: '20 Dez 2024', read: '7 min', init: 'BN', c: 'bg-teal-100 text-teal-700' },
-  { cat: 'Integrações', title: 'Como enviar faturas pelo WhatsApp automaticamente', excerpt: 'Configure a integração WhatsApp Business em 2 minutos e os seus clientes recebem faturas no telemóvel.', author: 'Miguel Costa', date: '15 Dez 2024', read: '4 min', init: 'MC', c: 'bg-rose-100 text-rose-700' },
-];
-const catColors: Record<string, string> = {
-  'Faturação': 'bg-primary/10 text-primary',
-  'Dicas': 'bg-blue-100 text-blue-700',
-  'Produto': 'bg-purple-100 text-purple-700',
-  'Negócio': 'bg-amber-100 text-amber-700',
-  'Conformidade': 'bg-teal-100 text-teal-700',
-  'Integrações': 'bg-amber-100 text-amber-700',
-};
-
-function PageBlog() {
-  return (
-    <SubPageShell>
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
-        </div>
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
-            <BookOpen className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">Blog Faktura</span>
-          </div>
-          <h1 className="text-5xl lg:text-6xl font-black tracking-tight mb-4">Recursos & <span className="shimmer-text">Insights</span></h1>
-          <p className="text-xl text-muted-foreground max-w-xl mx-auto">Dicas de faturação, novidades e guias práticos para empresas angolanas.</p>
-        </div>
-      </section>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="bg-card border border-border/50 rounded-3xl p-8 lg:p-10 mb-10 group cursor-pointer hover:border-primary/25 hover:-translate-y-1 hover:shadow-lg transition-all">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary">{blogPosts[0].cat}</span>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary text-primary-foreground">Destaque</span>
-              </div>
-              <h2 className="text-2xl font-black mb-3 group-hover:text-primary transition-colors leading-tight">{blogPosts[0].title}</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-5">{blogPosts[0].excerpt}</p>
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold bg-primary/15 text-primary">{blogPosts[0].init}</div>
-                <span className="text-sm font-semibold">{blogPosts[0].author}</span>
-                <span className="text-muted-foreground text-sm">· {blogPosts[0].date}</span>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
-                  <Clock className="w-3.5 h-3.5" />{blogPosts[0].read}
-                </div>
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl h-48 flex items-center justify-center border border-primary/15">
-              <BookOpen className="w-14 h-14 text-primary/30" />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {blogPosts.slice(1).map((p) => (
-            <div key={p.title} className="bg-card border border-border/50 rounded-2xl p-6 flex flex-col group cursor-pointer hover:border-primary/25 hover:-translate-y-1 hover:shadow-lg transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <span className={`text-xs font-bold px-3 py-1 rounded-full ${catColors[p.cat] || 'bg-muted text-muted-foreground'}`}>{p.cat}</span>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="w-3 h-3" />{p.read}</div>
-              </div>
-              <h3 className="font-bold text-lg mb-2 flex-1 group-hover:text-primary transition-colors leading-snug">{p.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4">{p.excerpt}</p>
-              <div className="flex items-center gap-3 pt-3 border-t border-border/40">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${p.c}`}>{p.init}</div>
-                <div className="text-xs min-w-0">
-                  <p className="font-semibold truncate">{p.author}</p>
-                  <p className="text-muted-foreground">{p.date}</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all ml-auto flex-shrink-0" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </SubPageShell>
-  );
-}
-
-/* ══ CARREIRAS ══════════════════════════════════════════ */
-const perks2 = [
-  { icon: Laptop, t: 'Remote-first', d: 'Trabalhe de qualquer lugar em Angola.' },
-  { icon: TrendingUp, t: 'Crescimento', d: 'Plano de carreira claro e revisões salariais.' },
-  { icon: Heart, t: 'Saúde', d: 'Seguro de saúde para si e família.' },
-  { icon: Coffee, t: 'Cultura', d: 'Equipa jovem, missão real, impacto imediato.' },
-  { icon: Globe, t: 'Impacto', d: 'O seu trabalho afecta centenas de empresas.' },
-  { icon: Zap, t: 'Stack moderno', d: 'React, Node, Supabase, Postgres.' },
-];
-const jobs = [
-  { title: 'Engenheiro(a) Full-Stack', dept: 'Engineering', loc: 'Luanda / Remoto', tags: ['React', 'TypeScript', 'Node.js'], desc: 'Construa funcionalidades que milhares de empresas angolanas usam todos os dias.', c: 'bg-blue-100 text-blue-700' },
-  { title: 'Product Designer', dept: 'Design', loc: 'Luanda / Remoto', tags: ['Figma', 'UX Research'], desc: 'Desenhe experiências que tornam a faturação simples para qualquer empresário.', c: 'bg-purple-100 text-purple-700' },
-  { title: 'Account Executive', dept: 'Sales', loc: 'Luanda', tags: ['B2B', 'CRM'], desc: 'Apresente a Faktura a empresas e ajude-as a modernizar a sua faturação.', c: 'bg-amber-100 text-amber-700' },
-  { title: 'Customer Success Manager', dept: 'Operations', loc: 'Luanda / Remoto', tags: ['Suporte', 'Onboarding'], desc: 'Garanta que os clientes tiram o máximo da plataforma.', c: 'bg-amber-100 text-amber-700' },
-];
-
-function PageCarreiras() {
-  return (
-    <SubPageShell>
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[100px]" />
-        </div>
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
-            <Briefcase className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">Carreiras</span>
-          </div>
-          <h1 className="text-5xl lg:text-6xl font-black tracking-tight mb-6">Construa Angola <span className="shimmer-text">connosco</span></h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">Procuramos pessoas talentosas para ajudar a modernizar a faturação em Angola.</p>
-        </div>
-      </section>
-
-      <section className="py-12 bg-muted/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-black text-center mb-8">Porque a Faktura?</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {perks2.map(({ icon: I, t, d }) => (
-              <div key={t} className="bg-card border border-border/50 rounded-2xl p-5 flex items-start gap-4 group hover:border-primary/25 transition-all">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <I className="w-5 h-5 text-primary" />
-                </div>
-                <div><p className="font-bold mb-1">{t}</p><p className="text-sm text-muted-foreground">{d}</p></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-black mb-2">Vagas <span className="shimmer-text">abertas</span></h2>
-            <p className="text-muted-foreground">{jobs.length} posições disponíveis</p>
-          </div>
-          <div className="space-y-4">
-            {jobs.map((j) => (
-              <div key={j.title} className="bg-card border border-border/50 rounded-2xl p-6 group hover:border-primary/30 hover:-translate-y-1 transition-all cursor-pointer">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className={`text-xs font-bold px-3 py-1 rounded-full ${j.c}`}>{j.dept}</span>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="w-3 h-3" />{j.loc}</div>
-                    </div>
-                    <h3 className="text-xl font-black mb-2 group-hover:text-primary transition-colors">{j.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{j.desc}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {j.tags.map(t => <span key={t} className="text-xs bg-muted px-2.5 py-1 rounded-full font-medium">{t}</span>)}
-                    </div>
-                  </div>
-                  <Button className="flex-shrink-0 font-bold gap-2">Candidatar <ArrowRight className="w-4 h-4" /></Button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 bg-muted/40 border border-border/50 rounded-2xl p-7 text-center">
-            <h3 className="font-black text-xl mb-2">Não encontrou a vaga certa?</h3>
-            <p className="text-muted-foreground text-sm mb-4">Envie uma candidatura espontânea. Se tiver talento, queremos conhecê-lo.</p>
-            <Button variant="outline" className="font-bold border-2 hover:bg-primary/5 hover:border-primary/40 transition-all gap-2">Candidatura espontânea <ArrowRight className="w-4 h-4" /></Button>
-          </div>
-        </div>
-      </section>
-    </SubPageShell>
-  );
-}
-
-/* ══ TERMOS ══════════════════════════════════════════════ */
-const termosSections = [
-  { t: '1. Aceitação dos Termos', c: 'Ao aceder ou utilizar a plataforma Faktura ("Serviço"), concorda em ficar vinculado a estes Termos de Uso. Se não concordar, não poderá aceder ao Serviço. Estes Termos aplicam-se a todos os utilizadores, incluindo empresas e compradores individuais registados.' },
-  { t: '2. Descrição do Serviço', c: 'A Faktura é uma plataforma de faturação electrónica que permite: emissão de faturas, recibos, proformas e faturas-recibo em conformidade com a AGT; gestão de clientes e histórico de transacções; envio automatizado por WhatsApp, SMS e email; intermediação de pagamentos digitais seguros entre compradores e empresas; programa de compradores com ID único e recompensas por fatura; e relatórios e análises financeiras.' },
-  { t: '3. Conta de Utilizador', c: 'Para utilizar o Serviço, deve criar uma conta com informações verdadeiras e completas. É responsável pela confidencialidade das suas credenciais e por todas as actividades na sua conta. Deve notificar-nos imediatamente em caso de acesso não autorizado.' },
-  { t: '4. Intermediação de Pagamentos', c: 'A Faktura actua exclusivamente como intermediário de pagamentos digitais: facilita e coordena o fluxo de pagamento entre comprador e empresa, mas nunca detém ou armazena fundos. Todas as transacções são processadas pelos canais bancários e operadores habilitados (EMIS, Multicaixa Express). A Faktura não é uma instituição financeira nem emite instrumentos de pagamento.' },
-  { t: '5. Programa de Compradores (ID de Compra)', c: 'Ao registar-se como comprador, receberá um ID único. Este ID permite que empresas utilizadoras da Faktura preencham automaticamente os seus dados em faturas, com autorização expressa. O comprador recebe 50 Kz de recompensa por cada fatura emitida acima de 1.500 Kz com o seu ID. A Faktura pode alterar os valores com aviso prévio de 30 dias.' },
-  { t: '6. Obrigações do Utilizador', c: 'O utilizador compromete-se a: fornecer informações verídicas; usar o Serviço apenas para fins legais; não aceder a dados de outros utilizadores sem autorização; não emitir documentos falsos ou fraudulentos; manter a confidencialidade de dados de terceiros; e cumprir todas as obrigações fiscais.' },
-  { t: '7. Pagamentos e Subscrições', c: 'O Serviço é oferecido em planos de subscrição mensal ou trimestral. Os pagamentos são processados antecipadamente. Não são emitidos reembolsos por períodos parcialmente utilizados, salvo nos casos previstos na legislação angolana do consumidor. A Faktura pode alterar os preços com aviso prévio de 30 dias.' },
-  { t: '8. Conformidade Fiscal', c: 'A Faktura facilita a emissão de documentos fiscais em conformidade com a AGT, mas não substitui o aconselhamento de um contabilista certificado. O utilizador é o único responsável pela correcta classificação fiscal das suas transacções.' },
-  { t: '9. Propriedade Intelectual', c: 'O Serviço, incluindo software, design, textos e logótipos, é propriedade exclusiva da Faktura Angola Lda. e está protegido por legislação de propriedade intelectual. Os dados introduzidos pelo utilizador permanecem sua propriedade.' },
-  { t: '10. Limitação de Responsabilidade', c: 'Na máxima extensão permitida pela lei angolana, a Faktura não será responsável por danos indirectos, incidentais, especiais ou consequenciais resultantes do uso ou impossibilidade de uso do Serviço.' },
-  { t: '11. Rescisão', c: 'Pode cancelar a sua conta a qualquer momento, com efeito no final do período de subscrição pago. Após a rescisão, pode solicitar exportação dos seus dados no prazo de 90 dias.' },
-  { t: '12. Lei Aplicável', c: 'Estes Termos são regidos pela legislação da República de Angola. Qualquer litígio será submetido à jurisdição exclusiva dos tribunais angolanos competentes.' },
-  { t: '13. Contacto', c: 'Para questões sobre estes Termos, contacte: legal@faktura.ao | Luanda, Angola.' },
-];
-
-function PageTermos() {
-  return (
-    <SubPageShell>
-      <section className="relative py-20 overflow-hidden border-b border-border/40">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
-        </div>
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
-            <FileText className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">Legal</span>
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-black mb-4">Termos de Uso</h1>
-          <p className="text-muted-foreground">Ultima actualizacao: <strong>1 de Janeiro de 2025</strong></p>
-        </div>
-      </section>
-      <section className="py-12 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-muted/40 border border-border/50 rounded-2xl p-5 mb-10">
-          <p className="text-xs font-bold mb-3 text-muted-foreground uppercase tracking-wider">Indice</p>
-          <ul className="space-y-1.5">
-            {termosSections.map(({ t }) => (
-              <li key={t}><a href={"#t-" + t.replace(/[^a-z0-9]/gi, '-').toLowerCase()} className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium">{t}</a></li>
-            ))}
-          </ul>
-        </div>
-        <div className="space-y-8">
-          {termosSections.map(({ t, c }) => (
-            <div key={t} id={"t-" + t.replace(/[^a-z0-9]/gi, '-').toLowerCase()} className="scroll-mt-24">
-              <h2 className="text-xl font-black mb-3">{t}</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed">{c}</p>
-              <div className="mt-7 h-px bg-border/40" />
-            </div>
-          ))}
-        </div>
-      </section>
-    </SubPageShell>
-  );
-}
-
-/* ══ PRIVACIDADE ══════════════════════════════════════════ */
-const privSections = [
-  { t: '1. Responsavel pelo Tratamento', c: 'A Faktura Angola Lda. é o responsável pelo tratamento dos seus dados pessoais, com sede em Luanda, Angola. Contacto: privacidade@faktura.ao' },
-  { t: '2. Dados que Recolhemos', c: 'Dados de conta: nome completo, email, telefone, NIF. Dados de utilizacao: faturas emitidas, historico de sessoes, IP e dispositivo. Dados de compradores: nome parcialmente visivel, NIF e telefone mascarados, historico de faturas associadas ao ID.' },
-  { t: '3. Como Usamos os Seus Dados', c: 'Para prestar o servico de faturacao e intermediacao de pagamentos; cumprir obrigacoes legais e fiscais (AGT); comunicar sobre a sua conta; melhorar a plataforma; processar recompensas do programa de compradores; prevenir fraude e garantir seguranca.' },
-  { t: '4. Base Legal', c: 'Execucao do contrato (prestar o servico); obrigacao legal (AGT); consentimento (marketing e programa de compradores); interesse legitimo (seguranca e prevencao de fraude).' },
-  { t: '5. Partilha de Dados', c: 'Nao vendemos os seus dados. Partilhamos apenas com parceiros essenciais ao servico (ex: EMIS para processamento de pagamentos), a AGT quando legalmente obrigatorio, e no programa de compradores com dados mascarados e com consentimento explicito.' },
-  { t: '6. Retencao de Dados', c: 'Conservamos os dados pelo tempo necessario para o servico e obrigacoes fiscais (minimo 5 anos). Apos cancelamento da conta, os dados sao anonimizados ou eliminados em 90 dias.' },
-  { t: '7. Os Seus Direitos', c: 'Tem direito a: acesso, rectificacao, eliminacao (sujeito a obrigacoes legais), portabilidade, oposicao a marketing, e retirar consentimento a qualquer momento. Contacto: privacidade@faktura.ao' },
-  { t: '8. Seguranca', c: 'Encriptacao TLS/SSL em transito, AES-256 em repouso, controlo de acesso por funcoes (RBAC), monitorizacao continua e plano de resposta a incidentes. Em caso de violacao, sera notificado em 72 horas.' },
-  { t: '9. Cookies e Alteracoes', c: 'Usamos cookies essenciais para autenticacao e cookies analiticos com consentimento. Alteracoes a esta politica sao comunicadas por email com 15 dias de antecedencia. Contacto: privacidade@faktura.ao' },
-];
-const privHighlights = [
-  { icon: Eye, t: 'Transparencia total', d: 'Sabemos que dados recolhemos e dizemo-lo claramente.' },
-  { icon: Lock, t: 'Dados encriptados', d: 'TLS e AES-256 em todos os dados.' },
-  { icon: UserCheck, t: 'Controlo seu', d: 'Aceda, corrija ou elimine a qualquer momento.' },
-  { icon: Bell, t: 'Sem spam', d: 'Nunca vendemos os seus dados.' },
-];
-
-function PagePrivacidade() {
-  return (
-    <SubPageShell>
-      <section className="relative py-20 overflow-hidden border-b border-border/40">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
-        </div>
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
-            <Shield className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">Privacidade</span>
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-black mb-4">Politica de Privacidade</h1>
-          <p className="text-muted-foreground">Ultima actualizacao: <strong>1 de Janeiro de 2025</strong></p>
-        </div>
-      </section>
-      <section className="py-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {privHighlights.map(({ icon: I, t, d }) => (
-            <div key={t} className="bg-card border border-border/50 rounded-2xl p-5 text-center group hover:border-primary/25 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
-                <I className="w-5 h-5 text-primary" />
-              </div>
-              <p className="font-bold text-sm mb-1">{t}</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">{d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="space-y-8">
-          {privSections.map(({ t, c }) => (
-            <div key={t}>
-              <h2 className="text-xl font-black mb-3">{t}</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed">{c}</p>
-              <div className="mt-7 h-px bg-border/40" />
-            </div>
-          ))}
-        </div>
-      </section>
-    </SubPageShell>
-  );
-}
-
-/* ══ SEGURANCA ══════════════════════════════════════════ */
-const secPillars = [
-  { icon: Lock, t: 'Encriptacao de Ponta a Ponta', d: 'TLS 1.3 em transito e AES-256 em repouso. Os seus dados nunca viajam ou ficam guardados sem proteccao.', badge: 'TLS 1.3 + AES-256' },
-  { icon: Server, t: 'Infraestrutura Segura', d: 'Infraestrutura certificada ISO 27001. Backups automaticos diarios com retencao de 30 dias.', badge: 'ISO 27001' },
-  { icon: Key, t: 'Autenticacao Robusta', d: 'Suporte a 2FA. Sessoes com expiracao automatica e deteccao de acessos suspeitos em tempo real.', badge: '2FA' },
-  { icon: Eye, t: 'Monitorizacao 24/7', d: 'Sistemas monitorizados continuamente. Qualquer actividade anomala e detectada e tratada imediatamente.', badge: '24/7' },
-  { icon: UserCheck, t: 'Controlo de Acesso', d: 'Arquitectura RBAC: cada utilizador acede apenas aos dados que lhe competem. Zero acesso privilegiado desnecessario.', badge: 'RBAC' },
-  { icon: RefreshCw, t: 'Actualizacoes de Seguranca', d: 'Patches criticos aplicados em menos de 24 horas. Testes de penetracao semestrais por terceiros certificados.', badge: 'Patch < 24h' },
-];
-const secPractices = [
-  'Passwords nunca armazenadas em texto simples — hashing bcrypt',
-  'NIF e telefone parcialmente mascarados em visualizacoes partilhadas',
-  'Logs de auditoria completos para todas as operacoes criticas',
-  'Testes de penetracao por terceiros semestralmente',
-  'Plano de recuperacao de desastres testado trimestralmente',
-  'Conformidade com OWASP Top 10 em todo o codigo',
-  'Revisao de seguranca obrigatoria em cada funcionalidade nova',
-  'Programa de bug bounty para reporte responsavel de vulnerabilidades',
-];
-
-function PageSeguranca() {
-  return (
-    <SubPageShell>
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-primary/6 rounded-full blur-[100px]" />
-        </div>
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6 ring-4 ring-primary/20 ring-offset-4 ring-offset-background">
-            <Shield className="w-8 h-8 text-primary" />
-          </div>
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
-            <Lock className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">Seguranca</span>
-          </div>
-          <h1 className="text-5xl lg:text-6xl font-black mb-6">Os seus dados estao <span className="shimmer-text">sempre protegidos</span></h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">A seguranca e a fundacao de tudo o que construimos. Nao e uma funcionalidade — e um compromisso.</p>
-        </div>
-      </section>
-
-      <section className="py-4 bg-primary/5 dark:bg-primary/10 border-y border-primary/20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-          <span className="text-sm font-bold text-primary">Todos os sistemas operacionais</span>
-          <span className="text-sm text-primary/60">— Uptime 99.9% nos ultimos 90 dias</span>
-        </div>
-      </section>
-
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black mb-2">Pilares de seguranca</h2>
-            <p className="text-muted-foreground">As camadas que protegem os seus dados</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {secPillars.map(({ icon: I, t, d, badge }) => (
-              <div key={t} className="bg-card border border-border/50 rounded-2xl p-6 group hover:border-primary/25 hover:shadow-lg hover:-translate-y-1 transition-all">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <I className="w-6 h-6 text-primary" />
-                  </div>
-                  <span className="text-xs font-black bg-primary/10 text-primary px-2.5 py-1 rounded-full">{badge}</span>
-                </div>
-                <h3 className="font-bold text-lg mb-2">{t}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 bg-muted/30">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-black text-center mb-10">Boas praticas que seguimos</h2>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {secPractices.map((p, i) => (
-              <div key={i} className="flex items-start gap-3 bg-card border border-border/50 rounded-xl p-4 hover:border-primary/20 transition-colors">
-                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-muted-foreground">{p}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-card border border-border/50 rounded-3xl p-8 hover:border-primary/25 transition-all">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-5">
-              <AlertTriangle className="w-6 h-6 text-amber-600" />
-            </div>
-            <h3 className="text-2xl font-black mb-3">Encontrou uma vulnerabilidade?</h3>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-5">Trabalhamos com a comunidade de seguranca. Reporte de forma responsavel e reconhecemos a sua contribuicao — resposta em ate 48 horas.</p>
-            <Button variant="outline" className="font-bold border-2 hover:bg-primary/5 hover:border-primary/40 gap-2">Reportar vulnerabilidade <ArrowRight className="w-4 h-4" /></Button>
-          </div>
-          <div className="bg-accent rounded-3xl p-8 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-            <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
-            <div className="relative z-10">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-5">
-                <Shield className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-2xl font-black text-accent-foreground mb-3">Equipa de Seguranca</h3>
-              <p className="text-accent-foreground/60 text-sm mb-5">Para incidentes urgentes que afectem os seus dados, contacte directamente.</p>
-              <div className="space-y-3">
-                <div className="bg-accent-foreground/5 rounded-xl p-3 border border-accent-foreground/10">
-                  <p className="text-xs text-accent-foreground/40 font-semibold uppercase tracking-wider">Email de seguranca</p>
-                  <p className="text-accent-foreground font-bold text-sm mt-0.5">seguranca@faktura.ao</p>
-                </div>
-                <div className="bg-accent-foreground/5 rounded-xl p-3 border border-accent-foreground/10">
-                  <p className="text-xs text-accent-foreground/40 font-semibold uppercase tracking-wider">Tempo de resposta</p>
-                  <p className="text-accent-foreground font-bold text-sm mt-0.5">Ate 24 horas (incidentes criticos)</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </SubPageShell>
-  );
-}
-
-/* ══ MAIN LANDING PAGE ══════════════════════════════════ */
-export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [activePage, setActivePage] = useState<string | null>(null);
-  const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    const onMouse = (e: MouseEvent) => setMousePos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
-    window.addEventListener('scroll', onScroll);
-    window.addEventListener('mousemove', onMouse);
-    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('mousemove', onMouse); };
-  }, []);
-
-  useEffect(() => {
-    if (activePage) window.scrollTo(0, 0);
-  }, [activePage]);
-
-  const footerLinks: Record<string, [string, string, string | null][]> = {
-    'Produto': [['#features', 'Faktura', null], ['#arquivos', 'Arquivos', null], ['integracoes', 'Integracoes', 'integracoes']],
-    'Empresa': [['sobre', 'Sobre Nos', 'sobre'], ['carreiras', 'Carreiras', 'carreiras']],
-    'Legal': [['termos', 'Termos de Uso', 'termos'], ['privacidade', 'Privacidade', 'privacidade'], ['seguranca', 'Seguranca', 'seguranca']],
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast({ title: 'Email inválido', description: 'Introduza um email válido.', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.from('waitlist_leads').insert({ email: email.trim().toLowerCase(), source: 'landing' });
+    setLoading(false);
+    if (error && !error.message.toLowerCase().includes('duplicate')) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setDone(true);
+    toast({ title: 'Registo confirmado', description: 'Entraremos em contacto assim que a plataforma abrir.' });
   };
 
-  function renderSubPage() {
-    if (activePage === 'integracoes') return <PageIntegracoes />;
-    if (activePage === 'sobre') return <PageSobreNos />;
-    if (activePage === 'blog') return <PageBlog />;
-    if (activePage === 'carreiras') return <PageCarreiras />;
-    if (activePage === 'termos') return <PageTermos />;
-    if (activePage === 'privacidade') return <PagePrivacidade />;
-    if (activePage === 'seguranca') return <PageSeguranca />;
-    return null;
+  if (done) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-5 py-4 text-emerald-100">
+        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+        <p className="text-sm font-medium">Obrigado. Vamos avisá-lo assim que a plataforma abrir em Julho de 2026.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      <style>{`
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-        @keyframes float2 { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-18px) rotate(3deg)} }
-        @keyframes pulse-ring { 0%{transform:scale(1);opacity:.4} 100%{transform:scale(1.9);opacity:0} }
-        @keyframes scroll-x { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-        @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
-        @keyframes slide-left { from{opacity:0;transform:translateX(-60px)} to{opacity:1;transform:translateX(0)} }
-        @keyframes slide-right { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
-        @keyframes slide-up { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes glow-pulse { 0%,100%{box-shadow:0 0 24px hsl(var(--primary)/.3)} 50%{box-shadow:0 0 60px hsl(var(--primary)/.6),0 0 120px hsl(var(--primary)/.15)} }
-        @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-        @keyframes bounce-subtle { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-        @keyframes fade-scale { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
-        @keyframes id-glow { 0%,100%{box-shadow:0 0 0 0 hsl(var(--primary)/.0)} 50%{box-shadow:0 0 32px 4px hsl(var(--primary)/.25)} }
+    <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3 max-w-xl">
+      <Input
+        type="email"
+        required
+        placeholder="o.seu.email@empresa.ao"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-[#F5C518]"
+      />
+      <Button
+        type="submit"
+        disabled={loading}
+        className="h-12 px-6 font-bold bg-[#F5C518] text-[#0A1628] hover:bg-[#F5C518]/90"
+      >
+        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Registar interesse'}
+      </Button>
+    </form>
+  );
+}
 
-        .af { animation: float 4s ease-in-out infinite; }
-        .af2 { animation: float2 6s ease-in-out infinite; }
-        .af3 { animation: float 5s ease-in-out 1.5s infinite; }
-        .asx { animation: scroll-x 28s linear infinite; }
-        .ag { animation: glow-pulse 3s ease-in-out infinite; }
-        .ab { animation: bounce-subtle 2.5s ease-in-out infinite; }
-        .id-glow { animation: id-glow 3s ease-in-out infinite; }
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-[#0A1628] text-white antialiased">
+      {/* Header */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-[#0A1628]/80 border-b border-white/10">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logoFaktura} alt="Faktura Angola" className="h-8 w-auto" />
+            <span className="font-black tracking-tight text-lg hidden sm:inline">Faktura Angola</span>
+          </Link>
+          <nav className="flex items-center gap-2 sm:gap-4">
+            <a href="#servicos" className="text-sm font-medium text-white/70 hover:text-white transition">Serviços</a>
+            <a href="#porque" className="text-sm font-medium text-white/70 hover:text-white transition hidden sm:inline">Porquê nós</a>
+            <a href="#contactos" className="text-sm font-medium text-white/70 hover:text-white transition hidden sm:inline">Contactos</a>
+            <Link to="/login">
+              <Button variant="outline" size="sm" className="bg-transparent border-white/30 text-white hover:bg-white hover:text-[#0A1628]">Entrar</Button>
+            </Link>
+          </nav>
+        </div>
+      </header>
 
-        .hero1 { animation: slide-left .9s cubic-bezier(.4,0,.2,1) .15s both; }
-        .hero2 { animation: slide-left .9s cubic-bezier(.4,0,.2,1) .35s both; }
-        .hero3 { animation: slide-left .9s cubic-bezier(.4,0,.2,1) .55s both; }
-        .heroS { animation: slide-up .8s cubic-bezier(.4,0,.2,1) .65s both; }
-        .heroC { animation: slide-up .8s cubic-bezier(.4,0,.2,1) .85s both; }
-        .heroSt { animation: slide-up .8s cubic-bezier(.4,0,.2,1) 1.05s both; }
-        .heroB { animation: slide-up .7s cubic-bezier(.4,0,.2,1) .05s both; }
-        .heroI { animation: slide-right 1s cubic-bezier(.4,0,.2,1) .3s both; }
+      {/* Banner de aviso Faktura — plataforma em construção */}
+      <div className="bg-gradient-to-r from-[#F5C518] to-[#f5a623] text-[#0A1628]">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
+          <div className="flex items-center gap-2 font-black text-sm flex-shrink-0">
+            <Clock className="w-4 h-4" />
+            EM CONSTRUÇÃO
+          </div>
+          <p className="text-sm sm:text-base font-medium">
+            A plataforma de faturação estará disponível no <strong>final de Julho de 2026</strong>. Registe o seu interesse e seja dos primeiros a aceder.
+          </p>
+        </div>
+      </div>
 
-        .shimmer-text {
-          background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary)/.55) 40%, hsl(var(--primary)) 80%);
-          background-size: 200% auto;
-          -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-          animation: shimmer 3s linear infinite;
-        }
-        .shimmer-text-white {
-          background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,.6) 40%, #fff 80%);
-          background-size: 200% auto;
-          -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-          animation: shimmer 3s linear infinite;
-        }
-        .nav-link { position:relative; }
-        .nav-link::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:2px; background:hsl(var(--primary)); border-radius:99px; transition:width .3s ease; }
-        .nav-link:hover::after { width:100%; }
-        .pulse-ring::before { content:''; position:absolute; inset:-6px; border-radius:inherit; border:2px solid hsl(var(--primary)/.4); animation:pulse-ring 2s ease-out infinite; }
-        .fc { transition: all .35s cubic-bezier(.4,0,.2,1); }
-        .fc:hover { transform: translateY(-8px) scale(1.02); }
-        .fc:hover .fi { transform: rotate(-6deg) scale(1.15); }
-        .fi { transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
-        .pc { transition: all .4s cubic-bezier(.4,0,.2,1); }
-        .pc:hover { transform: translateY(-6px); }
-        .ec { transition: all .3s cubic-bezier(.4,0,.2,1); }
-        .ec:hover { transform: translateY(-6px); box-shadow: 0 20px 48px hsl(var(--primary)/.12); }
-        .btn-glow:hover { box-shadow: 0 8px 32px hsl(var(--primary)/.45) !important; }
-        .id-badge { font-family: 'Courier New', monospace; letter-spacing: .15em; }
+      {/* Hero — identidade + missão */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-[0.08]"
+             style={{ backgroundImage: 'radial-gradient(circle at 20% 20%, #F5C518 0%, transparent 50%), radial-gradient(circle at 80% 60%, #F5C518 0%, transparent 45%)' }} />
+        <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-24">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold tracking-wide uppercase text-white/70 mb-8">
+            <span className="w-2 h-2 rounded-full bg-[#F5C518]" />
+            Infra-estrutura económica nacional
+          </div>
 
-        .page-transition { animation: fade-scale .4s cubic-bezier(.4,0,.2,1) both; }
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight max-w-4xl mb-8">
+            Construímos a infra-estrutura que{' '}
+            <span className="text-[#F5C518]">formaliza a economia angolana</span>.
+          </h1>
 
-        .hero-wrap {
-          position: relative;
-          min-height: 100vh;
-          display: grid;
-          grid-template-rows: 1fr;
-        }
-        .hero-photo {
-          position: absolute; inset: 0;
-          overflow: hidden;
-        }
-        .hero-photo img {
-          width: 100%; height: 100%;
-          object-fit: cover;
-          object-position: center 30%;
-          will-change: transform;
-        }
-        .hero-photo::after {
-          content: '';
-          position: absolute; inset: 0;
-          background:
-            linear-gradient(180deg,
-              rgba(0,0,0,.70) 0%,
-              rgba(0,0,0,.18) 35%,
-              rgba(0,0,0,.35) 65%,
-              rgba(0,0,0,.85) 90%,
-              hsl(var(--background)) 100%
-            ),
-            linear-gradient(90deg, rgba(0,0,0,.55) 0%, transparent 55%);
-        }
-        .hero-content {
-          position: relative; z-index: 10;
-          display: flex; flex-direction: column; justify-content: flex-end;
-          padding-top: 7rem; padding-bottom: 5rem;
-          min-height: 100vh;
-        }
-        .glass-pill {
-          background: rgba(255,255,255,.10);
-          border: 1px solid rgba(255,255,255,.20);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-        }
-        .glass-stat {
-          background: rgba(255,255,255,.07);
-          border: 1px solid rgba(255,255,255,.14);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          transition: all .3s ease;
-        }
-        .glass-stat:hover { background: rgba(255,255,255,.13); transform: translateY(-3px); }
-        .float-badge {
-          background: rgba(255,255,255,.94);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
-        }
-        .dark .float-badge { background: rgba(18,18,26,.96); }
+          <p className="text-lg md:text-xl text-white/70 max-w-3xl leading-relaxed mb-10">
+            A Faktura Angola não é apenas software. Nascemos para <strong className="text-white">organizar, digitalizar e formalizar</strong> a economia angolana, dando às empresas e instituições as ferramentas para operar com rigor, segurança e identidade própria num mercado em crescimento acelerado.
+          </p>
 
-        @keyframes mouse-scroll { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
-        .mouse-scroll-dot { animation: mouse-scroll 2s ease-in-out infinite; }
+          <div className="mb-6">
+            <p className="text-sm font-semibold text-white/60 mb-3 uppercase tracking-wider">Lista de espera — plataforma de faturação</p>
+            <WaitlistForm />
+          </div>
+        </div>
+      </section>
 
-        .faktura-id-card {
-          background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/.75) 100%);
-          border-radius: 20px;
-          position: relative;
-          overflow: hidden;
-        }
-        .faktura-id-card::before {
-          content: '';
-          position: absolute;
-          top: -30%;
-          right: -10%;
-          width: 250px;
-          height: 250px;
-          background: rgba(255,255,255,.08);
-          border-radius: 50%;
-        }
-        .faktura-id-card::after {
-          content: '';
-          position: absolute;
-          bottom: -20%;
-          left: -5%;
-          width: 180px;
-          height: 180px;
-          background: rgba(255,255,255,.06);
-          border-radius: 50%;
-        }
-      `}</style>
+      {/* Serviços — Faktura & Arquivos */}
+      <section id="servicos" className="py-24 bg-[#0D1A2E] border-y border-white/5">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#F5C518] mb-3">Os nossos serviços</p>
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight">Duas frentes, um propósito</h2>
+          </div>
 
-      {/* ── NAV ── */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-background/92 backdrop-blur-2xl shadow-lg shadow-black/5 border-b border-border/50' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <button onClick={() => setActivePage(null)} className="flex-shrink-0">
-              <img src={logoFaktura} alt="Faktura" className="h-9 object-contain" />
-            </button>
-            <div className="hidden md:flex items-center gap-7">
-              {activePage ? (
-                <button onClick={() => setActivePage(null)} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                  <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Inicio
-                </button>
-              ) : (
-                [['features', 'Faktura'], ['arquivos', 'Arquivos'], ['ecosystem', 'Ecossistema']].map(([h, l]) => (
-                  <a key={h} href={"#" + h} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{l}</a>
-                ))
-              )}
-              <button onClick={() => setActivePage('integracoes')} className={`nav-link text-sm font-semibold transition-colors ${activePage === 'integracoes' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>Integracoes</button>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Faktura */}
+            <div className="relative rounded-2xl p-8 bg-gradient-to-br from-white/[0.04] to-transparent border border-white/10">
+              <div className="absolute top-4 right-4 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full bg-[#F5C518]/20 text-[#F5C518] border border-[#F5C518]/30">
+                Julho 2026
+              </div>
+              <div className="w-14 h-14 rounded-xl bg-[#F5C518]/10 border border-[#F5C518]/20 flex items-center justify-center mb-5">
+                <FileText className="w-7 h-7 text-[#F5C518]" />
+              </div>
+              <h3 className="text-2xl font-black mb-2">Faktura</h3>
+              <p className="text-white/70 mb-6 leading-relaxed">
+                Plataforma de faturação electrónica certificada AGT — disponível em breve.
+              </p>
+              <Button disabled className="w-full h-11 font-bold bg-white/5 text-white/40 cursor-not-allowed">
+                <Clock className="w-4 h-4 mr-2" /> Disponível em Julho de 2026
+              </Button>
             </div>
-            <div className="flex items-center gap-3">
-              <Link to="/login"><Button variant="ghost" className="font-semibold hover:bg-primary/10">Entrar</Button></Link>
-              <Link to="/registar"><Button className="font-bold shadow-lg shadow-primary/25 btn-glow hover:scale-105 transition-all">Comecar Gratis</Button></Link>
+
+            {/* Arquivos */}
+            <div className="relative rounded-2xl p-8 bg-gradient-to-br from-[#F5C518]/[0.08] to-transparent border border-[#F5C518]/20">
+              <div className="absolute top-4 right-4 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Activo
+              </div>
+              <div className="w-14 h-14 rounded-xl bg-[#F5C518]/10 border border-[#F5C518]/20 flex items-center justify-center mb-5">
+                <FolderArchive className="w-7 h-7 text-[#F5C518]" />
+              </div>
+              <h3 className="text-2xl font-black mb-2">Arquivos</h3>
+              <p className="text-white/70 mb-6 leading-relaxed">
+                Gestão documental física e digital para empresas e instituições angolanas.
+              </p>
+              <a href={ARQUIVOS_URL} target="_blank" rel="noopener noreferrer" className="block">
+                <Button className="w-full h-11 font-bold bg-[#F5C518] text-[#0A1628] hover:bg-[#F5C518]/90">
+                  Aceder Arquivos <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </a>
             </div>
           </div>
         </div>
-      </nav>
+      </section>
 
-      {/* ── SUB PAGE or MAIN LANDING ── */}
-      {activePage ? (
-        <div className="page-transition">
-          {renderSubPage()}
-        </div>
-      ) : (
-        <>
-          {/* ══ HERO ══ */}
-          <section className="hero-wrap">
-            <div className="hero-photo">
-              <img src={heroBusiness} alt="Empresarios angolanos a trabalhar" />
-            </div>
-
-            <div className="absolute z-[5] pointer-events-none rounded-full"
-              style={{
-                width: 700, height: 700,
-                background: 'hsl(var(--primary)/.25)',
-                filter: 'blur(140px)',
-                top: '5%',
-                left: `${mousePos.x * 14 - 5}%`,
-                transition: 'left 4s cubic-bezier(.4,0,.2,1)',
-              }}
-            />
-
-            <div className="absolute inset-0 z-[4] pointer-events-none opacity-[0.035]"
-              style={{
-                backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)',
-                backgroundSize: '90px 90px',
-              }}
-            />
-
-            <div className="hero-content max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-              <div className="heroB mb-7 flex flex-wrap gap-2.5">
-                <div className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-default">
-                  <Sparkles className="w-4 h-4 text-white animate-pulse" />
-                  <span className="text-sm font-bold text-white tracking-wide">Faturação AGT + Pagamentos Digitais</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
-                </div>
-                <a href="#arquivos" className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-pointer hover:bg-white/15 transition-colors">
-                  <BookOpen className="w-4 h-4 text-white" />
-                  <span className="text-sm font-bold text-white tracking-wide">Arquivos — Gestão Documental Inteligente</span>
-                </a>
-              </div>
-
-              <div className="max-w-3xl mb-7">
-                <h1 className="font-black tracking-tight text-white"
-                  style={{ fontSize: 'clamp(2.8rem, 7.5vw, 7rem)', lineHeight: 0.88, letterSpacing: '-0.02em' }}>
-                  <span className="hero1 block drop-shadow-lg">Fature, cobre</span>
-                  <span className="hero2 block">
-                    <span style={{
-                      background: 'linear-gradient(90deg, hsl(var(--primary)) 0%, #fff 45%, hsl(var(--primary)) 90%)',
-                      backgroundSize: '200% auto',
-                      WebkitBackgroundClip: 'text', backgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      animation: 'shimmer 3s linear infinite',
-                      filter: 'drop-shadow(0 0 24px hsl(var(--primary)/.5))',
-                    }}>e receba</span>
-                    <span className="text-white drop-shadow-lg"> ✦</span>
-                  </span>
-                  <span className="hero3 block text-white drop-shadow-lg">tudo num só lugar</span>
-                </h1>
-              </div>
-
-              <p className="heroS text-white/75 max-w-2xl mb-4 leading-relaxed font-medium"
-                style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
-                A plataforma angolana de faturação certificada AGT e intermediação de pagamentos digitais.
-              </p>
-              <p className="heroS text-white/60 max-w-2xl mb-10 leading-relaxed font-medium text-sm md:text-base">
-                E também <span className="text-primary font-bold">Arquivos</span> — empresa do grupo dedicada à gestão documental inteligente: organiza, digitaliza e encontra qualquer documento em 60 segundos.
-              </p>
-
-              <div className="heroC flex flex-wrap items-start gap-4 mb-12">
-                <Link to="/registar">
-                  <Button size="lg" className="h-14 px-10 text-lg font-black shadow-2xl shadow-primary/50 btn-glow hover:scale-[1.04] transition-all group gap-2.5">
-                    Começar Grátis
-                    <ArrowRight className="h-5 w-5 group-hover:translate-x-2 transition-transform" />
-                  </Button>
-                </Link>
-                <a href="#arquivos">
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-base font-bold bg-white/5 backdrop-blur border-white/25 text-white hover:bg-white/15 hover:text-white transition-all gap-2.5">
-                    <BookOpen className="h-5 w-5" />
-                    Começar Arquivos
-                  </Button>
-                </a>
-              </div>
-            </div>
-
-            {/* Floating badges */}
-            <div className="af2 absolute right-10 top-[28%] z-20 float-badge rounded-2xl px-4 py-3 hidden xl:flex items-center gap-3 border border-white/15">
-              <div className="relative pulse-ring w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
-                <CheckCircle className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-black text-foreground">Conformidade AGT</p>
-                <p className="text-xs text-muted-foreground">100% certificado</p>
-              </div>
-            </div>
-
-            <div className="af3 absolute right-56 top-[46%] z-20 float-badge rounded-xl px-3 py-2.5 hidden xl:flex items-center gap-3 border border-white/15">
-              <div className="w-8 h-8 rounded-lg bg-primary/12 flex items-center justify-center flex-shrink-0">
-                <FileText className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">FT 2025/1284</p>
-                <p className="text-[11px] text-primary font-semibold">✓ Enviada via WhatsApp</p>
-              </div>
-            </div>
-
-            <div className="af absolute right-14 bottom-[30%] z-20 float-badge rounded-xl px-3 py-2.5 hidden xl:flex items-center gap-3 border border-white/15">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <ShieldCheck className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Pagamento confirmado</p>
-                <p className="text-[11px] text-muted-foreground">ID M20XV · Multicaixa</p>
-              </div>
-            </div>
-
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
-              <div className="w-6 h-10 rounded-full border-2 border-white/25 flex items-start justify-center pt-1.5">
-                <div className="w-1.5 h-2.5 rounded-full bg-white/60 mouse-scroll-dot" />
-              </div>
-            </div>
-          </section>
-
-          {/* ══ IDENTIFICADOR ÚNICO FISCAL — SECÇÃO PUBLICITÁRIA ══ */}
-          <section id="id-fiscal" className="relative py-28 overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[600px] bg-primary/4 rounded-full blur-[160px]" />
-              <div className="absolute inset-0 opacity-[0.018]"
-                style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1.5px, transparent 1.5px)', backgroundSize: '56px 56px' }}
-              />
-            </div>
-
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid lg:grid-cols-2 gap-16 items-center">
-
-                {/* Texto */}
-                <FadeIn direction="left">
-                  <div>
-                    <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
-                      <ShieldCheck className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-bold">Identificador Único Fiscal</span>
-                    </div>
-                    <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-6 leading-tight">
-                      Crie o seu ID fiscal.<br />
-                      <span className="shimmer-text">Use em tudo.</span>
-                    </h2>
-                    <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                      O seu Identificador Único Fiscal Faktura é o seu passaporte digital para todas as actividades fiscais em Angola. Um só ID, válido em qualquer empresa que use a Faktura.
-                    </p>
-                    <p className="text-base text-muted-foreground leading-relaxed mb-8">
-                      Compre, receba faturas automáticas e ganhe recompensas — tudo com um único identificador. <strong className="text-foreground">Com a Faktura, todos fakturam.</strong>
-                    </p>
-                    <div className="flex flex-wrap gap-3 mb-8">
-                      {['Registo gratuito', 'Válido em toda Angola', 'Faturas automáticas', '50 Kz por compra'].map(tag => (
-                        <span key={tag} className="text-sm font-semibold bg-primary/8 border border-primary/20 text-primary px-4 py-2 rounded-full">{tag}</span>
-                      ))}
-                    </div>
-                    <Link to="/registar">
-                      <Button size="lg" className="h-14 px-10 font-black shadow-2xl shadow-primary/40 btn-glow hover:scale-105 transition-all gap-2">
-                        Criar o meu ID Fiscal <ArrowRight className="w-5 h-5" />
-                      </Button>
-                    </Link>
-                  </div>
-                </FadeIn>
-
-                {/* Card de ID — visual publicitário */}
-                <FadeIn direction="right" delay={150}>
-                  <div className="relative">
-                    {/* Glow de fundo */}
-                    <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-3xl scale-95" />
-
-                    {/* Cartão ID Fiscal */}
-                    <div className="faktura-id-card relative z-10 p-8 lg:p-10">
-                      <div className="flex items-start justify-between mb-8">
-                        <div>
-                          <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Faktura — Angola</p>
-                          <p className="text-white font-black text-lg">Identificador Único Fiscal</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                          <ShieldCheck className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-
-                      <div className="mb-8">
-                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-2">O teu identificador</p>
-                        <div className="id-glow bg-white/10 border border-white/25 rounded-2xl px-6 py-4 inline-block">
-                          <p className="text-white font-black text-4xl tracking-[0.3em] font-mono">FT-244-XXXXXX</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-white/10 rounded-xl p-4">
-                          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-1">Titular</p>
-                          <p className="text-white font-bold text-sm">Manuel Da Silva</p>
-                        </div>
-                        <div className="bg-white/10 rounded-xl p-4">
-                          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-1">Estado</p>
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                            <p className="text-white font-bold text-sm">Activo</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between border-t border-white/15 pt-5">
-                        <div>
-                          <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-1">Recompensas acumuladas</p>
-                          <p className="text-white font-black text-2xl">3.450 <span className="text-base font-semibold text-white/60">Kz</span></p>
-                        </div>
-                        <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center">
-                          <BadgeDollarSign className="w-7 h-7 text-white" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Badge flutuante */}
-                    <div className="af2 absolute -bottom-4 -right-4 bg-card border border-border/50 rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 z-20">
-                      <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
-                        <ScanLine className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-black">Use em qualquer loja</p>
-                        <p className="text-[11px] text-muted-foreground">Fatura emitida em 4 seg.</p>
-                      </div>
-                    </div>
-                  </div>
-                </FadeIn>
-              </div>
-
-              {/* Três passos rápidos */}
-              <div className="grid md:grid-cols-3 gap-6 mt-20">
-                {[
-                  { icon: UserPlus, s: '01', t: 'Registe-se gratuitamente', d: 'Crie a sua conta Faktura e receba o seu ID único no formato FT-244-XXXXXX.' },
-                  { icon: ShieldCheck, s: '02', t: 'Use em todas as compras', d: 'Partilhe o seu ID em qualquer estabelecimento que use a Faktura — fatura gerada automaticamente.' },
-                  { icon: BadgeDollarSign, s: '03', t: 'Ganhe por cada fatura', d: 'Receba 50 Kz de recompensa por cada compra faturada acima de 1.500 Kz. Automaticamente.' },
-                ].map(({ icon: I, s, t, d }, i) => (
-                  <FadeIn key={i} delay={i * 100} direction="up">
-                    <div className="bg-card border border-border/50 rounded-2xl p-7 group hover:border-primary/30 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/6 transition-all duration-300">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors relative flex-shrink-0">
-                          <I className="w-6 h-6 text-primary" />
-                          <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center">{i+1}</span>
-                        </div>
-                        <span className="text-xs font-black text-primary/40 uppercase tracking-widest">{s}</span>
-                      </div>
-                      <h3 className="font-bold text-lg mb-2">{t}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
-                    </div>
-                  </FadeIn>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* ── PAGAMENTOS SECTION ── */}
-          <section className="py-24 relative overflow-hidden bg-muted/20">
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-primary/5 rounded-full blur-[140px]" />
-            </div>
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <FadeIn direction="up">
-                <div className="text-center mb-16">
-                  <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
-                    <Banknote className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-bold">Pagamentos Digitais Seguros</span>
-                  </div>
-                  <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5 leading-tight">
-                    Intermediamos o pagamento<br /><span className="shimmer-text">com total segurança</span>
-                  </h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                    Coordenamos pagamentos entre comprador e empresa via Multicaixa Express e links digitais — sem armazenar fundos, com rastreamento completo em tempo real.
-                  </p>
-                </div>
-              </FadeIn>
-
-              <div className="grid md:grid-cols-3 gap-6 mb-12">
-                {[
-                  { icon: CreditCard, t: 'Multicaixa Express', d: 'Coordenamos a geração de referências EMIS directamente na fatura. O cliente paga e a confirmação é automática.', badge: 'EMIS' },
-                  { icon: Link2, t: 'Links de Pagamento', d: 'Criamos links com QR code que direcionam o pagamento de forma segura. O cliente paga sem instalar nada.', badge: 'QR Code' },
-                  { icon: ArrowLeftRight, t: 'Rastreamento de Transacções', d: 'Cada pagamento intermediado é registado, auditado e confirmado. Visibilidade total do estado de cada fatura.', badge: 'Tempo Real' },
-                ].map(({ icon: I, t, d, badge }, i) => (
-                  <FadeIn key={i} delay={i * 120} direction="up">
-                    <div className="ec bg-card border-2 border-border/50 rounded-2xl p-8 group hover:border-primary/30 h-full relative overflow-hidden">
-                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
-                      <div className="flex items-start justify-between mb-5">
-                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                          <I className="w-7 h-7 text-primary" />
-                        </div>
-                        <span className="text-xs font-black bg-primary/10 text-primary px-3 py-1 rounded-full">{badge}</span>
-                      </div>
-                      <h3 className="text-xl font-black mb-3">{t}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
-                    </div>
-                  </FadeIn>
-                ))}
-              </div>
-
-              <FadeIn direction="up" delay={150}>
-                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 mb-10 flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <ShieldCheck className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-bold mb-1">Transparência total: a Faktura não detém fundos</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Actuamos exclusivamente como intermediário digital. Todos os pagamentos fluem directamente pelos canais bancários e operadores habilitados (EMIS, Multicaixa Express) — nunca passam pelo nosso balanço. Garantimos o rastreamento, a confirmação e a correspondência com a fatura.
-                    </p>
-                  </div>
-                </div>
-              </FadeIn>
-
-              <FadeIn direction="up" delay={200}>
-                <div className="bg-accent rounded-3xl p-10 lg:p-14 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-                  <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-                  <div className="relative grid lg:grid-cols-2 gap-10 items-center z-10">
-                    <div>
-                      <div className="inline-flex items-center gap-2 bg-primary/15 rounded-full px-4 py-1.5 mb-4">
-                        <Zap className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-bold text-accent-foreground">Fluxo de Intermediação</span>
-                      </div>
-                      <h3 className="text-3xl font-black text-accent-foreground mb-4">Da fatura ao pagamento confirmado em 3 passos</h3>
-                      <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">Emita a fatura, gere uma referência Multicaixa ou link de pagamento, e receba a confirmação automaticamente — sem tomar posse dos fundos.</p>
-                      <div className="space-y-4">
-                        {[
-                          { s: '01', t: 'Emita a fatura', d: 'Crie a fatura com todos os dados fiscais e do comprador.' },
-                          { s: '02', t: 'Gere o link ou referência', d: 'Multicaixa Express ou link de pagamento com QR code.' },
-                          { s: '03', t: 'Confirmação automática', d: 'O pagamento é processado pelo banco/operador — a Faktura regista e fecha a fatura.' },
-                        ].map(({ s, t, d }) => (
-                          <div key={s} className="flex items-start gap-4">
-                            <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-black text-primary">{s}</span>
-                            </div>
-                            <div>
-                              <p className="font-bold text-accent-foreground text-sm">{t}</p>
-                              <p className="text-xs text-accent-foreground/50">{d}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="bg-accent-foreground/5 rounded-2xl p-6 border border-accent-foreground/10">
-                      <div className="space-y-4">
-                        <div className="bg-accent-foreground/5 rounded-xl p-4 border border-accent-foreground/10">
-                          <p className="text-xs text-accent-foreground/40 font-semibold uppercase tracking-wider">Referência Multicaixa</p>
-                          <p className="text-2xl font-black text-primary mt-1 font-mono tracking-widest">123 456 789</p>
-                          <p className="text-xs text-accent-foreground/40 mt-1">Entidade: 11234 · Expira em 60 min</p>
-                        </div>
-                        <div className="bg-accent-foreground/5 rounded-xl p-4 border border-accent-foreground/10">
-                          <p className="text-xs text-accent-foreground/40 font-semibold uppercase tracking-wider">Valor a Pagar</p>
-                          <p className="text-3xl font-black text-accent-foreground mt-1">25.000 <span className="text-lg text-accent-foreground/40">Kz</span></p>
-                        </div>
-                        <div className="flex items-center gap-2 text-primary text-sm font-bold">
-                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                          Aguardando confirmação do banco...
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </FadeIn>
-            </div>
-          </section>
-
-          {/* ── ECOSSISTEMA ── */}
-          <section id="ecosystem" className="py-28 relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-primary/4 rounded-full blur-[120px]" />
-              <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
-            </div>
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <FadeIn direction="up">
-                <div className="text-center mb-20">
-                  <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
-                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                    <span className="text-sm font-bold">Com a Faktura, todos fakturam.</span>
-                  </div>
-                  <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5">Um ecossistema que<span className="shimmer-text"> recompensa</span><br />quem compra e quem vende</h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">Disponibilize os seus dados de comprador, ganhe por cada fatura e ajude empresas a faturar mais rapido — sem erros, sem complicacoes.</p>
-                </div>
-              </FadeIn>
-
-              <div className="grid lg:grid-cols-2 gap-8 mb-20">
-                {/* Compradores */}
-                <FadeIn direction="left" delay={100}>
-                  <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
-                    <div className="flex items-center gap-4 mb-7">
-                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center"><UserPlus className="w-7 h-7 text-primary" /></div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-0.5">Para Compradores</p>
-                        <h3 className="text-2xl font-black">O seu consumo gera recompensa</h3>
-                      </div>
-                    </div>
-                    <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7">
-                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-3">O seu ID de comprador</p>
-                      <div className="flex items-center justify-between">
-                        <div><p className="id-badge text-2xl font-black tracking-widest">FT-244-XXXXXX</p><p className="text-xs text-muted-foreground mt-1">500****21 · 923***574 · Manuel Silva</p></div>
-                        <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center"><ScanLine className="w-5 h-5 text-primary" /></div>
-                      </div>
-                    </div>
-                    <div className="bg-primary/8 border border-primary/20 rounded-2xl p-5 mb-6 flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0"><BadgeDollarSign className="w-6 h-6 text-primary" /></div>
-                      <div>
-                        <p className="text-xl font-black">50 Kz de recompensa por fatura</p>
-                        <p className="text-sm text-muted-foreground">automaticamente em cada fatura acima de <strong className="text-foreground">1.500 Kz</strong></p>
-                      </div>
-                    </div>
-                    <ul className="space-y-3 mb-7">
-                      {['Cadastro gratuito e imediato', 'ID unico gerado automaticamente', 'Privacidade garantida — dados parcialmente mascarados', 'Historico de faturas sempre disponivel', 'Transparencia total sobre o uso dos seus dados'].map((x, i) => (
-                        <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                          <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />{x}
-                        </li>
-                      ))}
-                    </ul>
-                    <Link to="/registar">
-                      <Button className="w-full h-12 font-bold btn-glow hover:scale-[1.02] transition-all gap-2">Criar o meu ID Faktura <ArrowRight className="w-4 h-4" /></Button>
-                    </Link>
-                  </div>
-                </FadeIn>
-
-                {/* Empresas */}
-                <FadeIn direction="right" delay={200}>
-                  <div className="ec bg-card border-2 border-border/50 rounded-3xl p-8 lg:p-10 h-full hover:border-primary/30 relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover:via-primary/40 transition-all duration-500" />
-                    <div className="flex items-center gap-4 mb-7">
-                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center"><Building2 className="w-7 h-7 text-primary" /></div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-0.5">Para Empresas</p>
-                        <h3 className="text-2xl font-black">Fature em segundos, sem erros</h3>
-                      </div>
-                    </div>
-                    <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7 space-y-3">
-                      <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">Como funciona na pratica</p>
-                      {[['1', 'Cliente informa o seu ID', 'Ex: FT-244-XXXXXX'], ['2', 'Insere o ID na Faktura', 'Pesquisa instantanea'], ['3', 'Dados preenchidos automaticamente', 'Nome, NIF, contacto'], ['4', 'Fatura emitida e enviada', 'WhatsApp, SMS ou email']].map(([s, t, b]) => (
-                        <div key={s} className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-xs font-black text-primary">{s}</span></div>
-                          <div className="flex-1 min-w-0"><span className="text-sm font-semibold">{t}</span><span className="text-xs text-muted-foreground ml-2">{b}</span></div>
-                          {s !== '4' ? <ChevronRight className="w-3 h-3 text-muted-foreground/40" /> : <CheckCircle className="w-4 h-4 text-primary" />}
-                        </div>
-                      ))}
-                    </div>
-                    <ul className="space-y-3 mb-7">
-                      {['Base activa de compradores pre-cadastrados', 'Preenchimento automatico — zero digitacao manual', 'Reducao drastica de erros fiscais', 'Dados padronizados e validados', 'Historico completo de faturacao por cliente'].map((x, i) => (
-                        <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                          <CheckCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />{x}
-                        </li>
-                      ))}
-                    </ul>
-                    <Link to="/registar">
-                      <Button variant="outline" className="w-full h-12 font-bold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all gap-2">Experimentar para a minha empresa <ArrowRight className="w-4 h-4" /></Button>
-                    </Link>
-                  </div>
-                </FadeIn>
-              </div>
-
-            </div>
-          </section>
-
-          {/* ── AUTO-FATURAÇÃO SECTION ── */}
-          <SectionAutoFaturacao />
-
-          {/* ── FEATURES ── */}
-          <section id="features" className="py-24 bg-muted/30 relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
-                <FadeIn direction="left">
-                  <div>
-                    <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-5">
-                      <Zap className="w-4 h-4 text-primary" /><span className="text-sm font-bold">Funcionalidades</span>
-                    </div>
-                    <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-5">Tudo que precisa para<span className="shimmer-text"> faturar</span></h2>
-                    <p className="text-lg text-muted-foreground leading-relaxed">Ferramentas poderosas desenhadas especificamente para o mercado angolano. Clique nos cards para saber mais.</p>
-                  </div>
-                </FadeIn>
-                <FadeIn direction="right" delay={150}>
-                  <div className="rounded-2xl overflow-hidden shadow-xl border border-border/30 group">
-                    <img src={teamCollab} alt="Equipa a colaborar" className="w-full h-72 object-cover group-hover:scale-105 transition-transform duration-700" />
-                  </div>
-                </FadeIn>
-              </div>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {features.map((f, i) => {
-                  const I = f.icon;
-                  const open = expandedFeature === i;
-                  return (
-                    <FadeIn key={i} delay={i * 80} direction="up">
-                      <div
-                        className={`fc group bg-card rounded-2xl p-8 border cursor-pointer h-full flex flex-col ${open ? 'border-primary/50 shadow-xl shadow-primary/10' : 'border-border/50 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/8'}`}
-                        onClick={() => setExpandedFeature(open ? null : i)}
-                      >
-                        <div className={`fi w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 ${open ? 'bg-primary/20' : 'group-hover:bg-primary/20'}`}>
-                          <I className="w-7 h-7 text-primary" />
-                        </div>
-                        <h3 className="text-xl font-bold mb-2">{f.title}</h3>
-                        <p className="text-muted-foreground leading-relaxed text-sm flex-1">{f.description}</p>
-                        {open && (
-                          <div className="mt-4 pt-4 border-t border-border/50">
-                            <p className="text-sm text-muted-foreground leading-relaxed">{f.detail}</p>
-                          </div>
-                        )}
-                        <div className={`mt-4 flex items-center gap-1 text-primary text-sm font-semibold transition-all duration-300 ${open ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'}`}>
-                          {open ? 'Fechar' : 'Saber mais'} <ChevronRight className={`w-4 h-4 transition-transform ${open ? 'rotate-90' : ''}`} />
-                        </div>
-                      </div>
-                    </FadeIn>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          {/* ── CLIENTS ── */}
-          <section id="clients" className="py-24 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <FadeIn direction="up">
-                <div className="text-center mb-16">
-                  <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-4">Empresas que ja utilizam a <span className="shimmer-text">Faktura</span></h2>
-                  <p className="text-lg text-muted-foreground">Junte-se as empresas que confiam na nossa plataforma.</p>
-                </div>
-              </FadeIn>
-            </div>
-            <div className="relative w-full">
-              <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-              <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-              <div className="flex asx w-max gap-6 hover:[animation-play-state:paused]">
-                {[...clientLogos, ...clientLogos, ...clientLogos, ...clientLogos].map((c, i) => (
-                  <div key={i} className="bg-card rounded-2xl p-6 border border-border/50 shadow-sm flex items-center justify-center h-24 w-52 flex-shrink-0 hover:border-primary/30 hover:shadow-lg transition-all group">
-                    <img src={c.logo} alt={c.name} className="max-h-14 max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* ══ ARQUIVOS PRODUCT SECTION ══ */}
-          <ArquivosSection />
-        </>
-      )}
-
-
-
-      {/* ── FOOTER ── */}
-      <footer className="bg-accent text-accent-foreground py-16 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-        <div className="absolute top-0 right-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 py-6 border-b border-accent-foreground/10">
-            <p className="text-2xl lg:text-3xl font-black text-accent-foreground/80 tracking-tight">
-              Com a Faktura, <span className="text-primary">todos fakturam.</span>
-            </p>
+      {/* Porquê a Faktura Angola? */}
+      <section id="porque" className="py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#F5C518] mb-3">Porquê nós</p>
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight">Porquê a Faktura Angola?</h2>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-10 mb-10">
-            <div>
-              <button onClick={() => setActivePage(null)}>
-                <img src={logoFaktura} alt="Faktura" className="h-10 object-contain brightness-0 invert mb-4" />
-              </button>
-              <p className="text-sm text-accent-foreground/50 leading-relaxed">A plataforma de faturação e intermediação de pagamentos digitais de Angola.</p>
-              <div className="flex gap-3 mt-4">
-                <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Phone className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
-                <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Mail className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
-                <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Globe className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
-              </div>
-            </div>
-            {Object.entries(footerLinks).map(([cat, links]) => (
-              <div key={cat}>
-                <h4 className="font-bold mb-4 text-sm uppercase tracking-widest text-accent-foreground/50">{cat}</h4>
-                <ul className="space-y-2.5 text-sm">
-                  {links.map(([_, label, page]) => (
-                    <li key={label}>
-                      {page ? (
-                        <button onClick={() => setActivePage(page)} className="text-accent-foreground/40 hover:text-primary transition-colors duration-200 flex items-center gap-1 group">
-                          {label} <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
-                        </button>
-                      ) : (
-                        <a href={"#" + label.toLowerCase().replace(/\s/g, '')} onClick={() => setActivePage(null)} className="text-accent-foreground/40 hover:text-primary transition-colors duration-200">{label}</a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                Icon: Building2,
+                title: 'Formalização económica',
+                desc: 'Damos às empresas as ferramentas para operar com rigor fiscal e transparência, contribuindo directamente para uma economia mais formal e produtiva.',
+              },
+              {
+                Icon: ShieldCheck,
+                title: 'Segurança documental',
+                desc: 'Protegemos a informação crítica das organizações com protocolos rigorosos, penalizações contratuais e rastreabilidade total.',
+              },
+              {
+                Icon: Sparkles,
+                title: 'Tecnologia feita para Angola',
+                desc: 'Construímos aqui, para a realidade angolana: certificação AGT, integração com Multicaixa e resposta às necessidades locais.',
+              },
+            ].map(({ Icon, title, desc }) => (
+              <div key={title} className="rounded-xl p-7 bg-white/[0.03] border border-white/10 hover:border-[#F5C518]/30 transition">
+                <div className="w-12 h-12 rounded-lg bg-[#F5C518]/10 border border-[#F5C518]/20 flex items-center justify-center mb-5">
+                  <Icon className="w-6 h-6 text-[#F5C518]" />
+                </div>
+                <h3 className="text-lg font-black mb-3">{title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
-          <div className="border-t border-accent-foreground/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-6 text-sm text-accent-foreground/30">
-              <p>© {new Date().getFullYear()} Faktura Angola. Todos os direitos reservados.</p>
-              <span className="hidden sm:inline text-accent-foreground/20">·</span>
-              <p>NIF: <span className="text-accent-foreground/60 font-semibold">5002964031</span></p>
+        </div>
+      </section>
+
+      {/* Rodapé */}
+      <footer id="contactos" className="border-t border-white/10 bg-[#060F1E]">
+        <div className="max-w-6xl mx-auto px-6 py-14">
+          <div className="grid md:grid-cols-3 gap-10">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <img src={logoFaktura} alt="Faktura Angola" className="h-8 w-auto" />
+                <span className="font-black">Faktura Angola</span>
+              </div>
+              <p className="text-sm text-white/60 leading-relaxed">
+                Infra-estrutura económica nacional. Organizamos, digitalizamos e formalizamos a economia angolana.
+              </p>
+              <p className="mt-4 text-xs text-white/40"><strong className="text-white/60">NIF:</strong> {NIF}</p>
             </div>
-            <p className="text-sm text-accent-foreground/20 italic">Com a Faktura, todos fakturam.</p>
+
+            <div>
+              <h4 className="font-black text-sm uppercase tracking-wider mb-4 text-white/80">Serviços</h4>
+              <ul className="space-y-2 text-sm">
+                <li className="text-white/60">Faktura — disponível em Julho de 2026</li>
+                <li>
+                  <a href={ARQUIVOS_URL} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-[#F5C518] inline-flex items-center gap-1">
+                    Arquivos <ArrowRight className="w-3 h-3" />
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-black text-sm uppercase tracking-wider mb-4 text-white/80">Contactos</h4>
+              <ul className="space-y-3 text-sm text-white/70">
+                <li className="flex items-center gap-2"><Phone className="w-4 h-4 text-[#F5C518]" /> +244 922 717 574</li>
+                <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-[#F5C518]" /> geral@faktura.ao</li>
+                <li className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#F5C518]" /> Luanda, Angola</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 pt-6 border-t border-white/10 flex flex-col sm:flex-row gap-3 items-center justify-between text-xs text-white/40">
+            <p>© {new Date().getFullYear()} Faktura Angola. Todos os direitos reservados.</p>
+            <div className="flex gap-4">
+              <Link to="/termos-de-uso" className="hover:text-white transition">Termos</Link>
+              <Link to="/politica-privacidade" className="hover:text-white transition">Privacidade</Link>
+            </div>
           </div>
         </div>
       </footer>

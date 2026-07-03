@@ -1943,6 +1943,27 @@ export type Database = {
           },
         ]
       }
+      waitlist_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       weekly_charges: {
         Row: {
           amount_mora: number
