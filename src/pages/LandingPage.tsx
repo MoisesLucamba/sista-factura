@@ -17,6 +17,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { track } from '@/lib/track';
 import logoFaktura from '@/assets/faktura-logo.png';
 import heroBusiness from '@/assets/hero-business.jpg';
 import logoOrbislink from '@/assets/logos/orbislink.png';
@@ -992,6 +993,7 @@ function WaitlistBanner() {
       return;
     }
     setLoading(true);
+    track({ event: 'submit', section: 'hero', label: 'waitlist_submit', metadata: { email_domain: email.split('@')[1] || null } });
     const { error } = await (supabase as any).from('waitlist_leads').insert({ email: email.trim().toLowerCase(), source: 'landing' });
     setLoading(false);
     if (error && !error.message.toLowerCase().includes('duplicate')) {
@@ -1242,14 +1244,14 @@ export default function LandingPage() {
                 </button>
               ) : (
                 [['features', 'Faktura'], ['arquivos', 'Arquivos'], ['ecosystem', 'Ecossistema']].map(([h, l]) => (
-                  <a key={h} href={"#" + h} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{l}</a>
+                  <a key={h} href={"#" + h} onClick={() => track({ event: 'click', section: 'nav', label: `nav_${h}` })} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{l}</a>
                 ))
               )}
-              <button onClick={() => setActivePage('integracoes')} className={`nav-link text-sm font-semibold transition-colors ${activePage === 'integracoes' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>Integracoes</button>
+              <button onClick={() => { track({ event: 'click', section: 'nav', label: 'nav_integracoes' }); setActivePage('integracoes'); }} className={`nav-link text-sm font-semibold transition-colors ${activePage === 'integracoes' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>Integracoes</button>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/login"><Button variant="ghost" className="font-semibold hover:bg-primary/10">Entrar</Button></Link>
-              <Link to="/registar"><Button className="font-bold shadow-lg shadow-primary/25 btn-glow hover:scale-105 transition-all">Comecar Gratis</Button></Link>
+              <Link to="/login" onClick={() => track({ event: 'click', section: 'nav', label: 'nav_login' })}><Button variant="ghost" className="font-semibold hover:bg-primary/10">Entrar</Button></Link>
+              <Link to="/registar" onClick={() => track({ event: 'click', section: 'nav', label: 'nav_registar' })}><Button className="font-bold shadow-lg shadow-primary/25 btn-glow hover:scale-105 transition-all">Comecar Gratis</Button></Link>
             </div>
           </div>
         </div>
@@ -1297,7 +1299,7 @@ export default function LandingPage() {
                   <span className="text-sm font-bold text-white tracking-wide">Faturação AGT + Pagamentos Digitais</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 </div>
-                <a href="https://arquivos.faktura.ao" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-pointer hover:bg-white/15 transition-colors">
+                <a href="https://arquivos.faktura.ao" target="_blank" rel="noopener noreferrer" onClick={() => track({ event: 'click', section: 'hero', label: 'pill_arquivos', url: 'https://arquivos.faktura.ao' })} className="inline-flex items-center gap-2.5 glass-pill rounded-full px-5 py-2.5 cursor-pointer hover:bg-white/15 transition-colors">
                   <BookOpen className="w-4 h-4 text-white" />
                   <span className="text-sm font-bold text-white tracking-wide">Arquivos — Gestão Documental Inteligente</span>
                   <ExternalLink className="w-3.5 h-3.5 text-white/80" />
@@ -1333,13 +1335,23 @@ export default function LandingPage() {
 
               <div className="heroC flex flex-wrap items-start gap-4 mb-12">
                 <div className="flex flex-col items-start gap-1.5">
-                  <Button size="lg" disabled className="h-14 px-10 text-lg font-black opacity-70 cursor-not-allowed gap-2.5 bg-primary/50 text-primary-foreground">
+                  <Button
+                    size="lg"
+                    disabled
+                    onClick={() => track({ event: 'click', section: 'hero', label: 'cta_faktura_soon' })}
+                    className="h-14 px-10 text-lg font-black opacity-70 cursor-not-allowed gap-2.5 bg-primary/50 text-primary-foreground"
+                  >
                     <Clock className="h-5 w-5" />
                     Faktura — Julho 2026
                   </Button>
                   <span className="text-xs text-white/60 font-medium pl-2">Plataforma em breve · registe-se acima</span>
                 </div>
-                <a href="https://arquivos.faktura.ao" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://arquivos.faktura.ao"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => track({ event: 'click', section: 'hero', label: 'cta_arquivos', url: 'https://arquivos.faktura.ao' })}
+                >
                   <div className="flex flex-col items-start gap-1.5">
                     <Button size="lg" variant="outline" className="h-14 px-8 text-base font-bold bg-white/10 backdrop-blur border-white/30 text-white hover:bg-white/20 hover:text-white transition-all gap-2.5">
                       <BookOpen className="h-5 w-5" />
