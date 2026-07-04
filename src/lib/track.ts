@@ -28,17 +28,17 @@ export interface TrackPayload {
 export async function track({ event, section, label, url, metadata }: TrackPayload) {
   try {
     const { data } = await supabase.auth.getUser();
-    await supabase.from('landing_events').insert({
+    await supabase.from('landing_events').insert([{
       event_name: event,
-      section: section ?? null,
-      label: label ?? null,
-      url: url ?? (typeof window !== 'undefined' ? window.location.href : null),
-      referrer: typeof document !== 'undefined' ? document.referrer || null : null,
-      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      section: section ?? undefined,
+      label: label ?? undefined,
+      url: url ?? (typeof window !== 'undefined' ? window.location.href : undefined),
+      referrer: typeof document !== 'undefined' ? (document.referrer || undefined) : undefined,
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
       session_id: getSessionId(),
-      user_id: data.user?.id ?? null,
-      metadata: metadata ?? {},
-    });
+      user_id: data.user?.id ?? undefined,
+      metadata: (metadata ?? {}) as never,
+    }]);
   } catch (err) {
     // never break UX on tracking failure
     console.debug('[track] failed', err);
