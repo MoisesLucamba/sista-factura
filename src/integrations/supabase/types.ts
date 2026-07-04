@@ -1021,6 +1021,48 @@ export type Database = {
           },
         ]
       }
+      landing_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          label: string | null
+          metadata: Json | null
+          referrer: string | null
+          section: string | null
+          session_id: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          label?: string | null
+          metadata?: Json | null
+          referrer?: string | null
+          section?: string | null
+          session_id?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          label?: string | null
+          metadata?: Json | null
+          referrer?: string | null
+          section?: string | null
+          session_id?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
