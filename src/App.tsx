@@ -51,6 +51,7 @@ const FerramentasAGT = lazy(() => import("./pages/FerramentasAGT"));
 const ApiKeys = lazy(() => import("./pages/ApiKeys"));
 const Subscricao = lazy(() => import("./pages/Subscricao"));
 const SaftSubmissions = lazy(() => import("./pages/SaftSubmissions"));
+const LandingAnalytics = lazy(() => import("./pages/LandingAnalytics"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -311,6 +312,15 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/analytics"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <LandingAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            
             
             
             {/* Catch-all route */}

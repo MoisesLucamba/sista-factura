@@ -1050,6 +1050,9 @@ export default function LandingPage() {
   const [activePage, setActivePage] = useState<string | null>(null);
   const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
 
+  useEffect(() => { track({ event: 'view', section: 'landing', label: 'page_view' }); }, []);
+
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     const onMouse = (e: MouseEvent) => setMousePos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
