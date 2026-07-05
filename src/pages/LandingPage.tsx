@@ -8,7 +8,7 @@ import {
   Target, Heart, Coffee, Laptop, Briefcase, MapPin, BookOpen,
   AlertTriangle, Server, Key, RefreshCw, Lock, Eye, UserCheck,
   Bell, Phone, ExternalLink, CreditCard, Link2, Banknote,
-  ArrowLeftRight, ShieldCheck,
+  ArrowLeftRight, ShieldCheck, Download,
 } from 'lucide-react';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
@@ -434,19 +434,50 @@ function PageIntegracoes() {
                 <span className="text-sm font-bold text-accent-foreground">Para Developers</span>
               </div>
               <h2 className="text-3xl font-black text-accent-foreground mb-4">Construa com a nossa API</h2>
-              <p className="text-accent-foreground/60 text-sm leading-relaxed">REST API completa, SDKs, webhooks e documentação interactiva. Integre faturação e intermediação de pagamentos em qualquer sistema em horas, não semanas.</p>
+              <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">
+                Toda a gente fatura com o <span className="text-primary font-bold">ID Faktura</span> —
+                comprador, vendedor e marketplace. REST API completa, autenticação por chave, SAF-T mensal,
+                PDFs assinados, comissões automáticas para marketplaces e webhooks. Integre facturação em qualquer
+                sistema em horas.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/api-keys" onClick={() => track({ event: 'click', section: 'api', label: 'cta_connect_api' })}>
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold">
+                    <Key className="w-4 h-4 mr-2" /> Ligar-me à API
+                  </Button>
+                </Link>
+                <a
+                  href="/faktura-api.md"
+                  download="faktura-api-integration.md"
+                  onClick={() => track({ event: 'click', section: 'api', label: 'download_api_docs' })}
+                >
+                  <Button variant="outline" className="border-primary/40 text-accent-foreground hover:bg-primary/10 font-bold">
+                    <Download className="w-4 h-4 mr-2" /> Baixar documentação
+                  </Button>
+                </a>
+                <a
+                  href="https://ewfjvgzachtonehujvom.supabase.co/functions/v1/faktura-api/health"
+                  target="_blank" rel="noreferrer"
+                  onClick={() => track({ event: 'click', section: 'api', label: 'api_health' })}
+                >
+                  <Button variant="ghost" className="text-accent-foreground/70 hover:text-primary font-bold">
+                    <ExternalLink className="w-4 h-4 mr-2" /> Status da API
+                  </Button>
+                </a>
+              </div>
+              <p className="text-xs text-accent-foreground/40 mt-4 font-mono">Base URL: https://ewfjvgzachtonehujvom.supabase.co/functions/v1/faktura-api</p>
             </div>
             <div className="bg-accent-foreground/5 rounded-2xl p-6 border border-accent-foreground/10 font-mono text-sm">
-              <p className="text-accent-foreground/40 mb-2"># Emitir fatura via API</p>
-              <p className="text-primary font-bold">POST https://api.faktura.ao/v1/faturas</p>
+              <p className="text-accent-foreground/40 mb-2"># Emitir factura via API (comprador identificado por ID Faktura)</p>
+              <p className="text-primary font-bold break-all">POST /v1/invoices</p>
               <div className="mt-4 space-y-1 text-accent-foreground/60 text-xs">
-                <p><span className="text-primary">"cliente_id"</span>: <span className="text-amber-400">"M20XV"</span></p>
-                <p><span className="text-primary">"valor"</span>: <span className="text-blue-400">25000</span></p>
-                <p><span className="text-primary">"descricao"</span>: <span className="text-amber-400">"Servico de consultoria"</span></p>
+                <p><span className="text-primary">"buyer_faktura_id"</span>: <span className="text-amber-400">"FK-244-000456"</span></p>
+                <p><span className="text-primary">"tipo"</span>: <span className="text-amber-400">"fatura-recibo"</span></p>
+                <p><span className="text-primary">"itens"</span>: <span className="text-blue-400">[…]</span></p>
               </div>
               <div className="mt-4 flex items-center gap-2 text-primary text-xs">
                 <CheckCircle className="w-3.5 h-3.5" />
-                <span>200 OK — FT 2025/1284 emitida</span>
+                <span>201 Created — FT/2026/000123 · assinada AGT</span>
               </div>
             </div>
           </div>

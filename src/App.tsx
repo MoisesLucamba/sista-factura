@@ -52,6 +52,7 @@ const ApiKeys = lazy(() => import("./pages/ApiKeys"));
 const Subscricao = lazy(() => import("./pages/Subscricao"));
 const SaftSubmissions = lazy(() => import("./pages/SaftSubmissions"));
 const LandingAnalytics = lazy(() => import("./pages/LandingAnalytics"));
+const AdminApiUsage = lazy(() => import("./pages/AdminApiUsage"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -317,6 +318,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <LandingAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/api-usage"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminApiUsage />
                 </ProtectedRoute>
               }
             />

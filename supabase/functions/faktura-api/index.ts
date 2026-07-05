@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
   const keyHash = await sha256Hex(apiKey);
   const { data: keyRow } = await supabase
     .from('api_keys')
-    .select('user_id, is_active, revoked_at')
+    .select('id, user_id, is_active, revoked_at')
     .eq('key_hash', keyHash)
     .maybeSingle();
 
@@ -60,6 +60,8 @@ Deno.serve(async (req) => {
     return json({ error: 'API key not found or revoked', code: 'unauthorized' }, 401);
   }
   let userId = keyRow.user_id as string;
+  const keyId = keyRow.id as string;
+  const t0 = Date.now();
 
   // best-effort last_used_at
   supabase.from('api_keys').update({ last_used_at: new Date().toISOString() })
@@ -71,12 +73,12 @@ Deno.serve(async (req) => {
     const { data: target } = await supabase
       .from('profiles').select('user_id').eq('faktura_id', onBehalfOf).maybeSingle();
     if (!target) return json({ error: 'on-behalf-of user not found', code: 'not_found' }, 404);
-    // Impersonation currently allowed for any active key; marketplaces should
-    // ensure their agreements. Future: check a marketplace_delegations table.
     userId = target.user_id as string;
   }
 
-  try {
+  const response: Response = await (async () => {
+    try {
+
     // ── 4.2 GET /v1/lookup/:fk_id ──────────────────────────────
     const lookupMatch = path.match(/^\/v1\/lookup\/(FK-244-[0-9]{6})$/);
     if (req.method === 'GET' && lookupMatch) {
@@ -401,7 +403,23 @@ Deno.serve(async (req) => {
     }
 
     return json({ error: 'Not found', code: 'not_found', path }, 404);
-  } catch (e: any) {
-    return json({ error: e.message || 'Internal error', code: 'internal_error' }, 500);
-  }
+    } catch (e: any) {
+      return json({ error: e.message || 'Internal error', code: 'internal_error' }, 500);
+    }
+  })();
+
+  // Fire-and-forget usage log
+  supabase.from('api_usage_logs').insert({
+    api_key_id: keyId,
+    user_id: userId,
+    endpoint: path,
+    method: req.method,
+    status: response.status,
+    latency_ms: Date.now() - t0,
+    ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
+    user_agent: req.headers.get('user-agent') || null,
+  }).then(() => {});
+
+  return response;
 });
+
