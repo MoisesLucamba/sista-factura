@@ -403,7 +403,23 @@ Deno.serve(async (req) => {
     }
 
     return json({ error: 'Not found', code: 'not_found', path }, 404);
-  } catch (e: any) {
-    return json({ error: e.message || 'Internal error', code: 'internal_error' }, 500);
-  }
+    } catch (e: any) {
+      return json({ error: e.message || 'Internal error', code: 'internal_error' }, 500);
+    }
+  })();
+
+  // Fire-and-forget usage log
+  supabase.from('api_usage_logs').insert({
+    api_key_id: keyId,
+    user_id: userId,
+    endpoint: path,
+    method: req.method,
+    status: response.status,
+    latency_ms: Date.now() - t0,
+    ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
+    user_agent: req.headers.get('user-agent') || null,
+  }).then(() => {});
+
+  return response;
 });
+
