@@ -1455,17 +1455,17 @@ export default function LandingPage() {
                   <div>
                     <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
                       <ShieldCheck className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-bold">Identificador Único Fiscal</span>
+                      <span className="text-sm font-bold">Papel ID</span>
                     </div>
                     <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-6 leading-tight">
-                      Crie o seu ID fiscal.<br />
-                      <span className="shimmer-text">Use em tudo.</span>
+                      Crie o teu Papel ID.<br />
+                      <span className="shimmer-text">Partilha em tudo.</span>
                     </h2>
                     <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                      O seu Identificador Único Fiscal Faktura é o seu passaporte digital para todas as actividades fiscais em Angola. Um só ID, válido em qualquer empresa que use a Faktura.
+                      O teu Papel ID é o teu passaporte digital para todas as actividades fiscais em Angola. Um só ID — partilha o teu Papel e recebe faturas automáticas em qualquer empresa que use o Papel.
                     </p>
                     <p className="text-base text-muted-foreground leading-relaxed mb-8">
-                      Compre, receba faturas automáticas e ganhe recompensas — tudo com um único identificador. <strong className="text-foreground">Com a Faktura, todos fakturam.</strong>
+                      Compre, receba faturas automáticas e ganhe recompensas — tudo com um único identificador. <strong className="text-foreground">Com o Papel, ninguém perde o papel.</strong>
                     </p>
                     <div className="flex flex-wrap gap-3 mb-8">
                       {['Registo gratuito', 'Válido em toda Angola', 'Faturas automáticas', '50 Kz por compra'].map(tag => (
@@ -1474,7 +1474,7 @@ export default function LandingPage() {
                     </div>
                     <Link to="/registar">
                       <Button size="lg" className="h-14 px-10 font-black shadow-2xl shadow-primary/40 btn-glow hover:scale-105 transition-all gap-2">
-                        Criar o meu ID Fiscal <ArrowRight className="w-5 h-5" />
+                        Criar o meu Papel ID <ArrowRight className="w-5 h-5" />
                       </Button>
                     </Link>
                   </div>
