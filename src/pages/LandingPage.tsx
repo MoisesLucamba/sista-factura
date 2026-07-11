@@ -1868,7 +1868,7 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 py-6 border-b border-accent-foreground/10">
             <p className="text-2xl lg:text-3xl font-black text-accent-foreground/80 tracking-tight">
-              Com a Faktura, <span className="text-primary">todos fakturam.</span>
+              Com o Papel, <span className="text-primary">ninguém perde o papel.</span>
             </p>
           </div>
 
