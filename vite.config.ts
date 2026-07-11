@@ -22,9 +22,9 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico", "robots.txt", "placeholder.svg"],
 
       manifest: {
-        name: "Faktura Angola",
-        short_name: "Faktura",
-        description: "Sistema de Faturação Certificado para Angola",
+        name: "Papel — Faktura",
+        short_name: "Papel",
+        description: "Plataforma de faturação certificada para Angola, pela Faktura.",
         theme_color: "#d4a032",
         background_color: "#0a0a0b",
         display: "standalone",
@@ -40,24 +40,29 @@ export default defineConfig(({ mode }) => ({
       },
 
       workbox: {
-        // 🔥 AQUI ESTÁ A CORREÇÃO
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB
-
-        globPatterns: ["**/*.{js,css,html,ico,png,jpg,svg,woff2}"],
-
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/~oauth/],
-
+        globPatterns: ["**/*.{js,css,ico,png,jpg,svg,woff2}"],
+        // Always fetch fresh HTML from the network so users see the latest deploy immediately.
+        navigateFallback: null,
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-pages",
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 },
+            },
+          },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "supabase-api",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 300,
-              },
+              expiration: { maxEntries: 50, maxAgeSeconds: 300 },
               networkTimeoutSeconds: 5,
             },
           },

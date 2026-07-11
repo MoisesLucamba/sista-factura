@@ -435,7 +435,7 @@ function PageIntegracoes() {
               </div>
               <h2 className="text-3xl font-black text-accent-foreground mb-4">Construa com a nossa API</h2>
               <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">
-                Toda a gente fatura com o <span className="text-primary font-bold">ID Faktura</span> —
+                Toda a gente fatura com o <span className="text-primary font-bold">Papel ID</span> —
                 comprador, vendedor e marketplace. REST API completa, autenticação por chave, SAF-T mensal,
                 PDFs assinados, comissões automáticas para marketplaces e webhooks. Integre facturação em qualquer
                 sistema em horas.
@@ -1045,7 +1045,7 @@ function WaitlistBanner() {
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Plataforma em construção</p>
             <p className="text-sm md:text-base text-white font-medium leading-snug">
-              A plataforma de faturação estará disponível no <strong className="text-primary">final de Julho de 2026</strong>. Registe o seu interesse e seja dos primeiros a aceder.
+              O <strong className="text-primary">Papel</strong> estará disponível no <strong className="text-primary">final de Julho de 2026</strong>. Registe o seu interesse e seja dos primeiros a aceder.
             </p>
           </div>
         </div>
@@ -1097,7 +1097,7 @@ export default function LandingPage() {
   }, [activePage]);
 
   const footerLinks: Record<string, [string, string, string | null][]> = {
-    'Produto': [['#features', 'Faktura', null], ['#arquivos', 'Arquivos', null], ['integracoes', 'Integracoes', 'integracoes']],
+    'Produto': [['#features', 'Papel', null], ['#arquivos', 'Arquivos', null], ['integracoes', 'Integracoes', 'integracoes']],
     'Empresa': [['sobre', 'Sobre Nos', 'sobre'], ['carreiras', 'Carreiras', 'carreiras']],
     'Legal': [['termos', 'Termos de Uso', 'termos'], ['privacidade', 'Privacidade', 'privacidade'], ['seguranca', 'Seguranca', 'seguranca']],
   };
@@ -1277,7 +1277,7 @@ export default function LandingPage() {
                   <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Inicio
                 </button>
               ) : (
-                [['features', 'Faktura'], ['arquivos', 'Arquivos'], ['ecosystem', 'Ecossistema']].map(([h, l]) => (
+                [['features', 'Papel'], ['arquivos', 'Arquivos'], ['ecosystem', 'Ecossistema']].map(([h, l]) => (
                   <a key={h} href={"#" + h} onClick={() => track({ event: 'click', section: 'nav', label: `nav_${h}` })} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{l}</a>
                 ))
               )}
@@ -1355,16 +1355,16 @@ export default function LandingPage() {
                     }}>e receba</span>
                     <span className="text-white drop-shadow-lg"> ✦</span>
                   </span>
-                  <span className="hero3 block text-white drop-shadow-lg">tudo num só lugar</span>
+                  <span className="hero3 block text-white drop-shadow-lg">tudo num só Papel.</span>
                 </h1>
               </div>
 
               <p className="heroS text-white/85 max-w-3xl mb-4 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
-                A <strong className="text-primary">Faktura Angola</strong> não é apenas software — é infra-estrutura económica nacional. Nascemos para organizar, digitalizar e formalizar a economia angolana.
+                O <strong className="text-primary">Papel</strong> não é apenas software de faturação — é a forma como Angola fatura, cobra e recebe. Criado pela <strong className="text-primary">Faktura</strong>, nascemos para organizar, digitalizar e formalizar a economia angolana.
               </p>
               <p className="heroS text-white/60 max-w-2xl mb-10 leading-relaxed font-medium text-sm md:text-base">
-                Damos às empresas e instituições as ferramentas para operar com rigor, segurança e identidade própria num mercado em crescimento acelerado. Complementamos com <span className="text-primary font-bold">Arquivos</span> — empresa do grupo dedicada à gestão documental física e digital.
+                Damos às empresas e instituições as ferramentas para operar com rigor, segurança e identidade própria num mercado em crescimento acelerado. O Papel faz parte do ecossistema <span className="text-primary font-bold">Faktura</span>, ao lado de <span className="text-primary font-bold">Arquivos</span> — dedicada à gestão documental física e digital.
               </p>
 
               <div className="heroC flex flex-wrap items-start gap-4 mb-12">
@@ -1376,7 +1376,7 @@ export default function LandingPage() {
                     className="h-14 px-10 text-lg font-black opacity-70 cursor-not-allowed gap-2.5 bg-primary/50 text-primary-foreground"
                   >
                     <Clock className="h-5 w-5" />
-                    Faktura — Julho 2026
+                    Papel — Julho 2026
                   </Button>
                   <span className="text-xs text-white/60 font-medium pl-2">Plataforma em breve · registe-se acima</span>
                 </div>
@@ -1455,17 +1455,17 @@ export default function LandingPage() {
                   <div>
                     <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-6">
                       <ShieldCheck className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-bold">Identificador Único Fiscal</span>
+                      <span className="text-sm font-bold">Papel ID</span>
                     </div>
                     <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-6 leading-tight">
-                      Crie o seu ID fiscal.<br />
-                      <span className="shimmer-text">Use em tudo.</span>
+                      Crie o teu Papel ID.<br />
+                      <span className="shimmer-text">Partilha em tudo.</span>
                     </h2>
                     <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                      O seu Identificador Único Fiscal Faktura é o seu passaporte digital para todas as actividades fiscais em Angola. Um só ID, válido em qualquer empresa que use a Faktura.
+                      O teu Papel ID é o teu passaporte digital para todas as actividades fiscais em Angola. Um só ID — partilha o teu Papel e recebe faturas automáticas em qualquer empresa que use o Papel.
                     </p>
                     <p className="text-base text-muted-foreground leading-relaxed mb-8">
-                      Compre, receba faturas automáticas e ganhe recompensas — tudo com um único identificador. <strong className="text-foreground">Com a Faktura, todos fakturam.</strong>
+                      Compre, receba faturas automáticas e ganhe recompensas — tudo com um único identificador. <strong className="text-foreground">Com o Papel, ninguém perde o papel.</strong>
                     </p>
                     <div className="flex flex-wrap gap-3 mb-8">
                       {['Registo gratuito', 'Válido em toda Angola', 'Faturas automáticas', '50 Kz por compra'].map(tag => (
@@ -1474,7 +1474,7 @@ export default function LandingPage() {
                     </div>
                     <Link to="/registar">
                       <Button size="lg" className="h-14 px-10 font-black shadow-2xl shadow-primary/40 btn-glow hover:scale-105 transition-all gap-2">
-                        Criar o meu ID Fiscal <ArrowRight className="w-5 h-5" />
+                        Criar o meu Papel ID <ArrowRight className="w-5 h-5" />
                       </Button>
                     </Link>
                   </div>
@@ -1490,8 +1490,8 @@ export default function LandingPage() {
                     <div className="faktura-id-card relative z-10 p-8 lg:p-10">
                       <div className="flex items-start justify-between mb-8">
                         <div>
-                          <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Faktura — Angola</p>
-                          <p className="text-white font-black text-lg">Identificador Único Fiscal</p>
+                          <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Papel — Angola</p>
+                          <p className="text-white font-black text-lg">Papel ID</p>
                         </div>
                         <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
                           <ShieldCheck className="w-6 h-6 text-white" />
@@ -1499,9 +1499,9 @@ export default function LandingPage() {
                       </div>
 
                       <div className="mb-8">
-                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-2">O teu identificador</p>
+                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-2">O teu Papel</p>
                         <div className="id-glow bg-white/10 border border-white/25 rounded-2xl px-6 py-4 inline-block">
-                          <p className="text-white font-black text-4xl tracking-[0.3em] font-mono">FT-244-XXXXXX</p>
+                          <p className="text-white font-black text-4xl tracking-[0.3em] font-mono">PP-244-XXXXXX</p>
                         </div>
                       </div>
 
@@ -1547,8 +1547,8 @@ export default function LandingPage() {
               {/* Três passos rápidos */}
               <div className="grid md:grid-cols-3 gap-6 mt-20">
                 {[
-                  { icon: UserPlus, s: '01', t: 'Registe-se gratuitamente', d: 'Crie a sua conta Faktura e receba o seu ID único no formato FT-244-XXXXXX.' },
-                  { icon: ShieldCheck, s: '02', t: 'Use em todas as compras', d: 'Partilhe o seu ID em qualquer estabelecimento que use a Faktura — fatura gerada automaticamente.' },
+                  { icon: UserPlus, s: '01', t: 'Registe-se gratuitamente', d: 'Crie a sua conta Papel e receba o seu ID único no formato PP-244-XXXXXX.' },
+                  { icon: ShieldCheck, s: '02', t: 'Use em todas as compras', d: 'Partilhe o seu Papel em qualquer estabelecimento que use o Papel — fatura gerada automaticamente.' },
                   { icon: BadgeDollarSign, s: '03', t: 'Ganhe por cada fatura', d: 'Receba 50 Kz de recompensa por cada compra faturada acima de 1.500 Kz. Automaticamente.' },
                 ].map(({ icon: I, s, t, d }, i) => (
                   <FadeIn key={i} delay={i * 100} direction="up">
@@ -1692,7 +1692,7 @@ export default function LandingPage() {
                 <div className="text-center mb-20">
                   <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-5">
                     <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                    <span className="text-sm font-bold">Com a Faktura, todos fakturam.</span>
+                    <span className="text-sm font-bold">Com o Papel, ninguém perde o papel.</span>
                   </div>
                   <h2 className="text-4xl lg:text-6xl font-black tracking-tight mb-5">Um ecossistema que<span className="shimmer-text"> recompensa</span><br />quem compra e quem vende</h2>
                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">Disponibilize os seus dados de comprador, ganhe por cada fatura e ajude empresas a faturar mais rapido — sem erros, sem complicacoes.</p>
@@ -1714,7 +1714,7 @@ export default function LandingPage() {
                     <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7">
                       <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-3">O seu ID de comprador</p>
                       <div className="flex items-center justify-between">
-                        <div><p className="id-badge text-2xl font-black tracking-widest">FT-244-XXXXXX</p><p className="text-xs text-muted-foreground mt-1">500****21 · 923***574 · Manuel Silva</p></div>
+                        <div><p className="id-badge text-2xl font-black tracking-widest">PP-244-XXXXXX</p><p className="text-xs text-muted-foreground mt-1">500****21 · 923***574 · Manuel Silva</p></div>
                         <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center"><ScanLine className="w-5 h-5 text-primary" /></div>
                       </div>
                     </div>
@@ -1733,7 +1733,7 @@ export default function LandingPage() {
                       ))}
                     </ul>
                     <Link to="/registar">
-                      <Button className="w-full h-12 font-bold btn-glow hover:scale-[1.02] transition-all gap-2">Criar o meu ID Faktura <ArrowRight className="w-4 h-4" /></Button>
+                      <Button className="w-full h-12 font-bold btn-glow hover:scale-[1.02] transition-all gap-2">Criar o meu Papel ID <ArrowRight className="w-4 h-4" /></Button>
                     </Link>
                   </div>
                 </FadeIn>
@@ -1751,7 +1751,7 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7 space-y-3">
                       <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">Como funciona na pratica</p>
-                      {[['1', 'Cliente informa o seu ID', 'Ex: FT-244-XXXXXX'], ['2', 'Insere o ID na Faktura', 'Pesquisa instantanea'], ['3', 'Dados preenchidos automaticamente', 'Nome, NIF, contacto'], ['4', 'Fatura emitida e enviada', 'WhatsApp, SMS ou email']].map(([s, t, b]) => (
+                      {[['1', 'Cliente informa o seu Papel', 'Ex: PP-244-XXXXXX'], ['2', 'Insere o Papel ID no sistema', 'Pesquisa instantanea'], ['3', 'Dados preenchidos automaticamente', 'Nome, NIF, contacto'], ['4', 'Fatura emitida e enviada', 'WhatsApp, SMS ou email']].map(([s, t, b]) => (
                         <div key={s} className="flex items-center gap-3">
                           <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-xs font-black text-primary">{s}</span></div>
                           <div className="flex-1 min-w-0"><span className="text-sm font-semibold">{t}</span><span className="text-xs text-muted-foreground ml-2">{b}</span></div>
@@ -1868,7 +1868,7 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 py-6 border-b border-accent-foreground/10">
             <p className="text-2xl lg:text-3xl font-black text-accent-foreground/80 tracking-tight">
-              Com a Faktura, <span className="text-primary">todos fakturam.</span>
+              Com o Papel, <span className="text-primary">ninguém perde o papel.</span>
             </p>
           </div>
 
@@ -1877,7 +1877,7 @@ export default function LandingPage() {
               <button onClick={() => setActivePage(null)}>
                 <img src={logoFaktura} alt="Faktura" className="h-10 object-contain brightness-0 invert mb-4" />
               </button>
-              <p className="text-sm text-accent-foreground/50 leading-relaxed">A plataforma de faturação e intermediação de pagamentos digitais de Angola.</p>
+              <p className="text-sm text-accent-foreground/50 leading-relaxed">Papel — a plataforma de faturação da Faktura, holding angolana de infra-estrutura fiscal e documental.</p>
               <div className="flex gap-3 mt-4">
                 <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Phone className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
                 <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Mail className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
@@ -1909,7 +1909,7 @@ export default function LandingPage() {
               <span className="hidden sm:inline text-accent-foreground/20">·</span>
               <p>NIF: <span className="text-accent-foreground/60 font-semibold">5002964031</span></p>
             </div>
-            <p className="text-sm text-accent-foreground/20 italic">Com a Faktura, todos fakturam.</p>
+            <p className="text-sm text-accent-foreground/20 italic">Com o Papel, ninguém perde o papel.</p>
           </div>
         </div>
       </footer>
