@@ -1097,7 +1097,7 @@ export default function LandingPage() {
   }, [activePage]);
 
   const footerLinks: Record<string, [string, string, string | null][]> = {
-    'Produto': [['#features', 'Faktura', null], ['#arquivos', 'Arquivos', null], ['integracoes', 'Integracoes', 'integracoes']],
+    'Produto': [['#features', 'Papel', null], ['#arquivos', 'Arquivos', null], ['integracoes', 'Integracoes', 'integracoes']],
     'Empresa': [['sobre', 'Sobre Nos', 'sobre'], ['carreiras', 'Carreiras', 'carreiras']],
     'Legal': [['termos', 'Termos de Uso', 'termos'], ['privacidade', 'Privacidade', 'privacidade'], ['seguranca', 'Seguranca', 'seguranca']],
   };
