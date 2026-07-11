@@ -1045,7 +1045,7 @@ function WaitlistBanner() {
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-primary mb-1">Plataforma em construção</p>
             <p className="text-sm md:text-base text-white font-medium leading-snug">
-              A plataforma de faturação estará disponível no <strong className="text-primary">final de Julho de 2026</strong>. Registe o seu interesse e seja dos primeiros a aceder.
+              O <strong className="text-primary">Papel</strong> estará disponível no <strong className="text-primary">final de Julho de 2026</strong>. Registe o seu interesse e seja dos primeiros a aceder.
             </p>
           </div>
         </div>
