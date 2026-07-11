@@ -1714,7 +1714,7 @@ export default function LandingPage() {
                     <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7">
                       <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-3">O seu ID de comprador</p>
                       <div className="flex items-center justify-between">
-                        <div><p className="id-badge text-2xl font-black tracking-widest">FT-244-XXXXXX</p><p className="text-xs text-muted-foreground mt-1">500****21 · 923***574 · Manuel Silva</p></div>
+                        <div><p className="id-badge text-2xl font-black tracking-widest">PP-244-XXXXXX</p><p className="text-xs text-muted-foreground mt-1">500****21 · 923***574 · Manuel Silva</p></div>
                         <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center"><ScanLine className="w-5 h-5 text-primary" /></div>
                       </div>
                     </div>
