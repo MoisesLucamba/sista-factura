@@ -1751,7 +1751,7 @@ export default function LandingPage() {
                     </div>
                     <div className="bg-muted/60 border border-border/60 rounded-2xl p-5 mb-7 space-y-3">
                       <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2">Como funciona na pratica</p>
-                      {[['1', 'Cliente informa o seu ID', 'Ex: FT-244-XXXXXX'], ['2', 'Insere o ID na Faktura', 'Pesquisa instantanea'], ['3', 'Dados preenchidos automaticamente', 'Nome, NIF, contacto'], ['4', 'Fatura emitida e enviada', 'WhatsApp, SMS ou email']].map(([s, t, b]) => (
+                      {[['1', 'Cliente informa o seu Papel', 'Ex: PP-244-XXXXXX'], ['2', 'Insere o Papel ID no sistema', 'Pesquisa instantanea'], ['3', 'Dados preenchidos automaticamente', 'Nome, NIF, contacto'], ['4', 'Fatura emitida e enviada', 'WhatsApp, SMS ou email']].map(([s, t, b]) => (
                         <div key={s} className="flex items-center gap-3">
                           <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-xs font-black text-primary">{s}</span></div>
                           <div className="flex-1 min-w-0"><span className="text-sm font-semibold">{t}</span><span className="text-xs text-muted-foreground ml-2">{b}</span></div>
