@@ -435,7 +435,7 @@ function PageIntegracoes() {
               </div>
               <h2 className="text-3xl font-black text-accent-foreground mb-4">Construa com a nossa API</h2>
               <p className="text-accent-foreground/60 text-sm leading-relaxed mb-6">
-                Toda a gente fatura com o <span className="text-primary font-bold">ID Faktura</span> —
+                Toda a gente fatura com o <span className="text-primary font-bold">Papel ID</span> —
                 comprador, vendedor e marketplace. REST API completa, autenticação por chave, SAF-T mensal,
                 PDFs assinados, comissões automáticas para marketplaces e webhooks. Integre facturação em qualquer
                 sistema em horas.
