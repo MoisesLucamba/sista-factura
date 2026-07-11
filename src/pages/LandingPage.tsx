@@ -1355,7 +1355,7 @@ export default function LandingPage() {
                     }}>e receba</span>
                     <span className="text-white drop-shadow-lg"> ✦</span>
                   </span>
-                  <span className="hero3 block text-white drop-shadow-lg">tudo num só lugar</span>
+                  <span className="hero3 block text-white drop-shadow-lg">tudo num só Papel.</span>
                 </h1>
               </div>
 
