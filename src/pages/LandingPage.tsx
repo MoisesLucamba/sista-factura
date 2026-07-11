@@ -1376,7 +1376,7 @@ export default function LandingPage() {
                     className="h-14 px-10 text-lg font-black opacity-70 cursor-not-allowed gap-2.5 bg-primary/50 text-primary-foreground"
                   >
                     <Clock className="h-5 w-5" />
-                    Faktura — Julho 2026
+                    Papel — Julho 2026
                   </Button>
                   <span className="text-xs text-white/60 font-medium pl-2">Plataforma em breve · registe-se acima</span>
                 </div>
