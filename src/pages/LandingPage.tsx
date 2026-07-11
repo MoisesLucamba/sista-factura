@@ -1877,7 +1877,7 @@ export default function LandingPage() {
               <button onClick={() => setActivePage(null)}>
                 <img src={logoFaktura} alt="Faktura" className="h-10 object-contain brightness-0 invert mb-4" />
               </button>
-              <p className="text-sm text-accent-foreground/50 leading-relaxed">A plataforma de faturação e intermediação de pagamentos digitais de Angola.</p>
+              <p className="text-sm text-accent-foreground/50 leading-relaxed">Papel — a plataforma de faturação da Faktura, holding angolana de infra-estrutura fiscal e documental.</p>
               <div className="flex gap-3 mt-4">
                 <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Phone className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
                 <div className="w-8 h-8 rounded-full bg-accent-foreground/10 flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer"><Mail className="w-3.5 h-3.5 text-accent-foreground/50" /></div>
