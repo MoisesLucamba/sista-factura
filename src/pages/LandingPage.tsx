@@ -1909,7 +1909,7 @@ export default function LandingPage() {
               <span className="hidden sm:inline text-accent-foreground/20">·</span>
               <p>NIF: <span className="text-accent-foreground/60 font-semibold">5002964031</span></p>
             </div>
-            <p className="text-sm text-accent-foreground/20 italic">Com a Faktura, todos fakturam.</p>
+            <p className="text-sm text-accent-foreground/20 italic">Com o Papel, ninguém perde o papel.</p>
           </div>
         </div>
       </footer>
