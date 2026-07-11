@@ -1547,8 +1547,8 @@ export default function LandingPage() {
               {/* Três passos rápidos */}
               <div className="grid md:grid-cols-3 gap-6 mt-20">
                 {[
-                  { icon: UserPlus, s: '01', t: 'Registe-se gratuitamente', d: 'Crie a sua conta Faktura e receba o seu ID único no formato FT-244-XXXXXX.' },
-                  { icon: ShieldCheck, s: '02', t: 'Use em todas as compras', d: 'Partilhe o seu ID em qualquer estabelecimento que use a Faktura — fatura gerada automaticamente.' },
+                  { icon: UserPlus, s: '01', t: 'Registe-se gratuitamente', d: 'Crie a sua conta Papel e receba o seu ID único no formato PP-244-XXXXXX.' },
+                  { icon: ShieldCheck, s: '02', t: 'Use em todas as compras', d: 'Partilhe o seu Papel em qualquer estabelecimento que use o Papel — fatura gerada automaticamente.' },
                   { icon: BadgeDollarSign, s: '03', t: 'Ganhe por cada fatura', d: 'Receba 50 Kz de recompensa por cada compra faturada acima de 1.500 Kz. Automaticamente.' },
                 ].map(({ icon: I, s, t, d }, i) => (
                   <FadeIn key={i} delay={i * 100} direction="up">
