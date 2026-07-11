@@ -1733,7 +1733,7 @@ export default function LandingPage() {
                       ))}
                     </ul>
                     <Link to="/registar">
-                      <Button className="w-full h-12 font-bold btn-glow hover:scale-[1.02] transition-all gap-2">Criar o meu ID Faktura <ArrowRight className="w-4 h-4" /></Button>
+                      <Button className="w-full h-12 font-bold btn-glow hover:scale-[1.02] transition-all gap-2">Criar o meu Papel ID <ArrowRight className="w-4 h-4" /></Button>
                     </Link>
                   </div>
                 </FadeIn>
