@@ -22,9 +22,9 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico", "robots.txt", "placeholder.svg"],
 
       manifest: {
-        name: "Faktura Angola",
-        short_name: "Faktura",
-        description: "Sistema de Faturação Certificado para Angola",
+        name: "Papel — Faktura",
+        short_name: "Papel",
+        description: "Plataforma de faturação certificada para Angola, pela Faktura.",
         theme_color: "#d4a032",
         background_color: "#0a0a0b",
         display: "standalone",
