@@ -40,24 +40,29 @@ export default defineConfig(({ mode }) => ({
       },
 
       workbox: {
-        // 🔥 AQUI ESTÁ A CORREÇÃO
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB
-
-        globPatterns: ["**/*.{js,css,html,ico,png,jpg,svg,woff2}"],
-
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/~oauth/],
-
+        globPatterns: ["**/*.{js,css,ico,png,jpg,svg,woff2}"],
+        // Always fetch fresh HTML from the network so users see the latest deploy immediately.
+        navigateFallback: null,
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-pages",
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 },
+            },
+          },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "supabase-api",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 300,
-              },
+              expiration: { maxEntries: 50, maxAgeSeconds: 300 },
               networkTimeoutSeconds: 5,
             },
           },
