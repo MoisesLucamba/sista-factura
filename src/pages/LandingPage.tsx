@@ -1361,10 +1361,10 @@ export default function LandingPage() {
 
               <p className="heroS text-white/85 max-w-3xl mb-4 leading-relaxed font-medium"
                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)' }}>
-                A <strong className="text-primary">Faktura Angola</strong> não é apenas software — é infra-estrutura económica nacional. Nascemos para organizar, digitalizar e formalizar a economia angolana.
+                O <strong className="text-primary">Papel</strong> não é apenas software de faturação — é a forma como Angola fatura, cobra e recebe. Criado pela <strong className="text-primary">Faktura</strong>, nascemos para organizar, digitalizar e formalizar a economia angolana.
               </p>
               <p className="heroS text-white/60 max-w-2xl mb-10 leading-relaxed font-medium text-sm md:text-base">
-                Damos às empresas e instituições as ferramentas para operar com rigor, segurança e identidade própria num mercado em crescimento acelerado. Complementamos com <span className="text-primary font-bold">Arquivos</span> — empresa do grupo dedicada à gestão documental física e digital.
+                Damos às empresas e instituições as ferramentas para operar com rigor, segurança e identidade própria num mercado em crescimento acelerado. O Papel faz parte do ecossistema <span className="text-primary font-bold">Faktura</span>, ao lado de <span className="text-primary font-bold">Arquivos</span> — dedicada à gestão documental física e digital.
               </p>
 
               <div className="heroC flex flex-wrap items-start gap-4 mb-12">
