@@ -1277,7 +1277,7 @@ export default function LandingPage() {
                   <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Inicio
                 </button>
               ) : (
-                [['features', 'Faktura'], ['arquivos', 'Arquivos'], ['ecosystem', 'Ecossistema']].map(([h, l]) => (
+                [['features', 'Papel'], ['arquivos', 'Arquivos'], ['ecosystem', 'Ecossistema']].map(([h, l]) => (
                   <a key={h} href={"#" + h} onClick={() => track({ event: 'click', section: 'nav', label: `nav_${h}` })} className="nav-link text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">{l}</a>
                 ))
               )}
