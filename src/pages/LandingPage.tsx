@@ -1490,8 +1490,8 @@ export default function LandingPage() {
                     <div className="faktura-id-card relative z-10 p-8 lg:p-10">
                       <div className="flex items-start justify-between mb-8">
                         <div>
-                          <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Faktura — Angola</p>
-                          <p className="text-white font-black text-lg">Identificador Único Fiscal</p>
+                          <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Papel — Angola</p>
+                          <p className="text-white font-black text-lg">Papel ID</p>
                         </div>
                         <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
                           <ShieldCheck className="w-6 h-6 text-white" />
@@ -1499,9 +1499,9 @@ export default function LandingPage() {
                       </div>
 
                       <div className="mb-8">
-                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-2">O teu identificador</p>
+                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-2">O teu Papel</p>
                         <div className="id-glow bg-white/10 border border-white/25 rounded-2xl px-6 py-4 inline-block">
-                          <p className="text-white font-black text-4xl tracking-[0.3em] font-mono">FT-244-XXXXXX</p>
+                          <p className="text-white font-black text-4xl tracking-[0.3em] font-mono">PP-244-XXXXXX</p>
                         </div>
                       </div>
 
