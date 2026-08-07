@@ -238,6 +238,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bancos_parceiros: {
+        Row: {
+          ativo: boolean
+          contacto_analista: string | null
+          created_at: string
+          email_analista: string | null
+          id: string
+          logo_url: string | null
+          nome: string
+          sigla: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          contacto_analista?: string | null
+          created_at?: string
+          email_analista?: string | null
+          id?: string
+          logo_url?: string | null
+          nome: string
+          sigla?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          contacto_analista?: string | null
+          created_at?: string
+          email_analista?: string | null
+          id?: string
+          logo_url?: string | null
+          nome?: string
+          sigla?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bank_reconciliations: {
         Row: {
           bank_amount: number
@@ -644,6 +680,48 @@ export type Database = {
           role?: Database["public"]["Enums"]["empresa_role"]
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      empresas: {
+        Row: {
+          created_at: string
+          email: string | null
+          endereco: string | null
+          id: string
+          nif: string
+          nome: string
+          software_cert_number: string | null
+          software_certificado: string | null
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nif: string
+          nome: string
+          software_cert_number?: string | null
+          software_certificado?: string | null
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nif?: string
+          nome?: string
+          software_cert_number?: string | null
+          software_certificado?: string | null
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1212,6 +1290,69 @@ export type Database = {
           },
         ]
       }
+      pedidos_credito: {
+        Row: {
+          banco_id: string | null
+          created_at: string
+          dossier: Json
+          empresa_id: string | null
+          estado: string
+          finalidade: string | null
+          id: string
+          notas_analista: string | null
+          score_no_pedido: number | null
+          updated_at: string
+          user_id: string
+          valor_solicitado: number
+          valor_sugerido: number | null
+        }
+        Insert: {
+          banco_id?: string | null
+          created_at?: string
+          dossier?: Json
+          empresa_id?: string | null
+          estado?: string
+          finalidade?: string | null
+          id?: string
+          notas_analista?: string | null
+          score_no_pedido?: number | null
+          updated_at?: string
+          user_id: string
+          valor_solicitado: number
+          valor_sugerido?: number | null
+        }
+        Update: {
+          banco_id?: string | null
+          created_at?: string
+          dossier?: Json
+          empresa_id?: string | null
+          estado?: string
+          finalidade?: string | null
+          id?: string
+          notas_analista?: string | null
+          score_no_pedido?: number | null
+          updated_at?: string
+          user_id?: string
+          valor_solicitado?: number
+          valor_sugerido?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_credito_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos_parceiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_credito_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos: {
         Row: {
           barcode: string | null
@@ -1514,6 +1655,118 @@ export type Database = {
           xml_path?: string | null
         }
         Relationships: []
+      }
+      saft_uploads: {
+        Row: {
+          created_at: string
+          empresa_id: string | null
+          estado: string
+          file_name: string
+          file_path: string | null
+          file_size: number | null
+          hash_control: string | null
+          id: string
+          nif_ficheiro: string | null
+          num_documentos: number
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          periodo_label: string | null
+          software_cert_number: string | null
+          total_vendas: number
+          updated_at: string
+          user_id: string
+          vendas_por_mes: Json
+        }
+        Insert: {
+          created_at?: string
+          empresa_id?: string | null
+          estado?: string
+          file_name: string
+          file_path?: string | null
+          file_size?: number | null
+          hash_control?: string | null
+          id?: string
+          nif_ficheiro?: string | null
+          num_documentos?: number
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          periodo_label?: string | null
+          software_cert_number?: string | null
+          total_vendas?: number
+          updated_at?: string
+          user_id: string
+          vendas_por_mes?: Json
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string | null
+          estado?: string
+          file_name?: string
+          file_path?: string | null
+          file_size?: number | null
+          hash_control?: string | null
+          id?: string
+          nif_ficheiro?: string | null
+          num_documentos?: number
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          periodo_label?: string | null
+          software_cert_number?: string | null
+          total_vendas?: number
+          updated_at?: string
+          user_id?: string
+          vendas_por_mes?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saft_uploads_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      score_historico: {
+        Row: {
+          created_at: string
+          empresa_id: string | null
+          fatores: Json
+          id: string
+          nivel: string
+          periodo: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id?: string | null
+          fatores?: Json
+          id?: string
+          nivel?: string
+          periodo: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string | null
+          fatores?: Json
+          id?: string
+          nivel?: string
+          periodo?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "score_historico_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shared_products: {
         Row: {
@@ -2028,6 +2281,53 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      validacoes_saft: {
+        Row: {
+          certificado_ok: boolean
+          created_at: string
+          detalhes: Json
+          formato_ok: boolean
+          hash_control_ok: boolean
+          id: string
+          mensagem: string | null
+          nif_ok: boolean
+          upload_id: string
+          user_id: string
+        }
+        Insert: {
+          certificado_ok?: boolean
+          created_at?: string
+          detalhes?: Json
+          formato_ok?: boolean
+          hash_control_ok?: boolean
+          id?: string
+          mensagem?: string | null
+          nif_ok?: boolean
+          upload_id: string
+          user_id: string
+        }
+        Update: {
+          certificado_ok?: boolean
+          created_at?: string
+          detalhes?: Json
+          formato_ok?: boolean
+          hash_control_ok?: boolean
+          id?: string
+          mensagem?: string | null
+          nif_ok?: boolean
+          upload_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "validacoes_saft_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "saft_uploads"
             referencedColumns: ["id"]
           },
         ]
