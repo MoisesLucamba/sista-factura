@@ -4,18 +4,17 @@ import { memo, useCallback } from 'react';
 import {
   LayoutDashboard,
   FileText,
-  Users,
-  Package,
-  BarChart3,
+  CreditCard,
+  Building2,
 } from 'lucide-react';
 
 const tabs = [
-  { icon: LayoutDashboard, label: 'Início',     href: '/dashboard'  },
-  { icon: FileText,        label: 'Faturas',    href: '/faturas'    },
-  { icon: Users,           label: 'Clientes',   href: '/clientes'   },
-  { icon: Package,         label: 'Produtos',   href: '/produtos'   },
-  { icon: BarChart3,       label: 'Relatórios', href: '/relatorios' },
+  { icon: LayoutDashboard, label: 'Início',   href: '/dashboard' },
+  { icon: FileText,        label: 'SAF-T',    href: '/saft'      },
+  { icon: CreditCard,      label: 'Crédito',  href: '/credito'   },
+  { icon: Building2,       label: 'Empresa',  href: '/empresa'   },
 ] as const;
+
 
 export const MobileTabBar = memo(function MobileTabBar() {
   const location = useLocation();
