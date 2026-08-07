@@ -21,7 +21,9 @@ const Relatorios = lazy(() => import("./pages/Relatorios"));
 const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const Fornecedores = lazy(() => import("./pages/Fornecedores"));
 const Documentos = lazy(() => import("./pages/Documentos"));
-const Empresa = lazy(() => import("./pages/Empresa"));
+const Empresa = lazy(() => import("./pages/MinhaEmpresa"));
+const EnviarSaft = lazy(() => import("./pages/EnviarSaft"));
+const PedidosCredito = lazy(() => import("./pages/PedidosCredito"));
 const Login = lazy(() => import("./pages/Login"));
 const Registar = lazy(() => import("./pages/Registar"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -180,6 +182,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Documentos />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/saft"
+              element={
+                <ProtectedRoute>
+                  <EnviarSaft />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/credito"
+              element={
+                <ProtectedRoute>
+                  <PedidosCredito />
                 </ProtectedRoute>
               }
             />
