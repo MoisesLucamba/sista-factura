@@ -23,28 +23,17 @@ interface NavItem {
 
 /* ─── Nav config ────────────────────────────────────── */
 const mainNavItems: NavItem[] = [
-  { icon: LayoutDashboard, label: 'Dashboard',    href: '/dashboard'    },
-  { icon: FileText,        label: 'Faturas',      href: '/faturas',     badge: 'novo' },
-  { icon: Users,           label: 'Clientes',     href: '/clientes'     },
-  { icon: Truck,           label: 'Fornecedores', href: '/fornecedores' },
-  { icon: Package,         label: 'Produtos',     href: '/produtos'     },
-  { icon: ScanLine,        label: 'POS',          href: '/pos'          },
-  { icon: Package,         label: 'Stock',        href: '/gestao-stock' },
-  { icon: Receipt,         label: 'Documentos',   href: '/documentos'   },
-  { icon: BarChart3,       label: 'Relatórios',   href: '/relatorios'   },
-  { icon: FileText,        label: 'SAF-T (AGT)',  href: '/relatorios/saft' },
-  { icon: FileText,        label: 'Envios SAF-T', href: '/saft-envios'  },
-  { icon: Store,           label: 'Lojas',        href: '/lojas'        },
-  { icon: MapPin,          label: 'Directório',   href: '/directorio'   },
+  { icon: LayoutDashboard, label: 'Dashboard',   href: '/dashboard' },
+  { icon: FileText,        label: 'Enviar SAF-T', href: '/saft'     },
+  { icon: CreditCard,      label: 'Crédito',      href: '/credito'  },
+  { icon: Building2,       label: 'A minha empresa', href: '/empresa' },
 ];
 
 const secondaryNavItems: NavItem[] = [
-  { icon: CreditCard,  label: 'Subscrição',     href: '/subscricao'    },
-  { icon: Code2,       label: 'API',            href: '/api-keys'      },
   { icon: ShieldCheck, label: 'Admin',          href: '/admin'         },
-  { icon: Building2,   label: 'Empresa',        href: '/empresa'       },
   { icon: Settings,    label: 'Configurações',  href: '/configuracoes' },
 ];
+
 
 /* ═══════════════════════════════════════════════════ */
 export function Sidebar() {
