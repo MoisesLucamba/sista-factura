@@ -31,10 +31,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   // admins review documents asynchronously without blocking the platform.
 
 
-  // Redirect buyers trying to access seller pages
-  if (role === 'comprador' && location.pathname !== '/comprador' && !allowedRoles?.includes('comprador')) {
-    return <Navigate to="/comprador" replace />;
-  }
+  // Nota: o portal de comprador foi descontinuado — todas as contas usam o mesmo dashboard.
+
 
   // Redirect sellers trying to access buyer pages
   if (role && role !== 'comprador' && allowedRoles?.includes('comprador') && allowedRoles.length === 1) {
