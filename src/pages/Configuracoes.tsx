@@ -18,7 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useAgtConfig, useCreateOrUpdateAgtConfig } from '@/hooks/useAgtConfig';
-import { SendHistoryList } from '@/components/faturas/SendHistoryList';
 import { generateRSAKeyPair } from '@/lib/rsa-keygen';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -862,7 +861,7 @@ export default function ConfiguracoesProfessional() {
               </Button>
             </div>
             <div className="p-6">
-              <SendHistoryList limit={10} />
+              <p className="text-sm text-muted-foreground">Sem envios registados.</p>
             </div>
           </div>
         </TabsContent>
