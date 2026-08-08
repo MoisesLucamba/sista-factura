@@ -1671,6 +1671,7 @@ export type Database = {
           periodo_fim: string | null
           periodo_inicio: string | null
           periodo_label: string | null
+          produtos: Json
           software_cert_number: string | null
           total_vendas: number
           updated_at: string
@@ -1691,6 +1692,7 @@ export type Database = {
           periodo_fim?: string | null
           periodo_inicio?: string | null
           periodo_label?: string | null
+          produtos?: Json
           software_cert_number?: string | null
           total_vendas?: number
           updated_at?: string
@@ -1711,6 +1713,7 @@ export type Database = {
           periodo_fim?: string | null
           periodo_inicio?: string | null
           periodo_label?: string | null
+          produtos?: Json
           software_cert_number?: string | null
           total_vendas?: number
           updated_at?: string

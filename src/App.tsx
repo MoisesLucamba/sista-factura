@@ -12,49 +12,24 @@ import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const DashboardComprador = lazy(() => import("./pages/DashboardComprador"));
-const Clientes = lazy(() => import("./pages/Clientes"));
-const Produtos = lazy(() => import("./pages/Produtos"));
-const Faturas = lazy(() => import("./pages/Faturas"));
-const NovaFatura = lazy(() => import("./pages/NovaFatura"));
-const Relatorios = lazy(() => import("./pages/Relatorios"));
-const Configuracoes = lazy(() => import("./pages/Configuracoes"));
-const Fornecedores = lazy(() => import("./pages/Fornecedores"));
-const Documentos = lazy(() => import("./pages/Documentos"));
 const Empresa = lazy(() => import("./pages/MinhaEmpresa"));
 const EnviarSaft = lazy(() => import("./pages/EnviarSaft"));
 const PedidosCredito = lazy(() => import("./pages/PedidosCredito"));
+const Sazonalidade = lazy(() => import("./pages/Sazonalidade"));
+const Configuracoes = lazy(() => import("./pages/Configuracoes"));
 const Login = lazy(() => import("./pages/Login"));
 const Registar = lazy(() => import("./pages/Registar"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const RecuperarSenha = lazy(() => import("./pages/RecuperarSenha"));
-const RecuperarId = lazy(() => import("./pages/RecuperarId"));
 const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
 const TermosDeUso = lazy(() => import("./pages/TermosDeUso"));
 const PoliticaPrivacidade = lazy(() => import("./pages/PoliticaPrivacidade"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Perfil = lazy(() => import("./pages/Perfil"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 const Notificacoes = lazy(() => import("./pages/Notificacoes"));
-const Carteira = lazy(() => import("./pages/Carteira"));
-const Pagamentos = lazy(() => import("./pages/Pagamentos"));
-const PagarLink = lazy(() => import("./pages/PagarLink"));
-const LojaMerchant = lazy(() => import("./pages/LojaMerchant"));
-const ScanComprador = lazy(() => import("./pages/ScanComprador"));
-const HostStoreDashboard = lazy(() => import("./pages/HostStoreDashboard"));
-const StoreDirectory = lazy(() => import("./pages/StoreDirectory"));
-const POS = lazy(() => import("./pages/POS"));
-const BuyerScanInvoice = lazy(() => import("./pages/BuyerScanInvoice"));
-const GestaoStock = lazy(() => import("./pages/GestaoStock"));
-const SaftExport = lazy(() => import("./pages/SaftExport"));
 const EmpresaMembros = lazy(() => import("./pages/EmpresaMembros"));
-const FerramentasAGT = lazy(() => import("./pages/FerramentasAGT"));
-const ApiKeys = lazy(() => import("./pages/ApiKeys"));
-const Subscricao = lazy(() => import("./pages/Subscricao"));
-const SaftSubmissions = lazy(() => import("./pages/SaftSubmissions"));
 const LandingAnalytics = lazy(() => import("./pages/LandingAnalytics"));
-const AdminApiUsage = lazy(() => import("./pages/AdminApiUsage"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -80,108 +55,16 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/registar" element={<Registar />} />
             <Route path="/recuperar-senha" element={<RecuperarSenha />} />
-            <Route path="/recuperar-id" element={<RecuperarId />} />
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
-            <Route path="/pagar/:code" element={<PagarLink />} />
-            <Route path="/loja/:merchantId" element={<LojaMerchant />} />
-            <Route path="/scan/:fakturaId" element={<ScanComprador />} />
-            <Route
-              path="/aprovacao-pendente"
-              element={
-                <ProtectedRoute allowedRoles={['comprador']}>
-                  <PendingApproval />
-                </ProtectedRoute>
-              }
-            />
-            
+
             {/* Protected routes */}
             <Route
               path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/comprador"
-              element={
-                <ProtectedRoute allowedRoles={['comprador']}>
-                  <DashboardComprador />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/clientes"
-              element={
-                <ProtectedRoute>
-                  <Clientes />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/produtos"
-              element={
-                <ProtectedRoute>
-                  <Produtos />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/faturas"
-              element={
-                <ProtectedRoute>
-                  <Faturas />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/pos"
-              element={
-                <ProtectedRoute>
-                  <POS />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/faturas/nova"
-              element={
-                <ProtectedRoute>
-                  <NovaFatura />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/relatorios"
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'contador']}>
-                  <Relatorios />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/configuracoes"
-              element={
-                <ProtectedRoute>
-                  <Configuracoes />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/fornecedores"
-              element={
-                <ProtectedRoute>
-                  <Fornecedores />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/documentos"
-              element={
-                <ProtectedRoute>
-                  <Documentos />
                 </ProtectedRoute>
               }
             />
@@ -202,6 +85,14 @@ const App = () => (
               }
             />
             <Route
+              path="/sazonalidade"
+              element={
+                <ProtectedRoute>
+                  <Sazonalidade />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/empresa"
               element={
                 <ProtectedRoute>
@@ -210,10 +101,18 @@ const App = () => (
               }
             />
             <Route
-              path="/admin"
+              path="/empresa/membros"
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminDashboard />
+                <ProtectedRoute>
+                  <EmpresaMembros />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/configuracoes"
+              element={
+                <ProtectedRoute>
+                  <Configuracoes />
                 </ProtectedRoute>
               }
             />
@@ -234,100 +133,10 @@ const App = () => (
               }
             />
             <Route
-              path="/carteira"
-              element={
-                <ProtectedRoute>
-                  <Carteira />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/pagamentos"
-              element={
-                <ProtectedRoute>
-                  <Pagamentos />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/lojas"
-              element={
-                <ProtectedRoute>
-                  <HostStoreDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/directorio"
-              element={
-                <ProtectedRoute>
-                  <StoreDirectory />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/scan-despesas"
-              element={
-                <ProtectedRoute allowedRoles={['comprador']}>
-                  <BuyerScanInvoice />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/gestao-stock"
-              element={
-                <ProtectedRoute>
-                  <GestaoStock />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/relatorios/saft"
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'contador']}>
-                  <SaftExport />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/empresa/membros"
-              element={
-                <ProtectedRoute>
-                  <EmpresaMembros />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/agt/ferramentas"
+              path="/admin"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
-                  <FerramentasAGT />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/api-keys"
-              element={
-                <ProtectedRoute>
-                  <ApiKeys />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/subscricao"
-              element={
-                <ProtectedRoute>
-                  <Subscricao />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/saft-envios"
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'contador']}>
-                  <SaftSubmissions />
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />
@@ -339,17 +148,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/admin/api-usage"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminApiUsage />
-                </ProtectedRoute>
-              }
-            />
-            
-            
-            
+
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>

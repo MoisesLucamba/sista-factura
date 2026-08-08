@@ -1,0 +1,1 @@
+ALTER TABLE public.saft_uploads ADD COLUMN IF NOT EXISTS produtos jsonb NOT NULL DEFAULT '[]'::jsonb;

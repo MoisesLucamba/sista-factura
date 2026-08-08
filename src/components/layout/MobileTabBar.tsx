@@ -6,12 +6,14 @@ import {
   FileText,
   CreditCard,
   Building2,
+  BarChart3,
 } from 'lucide-react';
 
 const tabs = [
   { icon: LayoutDashboard, label: 'Início',   href: '/dashboard' },
   { icon: FileText,        label: 'SAF-T',    href: '/saft'      },
   { icon: CreditCard,      label: 'Crédito',  href: '/credito'   },
+  { icon: BarChart3,       label: 'Mercado',  href: '/sazonalidade' },
   { icon: Building2,       label: 'Empresa',  href: '/empresa'   },
 ] as const;
 
