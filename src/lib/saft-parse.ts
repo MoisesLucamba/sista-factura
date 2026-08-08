@@ -82,6 +82,7 @@ export function parseSaft(xml: string): SaftParsed {
   const invoices = salesRoot ? Array.from(salesRoot.getElementsByTagName('Invoice')) : [];
 
   const byMonth = new Map<string, SaftMonth>();
+  const byProduto = new Map<string, SaftProduto>();
   const hashesAmostra: string[] = [];
   let totalVendas = 0;
 
@@ -101,11 +102,32 @@ export function parseSaft(xml: string): SaftParsed {
     cur.total += gross;
     cur.documentos += 1;
     byMonth.set(mes, cur);
+
+    // Linhas → produtos
+    for (const line of Array.from(inv.getElementsByTagName('Line'))) {
+      const descricao = text(line, 'ProductDescription') || text(line, 'ProductCode');
+      if (!descricao) continue;
+      const codigo = text(line, 'ProductCode') || descricao;
+      const quantidade = num(text(line, 'Quantity')) || 0;
+      const valor = num(text(line, 'CreditAmount')) ||
+        (num(text(line, 'UnitPrice')) * (quantidade || 1));
+      const key = codigo.toLowerCase();
+      const p = byProduto.get(key) ?? { codigo, descricao, quantidade: 0, total: 0, porMes: {} };
+      p.quantidade += quantidade;
+      p.total += valor;
+      if (mes !== 'sem-data') p.porMes[mes] = (p.porMes[mes] ?? 0) + quantidade;
+      byProduto.set(key, p);
+    }
   }
 
   const vendasPorMes = Array.from(byMonth.values())
     .filter(m => m.mes !== 'sem-data')
     .sort((a, b) => a.mes.localeCompare(b.mes));
+
+  const produtos = Array.from(byProduto.values())
+    .map(p => ({ ...p, total: Math.round(p.total * 100) / 100 }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 200);
 
   const periodoLabel = periodoInicio && periodoFim
     ? `${periodoInicio} → ${periodoFim}`
@@ -123,10 +145,12 @@ export function parseSaft(xml: string): SaftParsed {
     totalVendas: Math.round(totalVendas * 100) / 100,
     numDocumentos: invoices.length,
     vendasPorMes,
+    produtos,
     hashesAmostra,
     hashControl: text(salesRoot ?? header, 'HashControl') || hashesAmostra[0] || '',
   };
 }
+
 
 /** Nº de certificado AGT válido: formato "nNNN.N/AGTYY" ou "NNN/AGTYY". */
 const CERT_RE = /^n?\s*\d+(\.\d+)?\s*\/\s*AGT\s*\d{2}$/i;
