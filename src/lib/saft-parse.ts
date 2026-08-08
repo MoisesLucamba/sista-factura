@@ -9,6 +9,16 @@ export interface SaftMonth {
   documentos: number;
 }
 
+/** Produto agregado a partir das linhas dos documentos do SAF-T. */
+export interface SaftProduto {
+  codigo: string;
+  descricao: string;
+  quantidade: number;
+  total: number;
+  /** quantidade movimentada por mês (YYYY-MM) */
+  porMes: Record<string, number>;
+}
+
 export interface SaftParsed {
   nif: string;
   empresaNome: string;
@@ -21,9 +31,11 @@ export interface SaftParsed {
   totalVendas: number;
   numDocumentos: number;
   vendasPorMes: SaftMonth[];
+  produtos: SaftProduto[];
   hashesAmostra: string[];
   hashControl: string;
 }
+
 
 export interface SaftValidation {
   formatoOk: boolean;
