@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { SaftMonth } from '@/lib/saft-parse';
+import type { SaftMonth, SaftProduto } from '@/lib/saft-parse';
 
 export interface Empresa {
   id: string;
@@ -26,6 +26,7 @@ export interface SaftUpload {
   total_vendas: number;
   num_documentos: number;
   vendas_por_mes: SaftMonth[] | null;
+  produtos: SaftProduto[] | null;
   estado: string;
   created_at: string;
 }

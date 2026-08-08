@@ -56,6 +56,7 @@ export default function EnviarSaft() {
           total_vendas: p.totalVendas,
           num_documentos: p.numDocumentos,
           vendas_por_mes: p.vendasPorMes as unknown as never,
+          produtos: p.produtos as unknown as never,
           estado: v.valido ? 'validado' : 'rejeitado',
         })
         .select('id')
