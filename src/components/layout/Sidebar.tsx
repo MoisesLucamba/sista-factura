@@ -26,6 +26,7 @@ const mainNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard',   href: '/dashboard' },
   { icon: FileText,        label: 'Enviar SAF-T', href: '/saft'     },
   { icon: CreditCard,      label: 'Crédito',      href: '/credito'  },
+  { icon: BarChart3,       label: 'Sazonalidade', href: '/sazonalidade' },
   { icon: Building2,       label: 'A minha empresa', href: '/empresa' },
 ];
 
