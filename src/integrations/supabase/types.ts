@@ -685,9 +685,11 @@ export type Database = {
       }
       empresas: {
         Row: {
+          banco: string | null
           created_at: string
           email: string | null
           endereco: string | null
+          iban: string | null
           id: string
           nif: string
           nome: string
@@ -698,9 +700,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          banco?: string | null
           created_at?: string
           email?: string | null
           endereco?: string | null
+          iban?: string | null
           id?: string
           nif: string
           nome: string
@@ -711,9 +715,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          banco?: string | null
           created_at?: string
           email?: string | null
           endereco?: string | null
+          iban?: string | null
           id?: string
           nif?: string
           nome?: string
@@ -1764,6 +1770,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "score_historico_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seguros_pedidos: {
+        Row: {
+          actividade: string | null
+          contacto: string | null
+          created_at: string
+          empresa_id: string | null
+          estado: string
+          id: string
+          notas: string | null
+          num_trabalhadores: number
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor_seguro: number
+        }
+        Insert: {
+          actividade?: string | null
+          contacto?: string | null
+          created_at?: string
+          empresa_id?: string | null
+          estado?: string
+          id?: string
+          notas?: string | null
+          num_trabalhadores?: number
+          tipo: string
+          updated_at?: string
+          user_id: string
+          valor_seguro?: number
+        }
+        Update: {
+          actividade?: string | null
+          contacto?: string | null
+          created_at?: string
+          empresa_id?: string | null
+          estado?: string
+          id?: string
+          notas?: string | null
+          num_trabalhadores?: number
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor_seguro?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seguros_pedidos_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
