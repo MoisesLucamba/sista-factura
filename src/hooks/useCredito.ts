@@ -14,6 +14,8 @@ export interface Empresa {
   endereco: string | null;
   software_certificado: string | null;
   software_cert_number: string | null;
+  iban: string | null;
+  banco: string | null;
 }
 
 export interface SaftUpload {
