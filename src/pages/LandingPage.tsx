@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { track } from '@/lib/track';
+import logoPapel from '@/assets/faktura-logo.png';
+import heroBusiness from '@/assets/hero-business.jpg';
 import {
   ArrowRight, ShieldCheck, UploadCloud, Gauge, Banknote, CheckCircle2,
-  FileText, Building2, TrendingUp, Lock, CalendarClock,
+  FileText, Building2, TrendingUp, Lock, CalendarClock, Calculator, Mail, Phone, MapPin,
 } from 'lucide-react';
 
 const passos = [
