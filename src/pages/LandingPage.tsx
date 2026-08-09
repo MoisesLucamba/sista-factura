@@ -221,28 +221,91 @@ export default function LandingPage() {
           <p className="mt-4 text-muted-foreground">
             Cria a tua conta, envia o primeiro SAF-T e vê o teu score em minutos.
           </p>
-          <Button asChild size="lg" className="mt-8 h-12 px-8 text-base font-bold">
-            <Link to="/registar" onClick={() => click('cta_final_comecar_gratis')}>
-              Começar Grátis <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-          </Button>
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            <Button asChild size="lg" className="h-12 px-8 text-base font-bold">
+              <Link to="/explorar" onClick={() => click('cta_final_comecar_gratis')}>
+                Começar Grátis <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
+              <Link to="/simulador" onClick={() => click('cta_final_simulador')}>
+                <Calculator className="w-4 h-4 mr-2" /> Simular crédito
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-border/60 py-10">
-        <div className="max-w-6xl mx-auto px-5 flex flex-col md:flex-row gap-4 items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-primary" />
-            <span>Papel · Faktura Angola · NIF 5002964031</span>
+      <footer className="border-t border-border/60 bg-card/40">
+        <div className="max-w-6xl mx-auto px-5 py-14">
+          <div className="grid gap-10 md:grid-cols-4">
+            <div className="md:col-span-1">
+              <img src={logoPapel} alt="Papel" className="h-11 object-contain" />
+              <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
+                Originação de crédito para empresas angolanas, a partir de dados fiscais
+                validados pelo SAF-T (AO).
+              </p>
+              <p className="mt-4 inline-flex items-center gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Validação AGT
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold">Produto</h3>
+              <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+                <li><a href="#como" className="hover:text-foreground transition-colors">Como funciona</a></li>
+                <li><a href="#confianca" className="hover:text-foreground transition-colors">Validação AGT</a></li>
+                <li><a href="#sazonalidade" className="hover:text-foreground transition-colors">Sazonalidade</a></li>
+                <li><Link to="/simulador" className="hover:text-foreground transition-colors">Simulador de crédito</Link></li>
+                <li><Link to="/explorar" className="hover:text-foreground transition-colors">Modo visitante</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold">Conta</h3>
+              <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+                <li><Link to="/login" className="hover:text-foreground transition-colors">Entrar</Link></li>
+                <li><Link to="/registar" className="hover:text-foreground transition-colors">Criar conta</Link></li>
+                <li><Link to="/recuperar-senha" className="hover:text-foreground transition-colors">Recuperar palavra-passe</Link></li>
+                <li><Link to="/termos" className="hover:text-foreground transition-colors">Termos de uso</Link></li>
+                <li><Link to="/privacidade" className="hover:text-foreground transition-colors">Política de privacidade</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold">Empresa</h3>
+              <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <Building2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <span>Faktura Angola, Lda · NIF 5002964031</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <span>Luanda, Angola</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Mail className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <a href="mailto:geral@faktura.ao" className="hover:text-foreground transition-colors">geral@faktura.ao</a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Phone className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <a href="tel:+244900000000" className="hover:text-foreground transition-colors">+244 900 000 000</a>
+                </li>
+              </ul>
+            </div>
           </div>
-          <div className="flex items-center gap-5">
-            <Link to="/termos" className="hover:text-foreground transition-colors">Termos</Link>
-            <Link to="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
-            <Link to="/login" className="hover:text-foreground transition-colors">Entrar</Link>
+
+          <div className="mt-12 pt-6 border-t border-border/60 flex flex-col md:flex-row gap-3 items-center justify-between text-xs text-muted-foreground">
+            <span>© {new Date().getFullYear()} Faktura Angola, Lda. Todos os direitos reservados.</span>
+            <span className="inline-flex items-center gap-2">
+              <FileText className="w-3.5 h-3.5 text-primary" />
+              Papel não é uma instituição financeira: apresentamos o teu dossier a bancos parceiros.
+            </span>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
