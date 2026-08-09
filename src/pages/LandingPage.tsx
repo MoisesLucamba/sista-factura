@@ -86,19 +86,35 @@ export default function LandingPage() {
           </p>
           <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg" className="h-12 px-8 text-base font-bold">
-              <Link to="/registar" onClick={() => click('hero_comecar_gratis')}>
+              <Link to="/explorar" onClick={() => click('hero_comecar_gratis')}>
                 Começar Grátis <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
-              <a href="#como" onClick={() => click('hero_como_funciona')}>Ver como funciona</a>
+              <Link to="/simulador" onClick={() => click('hero_simulador')}>
+                <Calculator className="w-4 h-4 mr-2" /> Simular crédito
+              </Link>
             </Button>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
             Sem cartão. Sem mudar de software de faturação.
           </p>
+
+          {/* Imagem principal */}
+          <div className="mt-14 relative">
+            <div className="absolute -inset-x-6 -top-6 bottom-10 -z-10 rounded-[2.5rem] bg-primary/10 blur-2xl" />
+            <div className="rounded-3xl overflow-hidden border border-border shadow-2xl">
+              <img
+                src={heroBusiness}
+                alt="Empresários angolanos a analisar o desempenho da empresa"
+                className="w-full h-[280px] md:h-[440px] object-cover"
+                loading="eager"
+              />
+            </div>
+          </div>
         </div>
       </section>
+
 
       {/* COMO FUNCIONA */}
       <section id="como" className="border-t border-border/60 py-20">
