@@ -39,16 +39,23 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-              <FileText className="w-4 h-4 text-primary-foreground" />
-            </span>
-            <span className="text-lg font-black tracking-tight">Papel</span>
+            <img src={logoPapel} alt="Papel · Faktura Angola" className="h-9 md:h-10 object-contain" />
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
             <a href="#como" className="hover:text-foreground transition-colors">Como funciona</a>
             <a href="#confianca" className="hover:text-foreground transition-colors">Confiança</a>
             <a href="#sazonalidade" className="hover:text-foreground transition-colors">Sazonalidade</a>
+            <Link to="/simulador" className="hover:text-foreground transition-colors">Simulador</Link>
           </nav>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/explorar" onClick={() => click('nav_login')}>Entrar</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link to="/explorar" onClick={() => click('nav_comecar_gratis')}>Começar Grátis</Link>
+            </Button>
+          </div>
+
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
               <Link to="/login" onClick={() => click('nav_login')}>Entrar</Link>
