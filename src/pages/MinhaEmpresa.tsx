@@ -14,6 +14,7 @@ export default function MinhaEmpresa() {
   const [form, setForm] = useState({
     nome: '', nif: '', email: '', telefone: '', endereco: '',
     software_certificado: '', software_cert_number: '',
+    iban: '', banco: '',
   });
 
   useEffect(() => {
@@ -26,6 +27,8 @@ export default function MinhaEmpresa() {
         endereco: empresa.endereco ?? '',
         software_certificado: empresa.software_certificado ?? '',
         software_cert_number: empresa.software_cert_number ?? '',
+        iban: empresa.iban ?? '',
+        banco: empresa.banco ?? '',
       });
     }
   }, [empresa]);
@@ -86,7 +89,18 @@ export default function MinhaEmpresa() {
                 <Input value={form.software_cert_number} onChange={set('software_cert_number')}
                        placeholder="n31.1/AGT20" />
               </div>
+              <div className="space-y-2">
+                <Label>Banco da empresa</Label>
+                <Input value={form.banco} onChange={set('banco')}
+                       placeholder="Ex.: BAI, BFA, BIC, Standard Bank" />
+              </div>
+              <div className="space-y-2">
+                <Label>IBAN</Label>
+                <Input value={form.iban} onChange={set('iban')}
+                       placeholder="AO06 0000 0000 0000 0000 0000 0" />
+              </div>
             </div>
+
             <Button type="submit" disabled={save.isPending}>
               {save.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
               Guardar
