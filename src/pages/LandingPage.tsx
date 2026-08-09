@@ -57,15 +57,6 @@ export default function LandingPage() {
               <Link to="/explorar" onClick={() => click('nav_comecar_gratis')}>Começar Grátis</Link>
             </Button>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/login" onClick={() => click('nav_login')}>Entrar</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/registar" onClick={() => click('nav_comecar_gratis')}>Começar Grátis</Link>
-            </Button>
-          </div>
         </div>
       </header>
 
