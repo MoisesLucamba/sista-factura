@@ -14,6 +14,7 @@ export default function MinhaEmpresa() {
   const [form, setForm] = useState({
     nome: '', nif: '', email: '', telefone: '', endereco: '',
     software_certificado: '', software_cert_number: '',
+    iban: '', banco: '',
   });
 
   useEffect(() => {
@@ -26,6 +27,8 @@ export default function MinhaEmpresa() {
         endereco: empresa.endereco ?? '',
         software_certificado: empresa.software_certificado ?? '',
         software_cert_number: empresa.software_cert_number ?? '',
+        iban: empresa.iban ?? '',
+        banco: empresa.banco ?? '',
       });
     }
   }, [empresa]);
