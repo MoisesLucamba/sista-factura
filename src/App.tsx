@@ -30,6 +30,9 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const Notificacoes = lazy(() => import("./pages/Notificacoes"));
 const EmpresaMembros = lazy(() => import("./pages/EmpresaMembros"));
 const LandingAnalytics = lazy(() => import("./pages/LandingAnalytics"));
+const Simulador = lazy(() => import("./pages/Simulador"));
+const Explorar = lazy(() => import("./pages/Explorar"));
+const Seguros = lazy(() => import("./pages/Seguros"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
