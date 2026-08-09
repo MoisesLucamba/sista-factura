@@ -27,7 +27,9 @@ const mainNavItems: NavItem[] = [
   { icon: FileText,        label: 'Enviar SAF-T', href: '/saft'     },
   { icon: CreditCard,      label: 'Crédito',      href: '/credito'  },
   { icon: BarChart3,       label: 'Sazonalidade', href: '/sazonalidade' },
+  { icon: ShieldCheck,     label: 'Seguros PME',  href: '/seguros'  },
   { icon: Building2,       label: 'A minha empresa', href: '/empresa' },
+
 ];
 
 const secondaryNavItems: NavItem[] = [
