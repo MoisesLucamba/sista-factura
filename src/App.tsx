@@ -115,6 +115,14 @@ const App = () => (
               }
             />
             <Route
+              path="/seguros"
+              element={
+                <ProtectedRoute>
+                  <Seguros />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/configuracoes"
               element={
                 <ProtectedRoute>
@@ -122,6 +130,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+
             <Route
               path="/perfil"
               element={
