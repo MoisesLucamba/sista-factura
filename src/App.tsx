@@ -61,9 +61,12 @@ const App = () => (
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/termos" element={<TermosDeUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/simulador" element={<Simulador />} />
+            <Route path="/explorar" element={<Explorar />} />
 
             {/* Protected routes */}
             <Route
+
               path="/dashboard"
               element={
                 <ProtectedRoute>
