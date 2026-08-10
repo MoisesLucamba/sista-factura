@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type AppRole = 'admin' | 'operador' | 'contador' | 'comprador';
+export type AppRole = 'admin' | 'operador' | 'contador' | 'comprador' | 'banco' | 'seguradora';
 
 interface Profile {
   id: string;
@@ -16,6 +16,7 @@ interface Profile {
   tipo?: string;
   faktura_id?: string;
   approval_status?: string;
+  account_type?: string;
   created_at: string;
   updated_at: string;
 }
@@ -26,7 +27,7 @@ interface AuthContextType {
   profile: Profile | null;
   role: AppRole | null;
   loading: boolean;
-  signUp: (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string; sellerSubtype?: string; referralCode?: string; empresaNome?: string }) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, nome: string, extra?: Record<string, unknown>) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasRole: (requiredRole: AppRole) => boolean;
@@ -131,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string; sellerSubtype?: string; referralCode?: string; empresaNome?: string }) => {
+  const signUp = async (email: string, password: string, nome: string, extra?: Record<string, unknown>) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -140,12 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           emailRedirectTo: window.location.origin,
           data: {
             nome,
-            nif: extra?.nif,
-            telefone: extra?.telefone,
-            tipo: extra?.tipo || 'vendedor',
-            seller_subtype: extra?.sellerSubtype,
-            referral_code: extra?.referralCode,
-            empresa_nome: extra?.empresaNome,
+            account_type: 'particular',
+            ...(extra ?? {}),
           },
         },
       });

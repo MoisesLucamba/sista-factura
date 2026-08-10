@@ -247,6 +247,7 @@ export type Database = {
           id: string
           logo_url: string | null
           nome: string
+          owner_user_id: string | null
           sigla: string | null
           updated_at: string
         }
@@ -258,6 +259,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nome: string
+          owner_user_id?: string | null
           sigla?: string | null
           updated_at?: string
         }
@@ -269,6 +271,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nome?: string
+          owner_user_id?: string | null
           sigla?: string | null
           updated_at?: string
         }
@@ -596,6 +599,130 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      credito_decisoes: {
+        Row: {
+          banco_id: string | null
+          created_at: string
+          decidido_por: string
+          decisao: string
+          id: string
+          observacoes: string | null
+          pedido_id: string
+          prazo_meses: number | null
+          taxa_juro: number | null
+          valor_aprovado: number | null
+        }
+        Insert: {
+          banco_id?: string | null
+          created_at?: string
+          decidido_por: string
+          decisao: string
+          id?: string
+          observacoes?: string | null
+          pedido_id: string
+          prazo_meses?: number | null
+          taxa_juro?: number | null
+          valor_aprovado?: number | null
+        }
+        Update: {
+          banco_id?: string | null
+          created_at?: string
+          decidido_por?: string
+          decisao?: string
+          id?: string
+          observacoes?: string | null
+          pedido_id?: string
+          prazo_meses?: number | null
+          taxa_juro?: number | null
+          valor_aprovado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credito_decisoes_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos_parceiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credito_decisoes_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos_credito"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      desembolsos: {
+        Row: {
+          banco_destino: string | null
+          banco_id: string | null
+          beneficiario_user_id: string
+          created_at: string
+          decisao_id: string | null
+          estado: string
+          iban_destino: string | null
+          id: string
+          pago_em: string | null
+          pedido_id: string
+          referencia: string | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          banco_destino?: string | null
+          banco_id?: string | null
+          beneficiario_user_id: string
+          created_at?: string
+          decisao_id?: string | null
+          estado?: string
+          iban_destino?: string | null
+          id?: string
+          pago_em?: string | null
+          pedido_id: string
+          referencia?: string | null
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          banco_destino?: string | null
+          banco_id?: string | null
+          beneficiario_user_id?: string
+          created_at?: string
+          decisao_id?: string | null
+          estado?: string
+          iban_destino?: string | null
+          id?: string
+          pago_em?: string | null
+          pedido_id?: string
+          referencia?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "desembolsos_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos_parceiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "desembolsos_decisao_id_fkey"
+            columns: ["decisao_id"]
+            isOneToOne: false
+            referencedRelation: "credito_decisoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "desembolsos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos_credito"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       document_signatures: {
         Row: {
@@ -1224,6 +1351,54 @@ export type Database = {
         }
         Relationships: []
       }
+      papel_eventos: {
+        Row: {
+          actor_user_id: string | null
+          banco_id: string | null
+          created_at: string
+          empresa_user_id: string | null
+          id: string
+          payload: Json
+          pedido_id: string | null
+          tipo: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          banco_id?: string | null
+          created_at?: string
+          empresa_user_id?: string | null
+          id?: string
+          payload?: Json
+          pedido_id?: string | null
+          tipo: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          banco_id?: string | null
+          created_at?: string
+          empresa_user_id?: string | null
+          id?: string
+          payload?: Json
+          pedido_id?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "papel_eventos_banco_id_fkey"
+            columns: ["banco_id"]
+            isOneToOne: false
+            referencedRelation: "bancos_parceiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "papel_eventos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos_credito"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_links: {
         Row: {
           amount: number
@@ -1424,22 +1599,35 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string
           approval_status: string
           approved_at: string | null
           approved_by: string | null
           avatar_url: string | null
+          bi_numero: string | null
           created_at: string
+          data_nascimento: string | null
           email: string
           faktura_id: string | null
+          iban_institucional: string | null
           id: string
           id_doc_back_url: string | null
           id_doc_front_url: string | null
           id_doc_nif_url: string | null
+          instituicao_nome: string | null
+          integracao_contacto: string | null
+          licenca_numero: string | null
+          morada: string | null
           nif: string | null
           nome: string
+          produtos_seguro: string[] | null
           referral_code: string | null
           referred_by: string | null
+          registo_numero: string | null
           rejection_reason: string | null
+          responsavel_cargo: string | null
+          responsavel_nome: string | null
+          sector_actividade: string | null
           seller_subtype: string | null
           telefone: string | null
           tipo: string | null
@@ -1447,22 +1635,35 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_type?: string
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
           avatar_url?: string | null
+          bi_numero?: string | null
           created_at?: string
+          data_nascimento?: string | null
           email: string
           faktura_id?: string | null
+          iban_institucional?: string | null
           id?: string
           id_doc_back_url?: string | null
           id_doc_front_url?: string | null
           id_doc_nif_url?: string | null
+          instituicao_nome?: string | null
+          integracao_contacto?: string | null
+          licenca_numero?: string | null
+          morada?: string | null
           nif?: string | null
           nome: string
+          produtos_seguro?: string[] | null
           referral_code?: string | null
           referred_by?: string | null
+          registo_numero?: string | null
           rejection_reason?: string | null
+          responsavel_cargo?: string | null
+          responsavel_nome?: string | null
+          sector_actividade?: string | null
           seller_subtype?: string | null
           telefone?: string | null
           tipo?: string | null
@@ -1470,22 +1671,35 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_type?: string
           approval_status?: string
           approved_at?: string | null
           approved_by?: string | null
           avatar_url?: string | null
+          bi_numero?: string | null
           created_at?: string
+          data_nascimento?: string | null
           email?: string
           faktura_id?: string | null
+          iban_institucional?: string | null
           id?: string
           id_doc_back_url?: string | null
           id_doc_front_url?: string | null
           id_doc_nif_url?: string | null
+          instituicao_nome?: string | null
+          integracao_contacto?: string | null
+          licenca_numero?: string | null
+          morada?: string | null
           nif?: string | null
           nome?: string
+          produtos_seguro?: string[] | null
           referral_code?: string | null
           referred_by?: string | null
+          registo_numero?: string | null
           rejection_reason?: string | null
+          responsavel_cargo?: string | null
+          responsavel_nome?: string | null
+          sector_actividade?: string | null
           seller_subtype?: string | null
           telefone?: string | null
           tipo?: string | null
@@ -2462,6 +2676,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      banco_do_utilizador: { Args: { _user_id: string }; Returns: string }
       create_audit_log: {
         Args: {
           _action: string
@@ -2548,9 +2763,19 @@ export type Database = {
         }[]
       }
       mark_overdue_invoices: { Args: { _user_id: string }; Returns: number }
+      tem_papel: {
+        Args: { _papel: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "operador" | "contador" | "comprador"
+      app_role:
+        | "admin"
+        | "operador"
+        | "contador"
+        | "comprador"
+        | "banco"
+        | "seguradora"
       empresa_role: "gestor" | "operador" | "contador" | "visualizador"
       send_channel: "whatsapp" | "sms" | "email"
       send_status: "pending" | "sent" | "delivered" | "failed" | "read"
@@ -2681,7 +2906,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "operador", "contador", "comprador"],
+      app_role: [
+        "admin",
+        "operador",
+        "contador",
+        "comprador",
+        "banco",
+        "seguradora",
+      ],
       empresa_role: ["gestor", "operador", "contador", "visualizador"],
       send_channel: ["whatsapp", "sms", "email"],
       send_status: ["pending", "sent", "delivered", "failed", "read"],
