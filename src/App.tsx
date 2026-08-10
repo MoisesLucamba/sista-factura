@@ -124,6 +124,14 @@ const App = () => (
               }
             />
             <Route
+              path="/banco"
+              element={
+                <ProtectedRoute allowedRoles={['banco']}>
+                  <PainelBanco />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/configuracoes"
               element={
                 <ProtectedRoute>
