@@ -203,6 +203,46 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* PERFIS */}
+      <section id="perfis" className="border-t border-border/60 py-20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.12),transparent_65%)]">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center max-w-2xl mx-auto">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-4 py-1.5 text-xs font-bold text-primary">
+              Quatro perfis, um só circuito
+            </span>
+            <h2 className="mt-5 text-3xl md:text-4xl font-black tracking-tight">
+              Seja quem fores, tens lugar na Papel.
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Cria a tua conta em menos de dois minutos. Só te pedimos os dados que o teu perfil precisa.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {PERFIS.map(p => {
+              const Icon = p.icon;
+              return (
+                <Link
+                  key={p.id}
+                  to={`/registar?perfil=${p.id}`}
+                  onClick={() => click(`cta_perfil_${p.id}`)}
+                  className="group rounded-2xl border border-primary/25 bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary hover:shadow-[0_18px_40px_-24px_hsl(var(--primary))]"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-primary/15 text-primary flex items-center justify-center transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <p className="mt-4 font-black">{p.titulo}</p>
+                  <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{p.resumo}</p>
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-primary">
+                    Começar <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="border-t border-border/60 py-20">
         <div className="max-w-3xl mx-auto px-5 text-center">
