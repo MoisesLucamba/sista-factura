@@ -15,6 +15,20 @@ import {
 import logoPapel from '@/assets/faktura-logo.png';
 import teamCollab from '@/assets/team-collab.jpg';
 
+function Campo({ id, label, type = 'text', placeholder, hint, value, onChange, disabled }: {
+  id: string; label: string; type?: string; placeholder?: string; hint?: string;
+  value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; disabled?: boolean;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input id={id} type={type} value={value} onChange={onChange}
+             placeholder={placeholder} disabled={disabled} />
+      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
 type Campos = Record<string, string>;
 
 export default function Registar() {
@@ -131,17 +145,6 @@ export default function Registar() {
     );
   }
 
-  const Campo = ({ id, label, type = 'text', placeholder, hint }: {
-    id: string; label: string; type?: string; placeholder?: string; hint?: string;
-  }) => (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type={type} value={f[id] ?? ''} onChange={set(id)}
-             placeholder={placeholder} disabled={loading} />
-      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
-    </div>
-  );
-
   return (
     <div className="min-h-screen flex bg-background">
       <div className="hidden lg:flex lg:w-[44%] relative flex-col overflow-hidden">
@@ -228,27 +231,27 @@ export default function Registar() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {tipo === 'particular' && (
                   <>
-                    <Campo id="nome" label="Nome completo *" />
-                    <Campo id="bi_numero" label="BI / Documento de identificação *" placeholder="00XXXXXXXLA0XX" />
-                    <Campo id="data_nascimento" label="Data de nascimento" type="date" />
-                    <Campo id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
-                    <Campo id="email" label="Email *" type="email" />
-                    <Campo id="morada" label="Morada" placeholder="Rua, bairro, município, província" />
+                    <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label="Nome completo *" />
+                    <Campo value={f.bi_numero ?? ''} onChange={set('bi_numero')} disabled={loading} id="bi_numero" label="BI / Documento de identificação *" placeholder="00XXXXXXXLA0XX" />
+                    <Campo value={f.data_nascimento ?? ''} onChange={set('data_nascimento')} disabled={loading} id="data_nascimento" label="Data de nascimento" type="date" />
+                    <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
+                    <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email *" type="email" />
+                    <Campo value={f.morada ?? ''} onChange={set('morada')} disabled={loading} id="morada" label="Morada" placeholder="Rua, bairro, município, província" />
                   </>
                 )}
 
                 {tipo === 'empresa' && (
                   <>
-                    <Campo id="nome" label="Nome da empresa *" />
-                    <Campo id="nif" label="NIF *" placeholder="5000000000" />
-                    <Campo id="sector_actividade" label="Sector de actividade *" placeholder="Comércio a retalho, construção, serviços…" />
-                    <Campo id="morada" label="Endereço da sede" />
+                    <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label="Nome da empresa *" />
+                    <Campo value={f.nif ?? ''} onChange={set('nif')} disabled={loading} id="nif" label="NIF *" placeholder="5000000000" />
+                    <Campo value={f.sector_actividade ?? ''} onChange={set('sector_actividade')} disabled={loading} id="sector_actividade" label="Sector de actividade *" placeholder="Comércio a retalho, construção, serviços…" />
+                    <Campo value={f.morada ?? ''} onChange={set('morada')} disabled={loading} id="morada" label="Endereço da sede" />
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <Campo id="responsavel_nome" label="Responsável *" />
-                      <Campo id="responsavel_cargo" label="Cargo" placeholder="Administrador, CFO…" />
+                      <Campo value={f.responsavel_nome ?? ''} onChange={set('responsavel_nome')} disabled={loading} id="responsavel_nome" label="Responsável *" />
+                      <Campo value={f.responsavel_cargo ?? ''} onChange={set('responsavel_cargo')} disabled={loading} id="responsavel_cargo" label="Cargo" placeholder="Administrador, CFO…" />
                     </div>
-                    <Campo id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
-                    <Campo id="email" label="Email *" type="email" />
+                    <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
+                    <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email *" type="email" />
                     <div className="rounded-xl border border-border bg-card/60 p-4 text-xs text-muted-foreground">
                       Depois de confirmares o email, submetes os teus ficheiros <strong>SAF-T (AO)</strong> em
                       <strong> Enviar SAF-T</strong> para gerar o teu Papel Score.
@@ -258,14 +261,14 @@ export default function Registar() {
 
                 {tipo === 'banco' && (
                   <>
-                    <Campo id="nome" label="Nome da instituição *" />
-                    <Campo id="nif" label="NIF / nº de registo bancário *" />
-                    <Campo id="licenca_numero" label="Nº de licença / autorização do BNA *" />
-                    <Campo id="responsavel_nome" label="Responsável de onboarding *" />
-                    <Campo id="email" label="Email institucional *" type="email" placeholder="nome@banco.ao"
+                    <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label="Nome da instituição *" />
+                    <Campo value={f.nif ?? ''} onChange={set('nif')} disabled={loading} id="nif" label="NIF / nº de registo bancário *" />
+                    <Campo value={f.licenca_numero ?? ''} onChange={set('licenca_numero')} disabled={loading} id="licenca_numero" label="Nº de licença / autorização do BNA *" />
+                    <Campo value={f.responsavel_nome ?? ''} onChange={set('responsavel_nome')} disabled={loading} id="responsavel_nome" label="Responsável de onboarding *" />
+                    <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email institucional *" type="email" placeholder="nome@banco.ao"
                            hint="Não são aceites emails pessoais (gmail, hotmail, outlook…)." />
-                    <Campo id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
-                    <Campo id="iban_institucional" label="IBAN institucional *" placeholder="AO06 0000 0000 0000 0000 0000 0" />
+                    <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
+                    <Campo value={f.iban_institucional ?? ''} onChange={set('iban_institucional')} disabled={loading} id="iban_institucional" label="IBAN institucional *" placeholder="AO06 0000 0000 0000 0000 0000 0" />
                     <div className="space-y-2">
                       <Label htmlFor="integracao_contacto">Contacto técnico para integração (API / webhook)</Label>
                       <Textarea id="integracao_contacto" value={f.integracao_contacto ?? ''}
@@ -277,13 +280,13 @@ export default function Registar() {
 
                 {tipo === 'seguradora' && (
                   <>
-                    <Campo id="nome" label="Nome da seguradora *" />
-                    <Campo id="nif" label="NIF / nº de registo *" />
-                    <Campo id="licenca_numero" label="Nº de licença / autorização da ARSEG *" />
-                    <Campo id="responsavel_nome" label="Responsável *" />
-                    <Campo id="email" label="Email institucional *" type="email" placeholder="nome@seguradora.ao"
+                    <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label="Nome da seguradora *" />
+                    <Campo value={f.nif ?? ''} onChange={set('nif')} disabled={loading} id="nif" label="NIF / nº de registo *" />
+                    <Campo value={f.licenca_numero ?? ''} onChange={set('licenca_numero')} disabled={loading} id="licenca_numero" label="Nº de licença / autorização da ARSEG *" />
+                    <Campo value={f.responsavel_nome ?? ''} onChange={set('responsavel_nome')} disabled={loading} id="responsavel_nome" label="Responsável *" />
+                    <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email institucional *" type="email" placeholder="nome@seguradora.ao"
                            hint="Não são aceites emails pessoais (gmail, hotmail, outlook…)." />
-                    <Campo id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
+                    <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
                     <div className="space-y-2">
                       <Label htmlFor="produtos_seguro">Produtos de seguro a oferecer *</Label>
                       <Textarea id="produtos_seguro" value={f.produtos_seguro ?? ''}
