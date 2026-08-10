@@ -33,6 +33,7 @@ const LandingAnalytics = lazy(() => import("./pages/LandingAnalytics"));
 const Simulador = lazy(() => import("./pages/Simulador"));
 const Explorar = lazy(() => import("./pages/Explorar"));
 const Seguros = lazy(() => import("./pages/Seguros"));
+const PainelBanco = lazy(() => import("./pages/PainelBanco"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
