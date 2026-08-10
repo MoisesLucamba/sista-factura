@@ -7,7 +7,7 @@ import {
   BarChart3, Settings, Building2, Truck,
   Receipt, Search, LogOut, ChevronLeft,
   ChevronRight, Bell, X, ShieldCheck, Store, MapPin, ScanLine,
-  Code2, CreditCard,
+  Code2, CreditCard, Landmark,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,6 +29,7 @@ const mainNavItems: NavItem[] = [
   { icon: BarChart3,       label: 'Sazonalidade', href: '/sazonalidade' },
   { icon: ShieldCheck,     label: 'Seguros PME',  href: '/seguros'  },
   { icon: Building2,       label: 'A minha empresa', href: '/empresa' },
+  { icon: Landmark,        label: 'Painel do Banco', href: '/banco' },
 
 ];
 
@@ -50,9 +51,10 @@ export function Sidebar() {
 
   useEffect(() => { setSearch(''); setSearchFocused(false); }, [location.pathname]);
 
-  const filteredMain = mainNavItems.filter(i =>
-    !search || i.label.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredMain = mainNavItems.filter(i => {
+    if (i.href === '/banco' && role !== 'banco' && role !== 'admin') return false;
+    return !search || i.label.toLowerCase().includes(search.toLowerCase());
+  });
   const filteredSecondary = secondaryNavItems.filter(i => {
     if (i.href === '/admin' && role !== 'admin') return false;
     return !search || i.label.toLowerCase().includes(search.toLowerCase());
