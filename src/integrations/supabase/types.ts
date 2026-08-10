@@ -2550,7 +2550,13 @@ export type Database = {
       mark_overdue_invoices: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
-      app_role: "admin" | "operador" | "contador" | "comprador"
+      app_role:
+        | "admin"
+        | "operador"
+        | "contador"
+        | "comprador"
+        | "banco"
+        | "seguradora"
       empresa_role: "gestor" | "operador" | "contador" | "visualizador"
       send_channel: "whatsapp" | "sms" | "email"
       send_status: "pending" | "sent" | "delivered" | "failed" | "read"
@@ -2681,7 +2687,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "operador", "contador", "comprador"],
+      app_role: [
+        "admin",
+        "operador",
+        "contador",
+        "comprador",
+        "banco",
+        "seguradora",
+      ],
       empresa_role: ["gestor", "operador", "contador", "visualizador"],
       send_channel: ["whatsapp", "sms", "email"],
       send_status: ["pending", "sent", "delivered", "failed", "read"],
