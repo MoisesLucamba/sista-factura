@@ -20,14 +20,16 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { signIn, user } = useAuth();
+  const { signIn, user, role } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
   useEffect(() => {
-    if (user) navigate(from || '/dashboard', { replace: true });
-  }, [user, navigate, from]);
+    if (!user) return;
+    const destino = from || (role === 'banco' ? '/banco' : '/dashboard');
+    navigate(destino, { replace: true });
+  }, [user, role, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
