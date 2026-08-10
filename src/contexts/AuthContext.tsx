@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, nome: string, extra?: { nif?: string; telefone?: string; tipo?: string; sellerSubtype?: string; referralCode?: string; empresaNome?: string }) => {
+  const signUp = async (email: string, password: string, nome: string, extra?: Record<string, unknown>) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -140,12 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           emailRedirectTo: window.location.origin,
           data: {
             nome,
-            nif: extra?.nif,
-            telefone: extra?.telefone,
-            tipo: extra?.tipo || 'vendedor',
-            seller_subtype: extra?.sellerSubtype,
-            referral_code: extra?.referralCode,
-            empresa_nome: extra?.empresaNome,
+            account_type: 'particular',
+            ...(extra ?? {}),
           },
         },
       });
