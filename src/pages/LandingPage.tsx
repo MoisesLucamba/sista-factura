@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { track } from '@/lib/track';
 import logoPapel from '@/assets/faktura-logo.png';
 import heroBusiness from '@/assets/hero-business.jpg';
+import creditoPme from '@/assets/credito-pme.jpg';
+import bancoAnalise from '@/assets/banco-analise.jpg';
 import { PERFIS } from '@/lib/perfis';
 import {
   ArrowRight, ShieldCheck, UploadCloud, Gauge, Banknote, CheckCircle2,
