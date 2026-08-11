@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import logoFaktura from '@/assets/faktura-logo.png';
+import logoPapel from '@/assets/faktura-logo.png';
 
 export default function TermosDeUso() {
   return (
@@ -9,7 +9,7 @@ export default function TermosDeUso() {
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoFaktura} alt="Faktura" className="h-9 object-contain" />
+            <img src={logoPapel} alt="Papel" className="h-9 object-contain" />
           </Link>
           <Link to="/">
             <Button variant="ghost" size="sm" className="gap-2">
@@ -20,64 +20,88 @@ export default function TermosDeUso() {
       </nav>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h1 className="text-4xl font-black tracking-tight mb-2">Termos de Uso</h1>
-        <p className="text-muted-foreground mb-10">Última atualização: {new Date().toLocaleDateString('pt-AO')}</p>
+        <h1 className="text-4xl font-black tracking-tight mb-2">Termos de Uso e Política da Plataforma</h1>
+        <p className="text-muted-foreground mb-10">Última actualização: {new Date().toLocaleDateString('pt-AO')}</p>
 
         <div className="prose prose-lg max-w-none space-y-8 text-foreground/80">
           <section>
-            <h2 className="text-2xl font-bold text-foreground">1. Aceitação dos Termos</h2>
-            <p>Ao aceder e utilizar a plataforma Faktura Angola ("Plataforma"), o utilizador ("Utilizador") concorda com os presentes Termos de Uso. Caso não concorde, deverá cessar imediatamente a utilização da Plataforma.</p>
+            <h2 className="text-2xl font-bold text-foreground">1. Aceitação</h2>
+            <p>Ao aceder à plataforma Papel ("Plataforma"), operada pela Faktura Angola, Lda (NIF 5002964031), o utilizador aceita os presentes Termos. Caso não concorde, deve cessar a utilização.</p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-foreground">2. Descrição do Serviço</h2>
-            <p>A Faktura Angola é uma plataforma de faturação electrónica destinada a empresas e profissionais em Angola. O serviço permite a emissão de faturas, faturas-recibo, notas de crédito, recibos e faturas proforma em conformidade com a legislação angolana e as normas da Administração Geral Tributária (AGT).</p>
+            <h2 className="text-2xl font-bold text-foreground">2. Natureza do serviço</h2>
+            <p>
+              A Papel é uma plataforma de <strong>originação de crédito</strong>: valida ficheiros SAF-T (AO),
+              calcula o Papel Score e apresenta dossiers a instituições financeiras parceiras. A Papel
+              <strong> não é uma instituição financeira</strong>, não capta depósitos, não concede crédito e não
+              garante a aprovação de qualquer pedido. A decisão é exclusiva do banco.
+            </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-foreground">3. Registo e Conta</h2>
-            <p>O Utilizador compromete-se a fornecer informações verdadeiras, completas e actualizadas aquando do registo. É responsável pela confidencialidade das suas credenciais de acesso e por todas as actividades realizadas na sua conta.</p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-foreground">4. Obrigações do Utilizador</h2>
+            <h2 className="text-2xl font-bold text-foreground">3. Perfis de utilizador</h2>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Utilizar a Plataforma de acordo com a legislação angolana em vigor;</li>
-              <li>Manter actualizados os dados fiscais da empresa (NIF, endereço, etc.);</li>
-              <li>Não utilizar o serviço para fins ilícitos ou fraudulentos;</li>
-              <li>Garantir a veracidade dos dados inseridos nas faturas emitidas;</li>
-              <li>Cumprir as obrigações fiscais junto da AGT.</li>
+              <li><strong>Particular</strong> — simulação e acompanhamento do perfil financeiro;</li>
+              <li><strong>Pessoa colectiva (PME)</strong> — envio de SAF-T, score e pedidos de capital;</li>
+              <li><strong>Banco / financiador</strong> — análise de dossiers e decisões de crédito;</li>
+              <li><strong>Seguradora</strong> — distribuição de produtos de seguro às PMEs.</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-foreground">5. Conformidade Fiscal</h2>
-            <p>A Plataforma gera documentos fiscais com numeração sequencial, assinatura digital e códigos QR conforme exigido pela AGT. O Utilizador é o único responsável pela correcta utilização dos documentos emitidos e pelo cumprimento das suas obrigações fiscais.</p>
+            <h2 className="text-2xl font-bold text-foreground">4. Obrigações do utilizador</h2>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Prestar informação verdadeira, completa e actualizada;</li>
+              <li>Enviar apenas ficheiros SAF-T e documentos de que é titular legítimo;</li>
+              <li>Manter a confidencialidade das credenciais de acesso;</li>
+              <li>Não utilizar a Plataforma para fins ilícitos, fraudulentos ou de branqueamento de capitais;</li>
+              <li>Cumprir as suas obrigações fiscais junto da AGT.</li>
+            </ul>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-foreground">6. Propriedade Intelectual</h2>
-            <p>Todos os direitos de propriedade intelectual relativos à Plataforma, incluindo software, design, logótipos e conteúdos, pertencem à Faktura Angola. O Utilizador não pode copiar, modificar ou distribuir qualquer parte da Plataforma.</p>
+            <h2 className="text-2xl font-bold text-foreground">5. Papel Score</h2>
+            <p>
+              O Papel Score é um indicador informativo, calculado a partir do histórico de facturação declarado no
+              SAF-T. Não constitui aconselhamento financeiro nem promessa de financiamento, e pode variar sempre que
+              novos ficheiros forem submetidos.
+            </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-foreground">7. Planos e Pagamentos</h2>
-            <p>A Plataforma oferece diferentes planos de subscrição. Os pagamentos são processados mensalmente em Kwanzas (AOA). O não pagamento pode resultar na suspensão do acesso às funcionalidades premium.</p>
+            <h2 className="text-2xl font-bold text-foreground">6. Consentimento para partilha</h2>
+            <p>Ao submeter um pedido de crédito, o utilizador autoriza expressamente a partilha do seu dossier (dados da empresa, SAF-T, score e documentos adicionais) com a instituição financeira escolhida. O consentimento pode ser retirado antes da decisão.</p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-foreground">8. Limitação de Responsabilidade</h2>
-            <p>A Faktura Angola não se responsabiliza por danos directos ou indirectos resultantes da utilização da Plataforma, incluindo perda de dados, interrupções de serviço ou erros nos documentos emitidos pelo Utilizador.</p>
+            <h2 className="text-2xl font-bold text-foreground">7. Obrigações do banco parceiro</h2>
+            <p>As instituições parceiras comprometem-se a usar os dados exclusivamente para avaliação do pedido, a manter sigilo bancário e a registar cada decisão e desembolso no trilho de auditoria da Plataforma.</p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-foreground">9. Modificações dos Termos</h2>
-            <p>A Faktura Angola reserva-se o direito de modificar estes Termos a qualquer momento. As alterações serão comunicadas através da Plataforma e entrarão em vigor 30 dias após a publicação.</p>
+            <h2 className="text-2xl font-bold text-foreground">8. Modo visitante</h2>
+            <p>O modo visitante permite explorar a Plataforma sem conta. Os dados ficam apenas no dispositivo e são apagados ao fim de 2 horas. Não gera pedidos reais de crédito.</p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-foreground">10. Lei Aplicável</h2>
-            <p>Os presentes Termos são regidos pela legislação da República de Angola. Qualquer litígio será submetido aos tribunais competentes de Luanda.</p>
+            <h2 className="text-2xl font-bold text-foreground">9. Propriedade intelectual</h2>
+            <p>O software, marca, design e metodologia de scoring pertencem à Faktura Angola, Lda. É proibida a cópia, engenharia inversa ou redistribuição sem autorização escrita.</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-foreground">10. Limitação de responsabilidade</h2>
+            <p>A Papel não responde por decisões de crédito das instituições parceiras, por dados incorrectos fornecidos pelo utilizador, nem por prejuízos indirectos resultantes de indisponibilidade temporária do serviço.</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-foreground">11. Suspensão de contas</h2>
+            <p>Podemos suspender ou encerrar contas que violem estes Termos, apresentem indícios de fraude documental ou incumpram a legislação aplicável.</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-foreground">12. Alterações e lei aplicável</h2>
+            <p>Os Termos podem ser alterados, com aviso na Plataforma e entrada em vigor 30 dias após a publicação. Aplica-se a lei da República de Angola, sendo competentes os tribunais de Luanda.</p>
           </section>
         </div>
       </main>
