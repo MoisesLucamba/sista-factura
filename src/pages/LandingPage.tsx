@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { track } from '@/lib/track';
 import logoPapel from '@/assets/faktura-logo.png';
 import heroBusiness from '@/assets/hero-business.jpg';
+import creditoPme from '@/assets/credito-pme.jpg';
+import bancoAnalise from '@/assets/banco-analise.jpg';
 import { PERFIS } from '@/lib/perfis';
 import {
   ArrowRight, ShieldCheck, UploadCloud, Gauge, Banknote, CheckCircle2,
@@ -203,6 +205,47 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* CRÉDITO EM IMAGENS */}
+      <section className="border-t border-border/60 py-20">
+        <div className="max-w-6xl mx-auto px-5 grid gap-10 lg:grid-cols-2 items-center">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <img
+              src={creditoPme} alt="Empresário angolano a rever a facturação da sua loja num tablet"
+              loading="lazy" width={1280} height={860}
+              className="rounded-2xl border border-border object-cover h-56 sm:h-72 w-full"
+            />
+            <img
+              src={bancoAnalise} alt="Analistas de banco a avaliar um dossier de crédito"
+              loading="lazy" width={1280} height={860}
+              className="rounded-2xl border border-border object-cover h-56 sm:h-72 w-full sm:mt-10"
+            />
+          </div>
+          <div>
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight">
+              Do balcão da tua loja à mesa do comité de crédito.
+            </h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed">
+              A PME envia o SAF-T. A Papel valida, calcula o score e monta o dossier. O banco recebe tudo
+              organizado e decide — com cada passo registado no trilho de auditoria.
+            </p>
+            <ul className="mt-6 space-y-3">
+              {[
+                'Dossier completo: SAF-T, score, sazonalidade e documentos de suporte',
+                'Decisões e desembolsos registados e exportáveis',
+                'A PME acompanha o estado do pedido em tempo real',
+              ].map(item => (
+                <li key={item} className="flex items-start gap-3 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+
 
       {/* PERFIS */}
       <section id="perfis" className="border-t border-border/60 py-20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.12),transparent_65%)]">

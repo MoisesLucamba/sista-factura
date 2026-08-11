@@ -34,6 +34,7 @@ const Simulador = lazy(() => import("./pages/Simulador"));
 const Explorar = lazy(() => import("./pages/Explorar"));
 const Seguros = lazy(() => import("./pages/Seguros"));
 const PainelBanco = lazy(() => import("./pages/PainelBanco"));
+const Auditoria = lazy(() => import("./pages/Auditoria"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -128,6 +129,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['banco']}>
                   <PainelBanco />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/auditoria"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'banco']}>
+                  <Auditoria />
                 </ProtectedRoute>
               }
             />

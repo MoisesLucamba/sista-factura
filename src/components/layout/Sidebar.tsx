@@ -30,6 +30,8 @@ const mainNavItems: NavItem[] = [
   { icon: ShieldCheck,     label: 'Seguros PME',  href: '/seguros'  },
   { icon: Building2,       label: 'A minha empresa', href: '/empresa' },
   { icon: Landmark,        label: 'Painel do Banco', href: '/banco' },
+  { icon: Search,          label: 'Auditoria',       href: '/auditoria' },
+
 
 ];
 
@@ -53,6 +55,7 @@ export function Sidebar() {
 
   const filteredMain = mainNavItems.filter(i => {
     if (i.href === '/banco' && role !== 'banco' && role !== 'admin') return false;
+    if (i.href === '/auditoria' && role !== 'banco' && role !== 'admin') return false;
     return !search || i.label.toLowerCase().includes(search.toLowerCase());
   });
   const filteredSecondary = secondaryNavItems.filter(i => {
