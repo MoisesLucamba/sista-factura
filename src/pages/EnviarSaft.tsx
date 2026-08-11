@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { DocumentosAdicionais } from '@/components/saft/DocumentosAdicionais';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -174,6 +175,8 @@ export default function EnviarSaft() {
             </CardContent>
           </Card>
         )}
+
+        <DocumentosAdicionais />
 
         <Card>
           <CardHeader><CardTitle className="text-base">Histórico de envios</CardTitle></CardHeader>
