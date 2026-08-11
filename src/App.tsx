@@ -133,6 +133,14 @@ const App = () => (
               }
             />
             <Route
+              path="/auditoria"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'banco']}>
+                  <Auditoria />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/configuracoes"
               element={
                 <ProtectedRoute>

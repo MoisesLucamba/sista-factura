@@ -30,6 +30,8 @@ const mainNavItems: NavItem[] = [
   { icon: ShieldCheck,     label: 'Seguros PME',  href: '/seguros'  },
   { icon: Building2,       label: 'A minha empresa', href: '/empresa' },
   { icon: Landmark,        label: 'Painel do Banco', href: '/banco' },
+  { icon: Search,          label: 'Auditoria',       href: '/auditoria' },
+
 
 ];
 
