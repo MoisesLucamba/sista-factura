@@ -62,10 +62,14 @@ export default function Explorar() {
         <div>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight">Bem-vindo ao Papel</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Esta é a primeira página da plataforma. Em modo visitante podes simular o teu crédito —
-            tudo fica apenas no teu dispositivo e é apagado ao fim de 2 horas.
+            Esta é a primeira página da plataforma. Em modo visitante podes simular o teu crédito e
+            entrar na plataforma durante 2 horas — tudo fica apenas no teu dispositivo.
           </p>
+          <Button size="lg" className="mt-4 font-bold" onClick={entrarComoVisitante}>
+            Entrar na plataforma como visitante <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
+
 
         <SimuladorCredito persistGuest />
 
