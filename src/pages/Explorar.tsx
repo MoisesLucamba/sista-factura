@@ -23,6 +23,8 @@ const modulos = [
 
 export default function Explorar() {
   const [minutos, setMinutos] = useState(0);
+  const { startGuest } = useGuest();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!readGuest()) writeGuest({ startedAt: Date.now() });
@@ -31,6 +33,12 @@ export default function Explorar() {
     const id = setInterval(tick, 30_000);
     return () => clearInterval(id);
   }, []);
+
+  const entrarComoVisitante = () => {
+    startGuest();
+    navigate('/dashboard');
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
