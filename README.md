@@ -1,73 +1,94 @@
-# Welcome to your Lovable project
+# Angola Fatura Fácil
 
-## Project info
+Crie um software de faturação completo para o mercado angolano, moderno, seguro e escalável, voltado para PMEs, prestadores de serviços e comércios.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+O sistema deve estar em conformidade com a legislação fiscal de Angola, incluindo:
 
-## How can I edit this code?
+Moeda Kwanza (AOA / Kz)
 
-There are several ways of editing your application.
+Numeração sequencial de faturas
 
-**Use Lovable**
+Emissão de Fatura, Fatura-Recibo, Recibo e Nota de Crédito
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Cálculo automático de IVA (14%), com possibilidade de isenção conforme regime
 
-Changes made via Lovable will be committed automatically to this repo.
+Campos obrigatórios: NIF do cliente, nome, endereço, data, produtos/serviços, subtotal, IVA, total
 
-**Use your preferred IDE**
+Funcionalidades principais:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Cadastro de empresas (com NIF, setor, regime fiscal)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Cadastro de clientes e fornecedores
 
-Follow these steps:
+Cadastro de produtos e serviços
+
+Emissão e gestão de faturas em PDF
+
+Histórico e pesquisa de documentos
+
+Relatórios fiscais e financeiros (mensal/anual)
+
+Controle básico de estoque
+
+Dashboard com indicadores (faturação, IVA, clientes)
+
+Funcionalidades avançadas:
+
+Multiusuário com níveis de acesso (admin, operador, contador)
+
+Backup automático
+
+Exportação para Excel/PDF
+
+Integração futura com AGT / SAF-T Angola
+
+Assinatura digital ou código QR nas faturas
+
+Requisitos técnicos:
+
+Interface simples, moderna e intuitiva
+
+Design responsivo (desktop e mobile)
+
+Arquitetura modular e segura
+
+Preparado para cloud e uso offline básico
+
+Público-alvo:
+
+Pequenas e médias empresas angolanas
+
+Comerciantes informais em transição para formalização
+
+Startups e prestadores de serviços
+
+Objetivo do software:
+
+Facilitar a faturação legal em Angola
+
+Reduzir erros fiscais
+
+Ajudar empresas a crescerem de forma formal e organizada
+
+This project was built with [Lovable](https://lovable.dev).
+
+**Live app**: https://sista-factura.lovable.app
+
+## Build with Lovable
+
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/718411b3-6aa2-4455-a4c2-f4b670e50f4a).
+
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+
+## Development
+
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+git clone <this-repository-url>
+cd <repository-name>
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
