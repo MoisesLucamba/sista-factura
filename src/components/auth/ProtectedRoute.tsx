@@ -1,15 +1,19 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, AppRole } from '@/contexts/AuthContext';
+import { useGuest } from '@/contexts/GuestContext';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
   allowedRoles?: AppRole[];
+  /** Páginas institucionais (admin/banco) não são acessíveis em modo visitante. */
+  blockGuest?: boolean;
 }
 
-export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, allowedRoles, blockGuest }: ProtectedRouteProps) {
   const { user, role, profile, loading, canAccess } = useAuth();
+  const { isGuest } = useGuest();
   const location = useLocation();
 
   if (loading) {
@@ -23,9 +27,15 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     );
   }
 
+  // Modo visitante: entra na plataforma real, sem conta, durante 2 horas.
+  if (!user && isGuest && !blockGuest) {
+    return <>{children}</>;
+  }
+
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
 
   // Note: approval_status is informational only. Email-confirmed users have full access;
   // admins review documents asynchronously without blocking the platform.
