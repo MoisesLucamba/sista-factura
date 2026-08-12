@@ -50,7 +50,9 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <GuestProvider>
           <ActiveAccountProvider>
+
           <Toaster />
           <Sonner position="top-right" richColors />
           <AccountSelectorModal />
