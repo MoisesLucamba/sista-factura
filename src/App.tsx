@@ -192,6 +192,8 @@ const App = () => (
             </Suspense>
           </BrowserRouter>
           </ActiveAccountProvider>
+          </GuestProvider>
+
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
