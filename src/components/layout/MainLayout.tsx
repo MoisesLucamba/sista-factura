@@ -102,8 +102,10 @@ export function MainLayout({
       )}>
         {/* Header */}
         <div className="sticky top-0 z-40">
+          <GuestBanner />
           <Header />
         </div>
+
 
         {/* Floating sidebar toggle (mobile only) — amber FAB right side */}
         {isMobile && !isMobileSidebarOpen && (
