@@ -131,7 +131,7 @@ const App = () => (
             <Route
               path="/banco"
               element={
-                <ProtectedRoute allowedRoles={['banco']}>
+                <ProtectedRoute allowedRoles={['banco']} blockGuest>
                   <PainelBanco />
                 </ProtectedRoute>
               }
@@ -139,11 +139,12 @@ const App = () => (
             <Route
               path="/auditoria"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'banco']}>
+                <ProtectedRoute allowedRoles={['admin', 'banco']} blockGuest>
                   <Auditoria />
                 </ProtectedRoute>
               }
             />
+
             <Route
               path="/configuracoes"
               element={
