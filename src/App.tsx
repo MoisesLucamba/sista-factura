@@ -173,7 +173,7 @@ const App = () => (
             <Route
               path="/admin"
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
+                <ProtectedRoute allowedRoles={['admin']} blockGuest>
                   <AdminDashboard />
                 </ProtectedRoute>
               }
@@ -181,11 +181,12 @@ const App = () => (
             <Route
               path="/admin/analytics"
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
+                <ProtectedRoute allowedRoles={['admin']} blockGuest>
                   <LandingAnalytics />
                 </ProtectedRoute>
               }
             />
+
 
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
