@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SimuladorCredito } from '@/components/credito/SimuladorCredito';
 import { GuestCta } from '@/components/guest/GuestCta';
+import { useGuest } from '@/contexts/GuestContext';
 import { guestMinutesLeft, writeGuest, readGuest } from '@/lib/guest';
 import logoPapel from '@/assets/faktura-logo.png';
 import {
-  UploadCloud, Gauge, Banknote, BarChart3, Building2, ShieldAlert, Lock, Timer,
+  UploadCloud, Gauge, Banknote, BarChart3, Building2, ShieldAlert, Lock, Timer, ArrowRight,
 } from 'lucide-react';
+
 
 const modulos = [
   { icon: UploadCloud, t: 'Enviar SAF-T', d: 'Validação AGT do ficheiro e leitura do histórico de faturação.' },
