@@ -2,10 +2,12 @@ import { ReactNode, useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { MobileTabBar } from './MobileTabBar';
+import { GuestBanner } from '@/components/guest/GuestBanner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ArrowUp, Loader2, Menu } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -100,8 +102,10 @@ export function MainLayout({
       )}>
         {/* Header */}
         <div className="sticky top-0 z-40">
+          <GuestBanner />
           <Header />
         </div>
+
 
         {/* Floating sidebar toggle (mobile only) — amber FAB right side */}
         {isMobile && !isMobileSidebarOpen && (

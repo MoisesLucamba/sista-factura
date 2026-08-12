@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SimuladorCredito } from '@/components/credito/SimuladorCredito';
 import { GuestCta } from '@/components/guest/GuestCta';
+import { useGuest } from '@/contexts/GuestContext';
 import { guestMinutesLeft, writeGuest, readGuest } from '@/lib/guest';
 import logoPapel from '@/assets/faktura-logo.png';
 import {
-  UploadCloud, Gauge, Banknote, BarChart3, Building2, ShieldAlert, Lock, Timer,
+  UploadCloud, Gauge, Banknote, BarChart3, Building2, ShieldAlert, Lock, Timer, ArrowRight,
 } from 'lucide-react';
+
 
 const modulos = [
   { icon: UploadCloud, t: 'Enviar SAF-T', d: 'Validação AGT do ficheiro e leitura do histórico de faturação.' },
@@ -21,6 +23,8 @@ const modulos = [
 
 export default function Explorar() {
   const [minutos, setMinutos] = useState(0);
+  const { startGuest } = useGuest();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!readGuest()) writeGuest({ startedAt: Date.now() });
@@ -29,6 +33,12 @@ export default function Explorar() {
     const id = setInterval(tick, 30_000);
     return () => clearInterval(id);
   }, []);
+
+  const entrarComoVisitante = () => {
+    startGuest();
+    navigate('/dashboard');
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,10 +62,14 @@ export default function Explorar() {
         <div>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight">Bem-vindo ao Papel</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Esta é a primeira página da plataforma. Em modo visitante podes simular o teu crédito —
-            tudo fica apenas no teu dispositivo e é apagado ao fim de 2 horas.
+            Esta é a primeira página da plataforma. Em modo visitante podes simular o teu crédito e
+            entrar na plataforma durante 2 horas — tudo fica apenas no teu dispositivo.
           </p>
+          <Button size="lg" className="mt-4 font-bold" onClick={entrarComoVisitante}>
+            Entrar na plataforma como visitante <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
+
 
         <SimuladorCredito persistGuest />
 

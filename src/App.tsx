@@ -4,7 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { GuestProvider } from "@/contexts/GuestContext";
 import { ActiveAccountProvider } from "@/contexts/ActiveAccountContext";
+
 import { AccountSelectorModal } from "@/components/account/AccountSelectorModal";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -48,7 +50,9 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <GuestProvider>
           <ActiveAccountProvider>
+
           <Toaster />
           <Sonner position="top-right" richColors />
           <AccountSelectorModal />
@@ -127,7 +131,7 @@ const App = () => (
             <Route
               path="/banco"
               element={
-                <ProtectedRoute allowedRoles={['banco']}>
+                <ProtectedRoute allowedRoles={['banco']} blockGuest>
                   <PainelBanco />
                 </ProtectedRoute>
               }
@@ -135,11 +139,12 @@ const App = () => (
             <Route
               path="/auditoria"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'banco']}>
+                <ProtectedRoute allowedRoles={['admin', 'banco']} blockGuest>
                   <Auditoria />
                 </ProtectedRoute>
               }
             />
+
             <Route
               path="/configuracoes"
               element={
@@ -168,7 +173,7 @@ const App = () => (
             <Route
               path="/admin"
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
+                <ProtectedRoute allowedRoles={['admin']} blockGuest>
                   <AdminDashboard />
                 </ProtectedRoute>
               }
@@ -176,11 +181,12 @@ const App = () => (
             <Route
               path="/admin/analytics"
               element={
-                <ProtectedRoute allowedRoles={['admin']}>
+                <ProtectedRoute allowedRoles={['admin']} blockGuest>
                   <LandingAnalytics />
                 </ProtectedRoute>
               }
             />
+
 
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
@@ -188,6 +194,8 @@ const App = () => (
             </Suspense>
           </BrowserRouter>
           </ActiveAccountProvider>
+          </GuestProvider>
+
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
