@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { track } from '@/lib/track';
 import logoPapel from '@/assets/faktura-logo.png';
 import heroBusiness from '@/assets/hero-business.jpg';
+import tecidoEmpresarial from '@/assets/tecido-empresarial.jpg';
 import creditoPme from '@/assets/credito-pme.jpg';
 import bancoAnalise from '@/assets/banco-analise.jpg';
 import { PERFIS } from '@/lib/perfis';
@@ -111,25 +112,74 @@ export default function LandingPage() {
 
 
       {/* COMO FUNCIONA */}
-      <section id="como" className="border-t border-border/60 py-20">
+      <section id="como" className="relative overflow-hidden border-t border-border/60 py-24 lg:py-32">
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div className="absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute right-0 bottom-0 h-[500px] w-[500px] rounded-full bg-primary/5 blur-3xl" />
+        </div>
+
         <div className="max-w-6xl mx-auto px-5">
-          <h2 className="text-3xl md:text-4xl font-black text-center tracking-tight">Três passos. Um dossier de crédito.</h2>
-          <p className="mt-3 text-center text-muted-foreground max-w-xl mx-auto">
-            Não emitimos faturas. Lemos as que já emitiste.
-          </p>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {passos.map((p, i) => (
-              <div key={p.titulo} className="rounded-2xl border border-border bg-card p-7">
-                <div className="flex items-center justify-between">
-                  <span className="w-11 h-11 rounded-xl bg-primary/12 flex items-center justify-center">
-                    <p.icon className="w-5 h-5 text-primary" />
-                  </span>
-                  <span className="text-4xl font-black text-muted-foreground/20">0{i + 1}</span>
-                </div>
-                <h3 className="mt-5 text-lg font-bold">{p.titulo}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{p.texto}</p>
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Imagem do tecido empresarial */}
+            <div className="relative">
+              <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-primary/25 to-primary/5 blur-2xl -z-10" />
+              <div className="rounded-3xl overflow-hidden border border-primary/20 shadow-2xl">
+                <img
+                  src={tecidoEmpresarial}
+                  alt="Tecido empresarial angolano: costureiro, padaria, advogados e vendedores"
+                  width={1280}
+                  height={720}
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                />
               </div>
-            ))}
+              <div className="absolute -bottom-5 -right-5 bg-card border border-border rounded-2xl p-4 shadow-xl">
+                <div className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-black text-sm">
+                    +
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold">PMEs e grandes empresas</p>
+                    <p className="text-xs text-muted-foreground">Do comercial ao corporativo</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Passos */}
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
+                <UploadCloud className="w-3.5 h-3.5" /> Três passos
+              </span>
+              <h2 className="mt-5 text-3xl md:text-4xl font-black tracking-tight">
+                Deixa o teu <span className="text-primary">histórico de facturação</span> trabalhar por ti.
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Envias o ficheiro SAF-T uma vez. Nós validamos, calculamos o score e apresentamos o teu dossier aos bancos parceiros.
+              </p>
+
+              <div className="mt-8 space-y-4">
+                {passos.map((p, i) => (
+                  <div
+                    key={p.titulo}
+                    className="group relative rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[0_18px_40px_-24px_hsl(var(--primary)/0.25)]"
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                        <p.icon className="h-5 w-5" />
+                      </span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold">{p.titulo}</h3>
+                          <span className="text-xs font-black text-muted-foreground/40">0{i + 1}</span>
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{p.texto}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
