@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { WaitlistForm } from '@/components/landing/WaitlistForm';
 import { track } from '@/lib/track';
 import logoPapel from '@/assets/faktura-logo.png';
 import heroBusiness from '@/assets/hero-business.jpg';
@@ -9,7 +10,7 @@ import bancoAnalise from '@/assets/banco-analise.jpg';
 import { PERFIS } from '@/lib/perfis';
 import {
   ArrowRight, ShieldCheck, UploadCloud, Gauge, Banknote, CheckCircle2,
-  FileText, Building2, TrendingUp, Lock, CalendarClock, Calculator, Mail, Phone, MapPin,
+  FileText, Building2, TrendingUp, Lock, CalendarClock, Calculator, Mail, Phone, MapPin, Sparkles,
 } from 'lucide-react';
 
 const passos = [
@@ -51,65 +52,77 @@ export default function LandingPage() {
             <a href="#como" className="hover:text-foreground transition-colors">Como funciona</a>
             <a href="#confianca" className="hover:text-foreground transition-colors">Confiança</a>
             <a href="#sazonalidade" className="hover:text-foreground transition-colors">Sazonalidade</a>
-            <Link to="/simulador" className="hover:text-foreground transition-colors">Simulador</Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/explorar" onClick={() => click('nav_login')}>Entrar</Link>
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <a href="#lancamento" onClick={() => click('nav_avisem_me')}>Avisem-me</a>
             </Button>
-            <Button asChild size="sm">
-              <Link to="/explorar" onClick={() => click('nav_comecar_gratis')}>Começar Grátis</Link>
+            <Button asChild size="sm" onClick={() => click('nav_simulador')}>
+              <Link to="/simulador">Simular crédito</Link>
             </Button>
           </div>
         </div>
       </header>
 
-      {/* HERO */}
+      {/* HERO — imagem + descrição, ao estilo clássico */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,hsl(var(--primary)/0.18),transparent_70%)]" />
-        <div className="max-w-6xl mx-auto px-5 py-20 md:py-28 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
-            <ShieldCheck className="w-3.5 h-3.5" /> Validado com base no SAF-T (AO) da AGT
-          </span>
-          <h1 className="mt-6 text-4xl md:text-6xl font-black tracking-tight leading-[1.05]">
-            Capital de giro para a tua empresa,<br className="hidden md:block" />
-            <span className="text-primary"> baseado no teu histórico de faturação.</span>
-          </h1>
-          <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Envia o teu ficheiro SAF-T, recebe um score de crédito construído com dados fiscais reais
-            e apresenta-te aos bancos com um dossier que eles confiam.
-          </p>
-          <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild size="lg" className="h-12 px-8 text-base font-bold">
-              <Link to="/explorar" onClick={() => click('hero_comecar_gratis')}>
-                Começar Grátis <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
-              <Link to="/simulador" onClick={() => click('hero_simulador')}>
-                <Calculator className="w-4 h-4 mr-2" /> Simular crédito
-              </Link>
-            </Button>
-          </div>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Sem cartão. Sem mudar de software de faturação.
-          </p>
+        <div className="max-w-6xl mx-auto px-5 py-16 md:py-24">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Descrição */}
+            <div className="text-center lg:text-left">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
+                <Sparkles className="w-3.5 h-3.5" /> Em preparação · Lançamento 2026
+              </span>
+              <h1 className="mt-6 text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
+                Crédito de <span className="text-primary">capital de giro</span> para a tua empresa.
+              </h1>
+              <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+                A Papel transforma o teu histórico de faturação num dossier de crédito que os
+                bancos confiam. Envia o teu SAF-T, recebe o teu score e pede capital de giro
+                sem papelada.
+              </p>
+              <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                <Button asChild size="lg" className="h-12 px-8 text-base font-bold">
+                  <Link to="/simulador" onClick={() => click('hero_simulador')}>
+                    <Calculator className="w-4 h-4 mr-2" /> Simular crédito
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
+                  <a href="#lancamento" onClick={() => click('hero_avisem_me')}>
+                    Avisem-me no lançamento
+                  </a>
+                </Button>
+              </div>
+              <p className="mt-5 text-xs text-muted-foreground">
+                Sem cartão. Sem mudar de software de faturação.
+              </p>
+            </div>
 
-          {/* Imagem principal */}
-          <div className="mt-14 relative">
-            <div className="absolute -inset-x-6 -top-6 bottom-10 -z-10 rounded-[2.5rem] bg-primary/10 blur-2xl" />
-            <div className="rounded-3xl overflow-hidden border border-border shadow-2xl">
-              <img
-                src={heroBusiness}
-                alt="Empresários angolanos a analisar o desempenho da empresa"
-                className="w-full h-[280px] md:h-[440px] object-cover"
-                loading="eager"
-              />
+            {/* Imagem */}
+            <div className="relative">
+              <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-gradient-to-br from-primary/25 to-primary/5 blur-3xl" />
+              <div className="rounded-3xl overflow-hidden border border-border shadow-2xl">
+                <img
+                  src={heroBusiness}
+                  alt="Empresários angolanos a analisar o desempenho da empresa"
+                  className="w-full h-[320px] md:h-[480px] object-cover"
+                  loading="eager"
+                />
+              </div>
+              <div className="absolute -bottom-5 left-6 bg-card border border-border rounded-2xl p-4 shadow-xl flex items-center gap-3">
+                <span className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
+                  <Banknote className="w-5 h-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-bold">Capital de giro</p>
+                  <p className="text-xs text-muted-foreground">Baseado nas tuas vendas reais</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
-
 
       {/* COMO FUNCIONA */}
       <section id="como" className="relative overflow-hidden border-t border-border/60 py-24 lg:py-32">
@@ -152,7 +165,7 @@ export default function LandingPage() {
                 <UploadCloud className="w-3.5 h-3.5" /> Três passos
               </span>
               <h2 className="mt-5 text-3xl md:text-4xl font-black tracking-tight">
-                Deixa o teu <span className="text-primary">histórico de facturação</span> trabalhar por ti.
+                Deixa o teu <span className="text-primary">histórico de faturação</span> trabalhar por ti.
               </h2>
               <p className="mt-4 text-muted-foreground">
                 Envias o ficheiro SAF-T uma vez. Nós validamos, calculamos o score e apresentamos o teu dossier aos bancos parceiros.
@@ -261,7 +274,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 grid gap-10 lg:grid-cols-2 items-center">
           <div className="grid gap-4 sm:grid-cols-2">
             <img
-              src={creditoPme} alt="Empresário angolano a rever a facturação da sua loja num tablet"
+              src={creditoPme} alt="Empresário angolano a rever a faturação da sua loja num tablet"
               loading="lazy" width={1280} height={860}
               className="rounded-2xl border border-border object-cover h-56 sm:h-72 w-full"
             />
@@ -295,9 +308,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-
-
-      {/* PERFIS */}
+      {/* PERFIS — promessa, sem registo ainda */}
       <section id="perfis" className="border-t border-border/60 py-20 bg-[linear-gradient(180deg,hsl(var(--primary)/0.12),transparent_65%)]">
         <div className="max-w-6xl mx-auto px-5">
           <div className="text-center max-w-2xl mx-auto">
@@ -308,7 +319,7 @@ export default function LandingPage() {
               Seja quem fores, tens lugar na Papel.
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Cria a tua conta em menos de dois minutos. Só te pedimos os dados que o teu perfil precisa.
+              No lançamento, cada perfil terá o seu próprio espaço — com só os dados que precisa.
             </p>
           </div>
 
@@ -316,47 +327,59 @@ export default function LandingPage() {
             {PERFIS.map(p => {
               const Icon = p.icon;
               return (
-                <Link
+                <div
                   key={p.id}
-                  to={`/registar?perfil=${p.id}`}
-                  onClick={() => click(`cta_perfil_${p.id}`)}
-                  className="group rounded-2xl border border-primary/25 bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary hover:shadow-[0_18px_40px_-24px_hsl(var(--primary))]"
+                  className="rounded-2xl border border-primary/25 bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary hover:shadow-[0_18px_40px_-24px_hsl(var(--primary))]"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/15 text-primary flex items-center justify-center transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <div className="w-12 h-12 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
                     <Icon className="w-5 h-5" />
                   </div>
                   <p className="mt-4 font-black">{p.titulo}</p>
                   <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{p.resumo}</p>
-                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-primary">
-                    Começar <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                  </span>
-                </Link>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA FINAL */}
       <section className="border-t border-border/60 py-20">
         <div className="max-w-3xl mx-auto px-5 text-center">
           <h2 className="text-3xl md:text-4xl font-black tracking-tight">
             O teu histórico de faturação já vale crédito.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Cria a tua conta, envia o primeiro SAF-T e vê o teu score em minutos.
+            Experimenta o simulador agora e deixa o teu e-mail para entrares primeiro no lançamento.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg" className="h-12 px-8 text-base font-bold">
-              <Link to="/explorar" onClick={() => click('cta_final_comecar_gratis')}>
-                Começar Grátis <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
               <Link to="/simulador" onClick={() => click('cta_final_simulador')}>
                 <Calculator className="w-4 h-4 mr-2" /> Simular crédito
               </Link>
             </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
+              <a href="#lancamento" onClick={() => click('cta_final_avisem_me')}>Avisem-me no lançamento</a>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* LANÇAMENTO / LISTA DE ESPERA */}
+      <section id="lancamento" className="relative overflow-hidden border-t border-border/60 py-24 bg-card/40">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(50%_60%_at_50%_100%,hsl(var(--primary)/0.14),transparent_70%)]" />
+        <div className="max-w-3xl mx-auto px-5 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
+            <Sparkles className="w-3.5 h-3.5" /> Lançamento 2026
+          </span>
+          <h2 className="mt-6 text-3xl md:text-4xl font-black tracking-tight">
+            Entra primeiro na lista.
+          </h2>
+          <p className="mt-4 text-muted-foreground">
+            Deixa o teu e-mail e avisamos no dia do arranque — antes de abrirmos ao público.
+          </p>
+          <div className="mt-8">
+            <WaitlistForm />
           </div>
         </div>
       </section>
@@ -364,8 +387,8 @@ export default function LandingPage() {
       {/* FOOTER */}
       <footer className="border-t border-border/60 bg-card/40">
         <div className="max-w-6xl mx-auto px-5 py-14">
-          <div className="grid gap-10 md:grid-cols-4">
-            <div className="md:col-span-1">
+          <div className="grid gap-10 md:grid-cols-3">
+            <div>
               <img src={logoPapel} alt="Papel" className="h-11 object-contain" />
               <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
                 Originação de crédito para empresas angolanas, a partir de dados fiscais
@@ -383,18 +406,6 @@ export default function LandingPage() {
                 <li><a href="#confianca" className="hover:text-foreground transition-colors">Validação AGT</a></li>
                 <li><a href="#sazonalidade" className="hover:text-foreground transition-colors">Sazonalidade</a></li>
                 <li><Link to="/simulador" className="hover:text-foreground transition-colors">Simulador de crédito</Link></li>
-                <li><Link to="/explorar" className="hover:text-foreground transition-colors">Modo visitante</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-bold">Conta</h3>
-              <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
-                <li><Link to="/login" className="hover:text-foreground transition-colors">Entrar</Link></li>
-                <li><Link to="/registar" className="hover:text-foreground transition-colors">Criar conta</Link></li>
-                <li><Link to="/recuperar-senha" className="hover:text-foreground transition-colors">Recuperar palavra-passe</Link></li>
-                <li><Link to="/termos" className="hover:text-foreground transition-colors">Termos de uso</Link></li>
-                <li><Link to="/privacidade" className="hover:text-foreground transition-colors">Política de privacidade</Link></li>
               </ul>
             </div>
 
@@ -416,6 +427,10 @@ export default function LandingPage() {
                 <li className="flex items-start gap-2">
                   <Phone className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                   <a href="tel:+244900000000" className="hover:text-foreground transition-colors">+244 900 000 000</a>
+                </li>
+                <li className="flex gap-4 pt-2">
+                  <Link to="/termos" className="hover:text-foreground transition-colors">Termos de uso</Link>
+                  <Link to="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
                 </li>
               </ul>
             </div>
