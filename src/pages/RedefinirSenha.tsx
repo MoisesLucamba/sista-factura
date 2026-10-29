@@ -10,7 +10,8 @@ import {
   Shield, Sparkles, FileText, BadgeDollarSign, CheckCircle,
   Users, TrendingUp,
 } from 'lucide-react';
-import logoFaktura from '@/assets/faktura-logo.png';
+import logoGiroDark from '@/assets/giro-logo-dark.svg';
+import logoGiroLight from '@/assets/giro-logo-light.svg';
 import heroBusiness from '@/assets/hero-business.jpg';
 import { toast } from 'sonner';
 
@@ -120,7 +121,7 @@ export default function RedefinirSenha() {
 
         <div className="relative z-10 flex flex-col justify-between h-full p-10 xl:p-14">
           <Link to="/" className="self-start">
-            <img src={logoFaktura} alt="Faktura Angola" className="h-9 object-contain" />
+            <img src={logoGiroDark} alt="Giro" className="h-9 object-contain" />
           </Link>
 
           <div className="my-auto">
@@ -208,7 +209,7 @@ export default function RedefinirSenha() {
 
           {/* Logo mobile */}
           <div className="lg:hidden flex justify-center mb-8">
-            <Link to="/"><img src={logoFaktura} alt="Faktura Angola" className="h-10 object-contain" /></Link>
+            <Link to="/"><img src={logoGiroLight} alt="Giro" className="h-10 object-contain" /></Link>
           </div>
 
           {success ? (

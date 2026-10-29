@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,9 @@ import type { SaftMonth } from '@/lib/saft-parse';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Banknote, Landmark, Send, Loader2, Inbox } from 'lucide-react';
+import { recordConsent } from '@/lib/legal/consent';
+
+const BANK_SHARE_VERSION = '2026-10-29-v1';
 
 const kz = (v: number) =>
   new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA', maximumFractionDigits: 0 }).format(v || 0);
@@ -30,6 +34,7 @@ export default function PedidosCredito() {
   const [valor, setValor] = useState('');
   const [finalidade, setFinalidade] = useState('');
   const [banco, setBanco] = useState<string>('');
+  const [shareConsent, setShareConsent] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const meses = useMemo<SaftMonth[]>(() => {
@@ -50,11 +55,12 @@ export default function PedidosCredito() {
   const submeter = async () => {
     const v = Number(valor.replace(/\s/g, '').replace(',', '.'));
     if (!v || v <= 0) { toast.error('Indica o valor que pretendes.'); return; }
+    if (banco && !shareConsent) { toast.error('Autoriza a partilha com o banco escolhido antes de submeter.'); return; }
     setSaving(true);
-    const { error } = await supabase.from('pedidos_credito').insert({
+    const { data: pedido, error } = await supabase.from('pedidos_credito').insert({
       user_id: user!.id,
       empresa_id: empresa?.id ?? null,
-      banco_id: banco || null,
+      banco_id: null,
       valor_solicitado: v,
       valor_sugerido: score.limiteRecomendado,
       finalidade: finalidade || null,
@@ -67,12 +73,45 @@ export default function PedidosCredito() {
         meses_analisados: score.mesesAnalisados,
         classe: score.classe,
       } as unknown as never,
-    });
-    setSaving(false);
+    }).select('id').single();
     if (error) { toast.error(error.message); return; }
+    if (banco) {
+      try {
+        await recordConsent({
+          consent_type: 'bank_share',
+          granted: true,
+          document_version: BANK_SHARE_VERSION,
+          bank_id: banco,
+          request_id: pedido.id,
+        });
+      } catch {
+        setSaving(false);
+        toast.error('O pedido foi criado, mas não foi partilhado. Tenta novamente ou contacta o Giro.');
+        qc.invalidateQueries({ queryKey: ['pedidos_credito'] });
+        return;
+      }
+    }
+    setSaving(false);
     setValor(''); setFinalidade(''); setBanco('');
+    setShareConsent(false);
     qc.invalidateQueries({ queryKey: ['pedidos_credito'] });
-    toast.success('Pedido submetido. Um analista vai receber o teu dossier.');
+    toast.success(banco ? 'Pedido submetido e partilhado com o banco escolhido.' : 'Pedido submetido sem partilha com um banco.');
+  };
+
+  const revogarPartilha = async (pedidoId: string, bancoId: string) => {
+    try {
+      await recordConsent({
+        consent_type: 'bank_share',
+        granted: false,
+        document_version: BANK_SHARE_VERSION,
+        bank_id: bancoId,
+        request_id: pedidoId,
+      });
+      qc.invalidateQueries({ queryKey: ['pedidos_credito'] });
+      toast.success('Consentimento retirado. O banco deixa de ver este pedido.');
+    } catch {
+      toast.error('Não foi possível retirar o consentimento. Tenta novamente.');
+    }
   };
 
   return (
@@ -119,13 +158,29 @@ export default function PedidosCredito() {
               </Select>
             </div>
 
+            {banco && (
+              <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 p-3">
+                <Checkbox
+                  id="bank-share-consent"
+                  checked={shareConsent}
+                  onCheckedChange={checked => setShareConsent(checked === true)}
+                  disabled={!pronto || saving}
+                  aria-required="true"
+                  className="mt-0.5"
+                />
+                <Label htmlFor="bank-share-consent" className="cursor-pointer text-sm leading-relaxed text-muted-foreground">
+                  Autorizo o Giro a partilhar o Dossier deste pedido com o banco escolhido. Posso retirar esta autorização mais tarde; a retirada bloqueia o acesso futuro do banco através do Giro.
+                </Label>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Finalidade</Label>
               <Textarea rows={3} placeholder="Compra de stock, pagamento a fornecedores, expansão..."
                         value={finalidade} onChange={e => setFinalidade(e.target.value)} disabled={!pronto} />
             </div>
 
-            <Button className="w-full" onClick={submeter} disabled={!pronto || saving}>
+            <Button className="w-full" onClick={submeter} disabled={!pronto || saving || (!!banco && !shareConsent)}>
               {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
               Submeter pedido
             </Button>
@@ -166,14 +221,21 @@ export default function PedidosCredito() {
               ) : (
                 <div className="divide-y">
                   {pedidos.map(p => (
-                    <div key={p.id} className="py-3 flex items-center justify-between gap-3">
+                    <div key={p.id} className="py-3 flex flex-wrap items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-semibold">{kz(p.valor_solicitado)}</p>
                         <p className="text-xs text-muted-foreground truncate">
                           {new Date(p.created_at).toLocaleDateString('pt-AO')} · score {p.score_no_pedido}
                         </p>
                       </div>
-                      <Badge variant="secondary" className="capitalize shrink-0">{p.estado}</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="capitalize shrink-0">{p.estado}</Badge>
+                        {p.banco_id && (
+                          <Button type="button" variant="ghost" size="sm" className="text-xs" onClick={() => revogarPartilha(p.id, p.banco_id!)}>
+                            Retirar consentimento de partilha
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

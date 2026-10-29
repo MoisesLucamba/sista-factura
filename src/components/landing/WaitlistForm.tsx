@@ -32,7 +32,7 @@ export function WaitlistForm() {
       return;
     }
     setEstado('ok');
-    setMensagem('Ficas-te registado! Avisamos assim que a Papel arrancar.');
+    setMensagem('Ficas-te registado! Avisamos assim que o Giro arrancar.');
     setEmail('');
   };
 

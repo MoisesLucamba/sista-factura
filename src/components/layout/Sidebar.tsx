@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import logoFaktura from '@/assets/faktura-logo.png';
+import logoGiroSymbol from '@/assets/giro-symbol.svg';
 
 /* ─── Types ────────────────────────────────────────── */
 interface NavItem {
@@ -225,12 +225,12 @@ export function Sidebar() {
           <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
             {/* Logo mark */}
             <div className="logo-ring relative flex-shrink-0 w-9 h-9 rounded-[13px] bg-sidebar-primary/10 flex items-center justify-center" style={{ isolation: 'isolate' }}>
-              <img src={logoFaktura} alt="Faktura" className="w-9 h-9 object-contain relative z-10" />
+              <img src={logoGiroSymbol} alt="Giro" className="w-9 h-9 object-contain relative z-10" />
             </div>
 
             {!collapsed && (
               <div className="flex flex-col leading-none min-w-0">
-                <span className="font-black text-[15px] tracking-tight text-sidebar-foreground leading-none">Faktura</span>
+                <span className="font-black text-[15px] tracking-tight text-sidebar-foreground leading-none">Giro</span>
                 <span className="mt-[3px] text-[8.5px] font-bold uppercase tracking-[.2em] text-sidebar-primary/80">Angola</span>
               </div>
             )}

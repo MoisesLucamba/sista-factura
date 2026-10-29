@@ -145,7 +145,7 @@ export default function EmpresaMembros() {
       .update({ role: newRole })
       .eq('id', id);
     if (error) toast.error('Erro ao atualizar papel');
-    else { toast.success('Papel atualizado'); load(); }
+    else { toast.success('Função atualizada'); load(); }
   };
 
   return (
@@ -218,7 +218,7 @@ export default function EmpresaMembros() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs">Papel</Label>
+                <Label className="text-xs">Função</Label>
                 <Select value={role} onValueChange={v => setRole(v as Membro['role'])}>
                   <SelectTrigger className="h-10 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>

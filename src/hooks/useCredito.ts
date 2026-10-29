@@ -45,6 +45,14 @@ export interface PedidoCredito {
   created_at: string;
 }
 
+export interface DocumentoAdicional {
+  id: string;
+  tipo: string;
+  file_name: string;
+  file_path: string;
+  created_at: string;
+}
+
 export function useEmpresa() {
   const { user } = useAuth();
   return useQuery({
@@ -98,6 +106,23 @@ export function useSaftUploads() {
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as SaftUpload[];
+    },
+  });
+}
+
+export function useDocumentosAdicionais() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['documentos_adicionais', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('documentos_adicionais')
+        .select('id, tipo, file_name, file_path, created_at')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as DocumentoAdicional[];
     },
   });
 }

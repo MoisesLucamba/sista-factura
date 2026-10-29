@@ -95,7 +95,7 @@ export function DocumentosAdicionais() {
         </CardTitle>
         <p className="text-sm text-muted-foreground">
           Opcionais, mas reforçam o teu dossier junto dos bancos parceiros. Ficheiros privados: só tu,
-          a Papel e o banco a quem submeteres o pedido conseguem ver.
+          o Giro e o banco a quem submeteres o pedido conseguem ver.
         </p>
       </CardHeader>
       <CardContent className="space-y-3">

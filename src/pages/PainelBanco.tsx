@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   useMeuBanco, usePedidosBanco, useDecidirPedido, useDesembolsosBanco,
-  useActualizarDesembolso, usePapelEventos, PedidoBanco,
+  useActualizarDesembolso, useGiroEventos, PedidoBanco,
 } from '@/hooks/useBanco';
 import { formatCurrency } from '@/lib/format';
 import {
@@ -38,7 +38,7 @@ export default function PainelBanco() {
   const { data: banco, isLoading: loadingBanco } = useMeuBanco();
   const { data: pedidos = [], isLoading } = usePedidosBanco(banco?.id);
   const { data: desembolsos = [] } = useDesembolsosBanco(banco?.id);
-  const { data: eventos = [] } = usePapelEventos(banco?.id);
+  const { data: eventos = [] } = useGiroEventos(banco?.id);
   const decidir = useDecidirPedido();
   const actualizar = useActualizarDesembolso();
 
@@ -57,7 +57,7 @@ export default function PainelBanco() {
           <Landmark className="w-10 h-10 text-primary mx-auto" />
           <h1 className="text-2xl font-black">Painel do Banco</h1>
           <p className="text-muted-foreground">
-            Esta área é exclusiva para instituições financeiras registadas na Papel. A tua conta
+            Esta área é exclusiva para instituições financeiras registadas no Giro. A tua conta
             ainda não está associada a nenhuma instituição parceira.
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function PainelBanco() {
             <Landmark className="w-6 h-6 text-primary" /> {banco.nome}
           </h1>
           <p className="text-muted-foreground text-sm">
-            Pedidos originados pela Papel. Cada decisão e cada pagamento fica registado na Papel.
+            Pedidos originados pelo Giro. Cada decisão e cada pagamento fica registado no Giro.
           </p>
         </div>
 
@@ -110,7 +110,7 @@ export default function PainelBanco() {
           <TabsList>
             <TabsTrigger value="pedidos">Pedidos</TabsTrigger>
             <TabsTrigger value="creditos">Créditos concedidos</TabsTrigger>
-            <TabsTrigger value="eventos">Registo Papel</TabsTrigger>
+            <TabsTrigger value="eventos">Registo Giro</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pedidos" className="mt-4">
@@ -118,7 +118,7 @@ export default function PainelBanco() {
               <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
             ) : pedidos.length === 0 ? (
               <p className="text-sm text-muted-foreground py-10 text-center">
-                Ainda não recebeste pedidos de financiamento através da Papel.
+                Ainda não recebeste pedidos de financiamento através do Giro.
               </p>
             ) : (
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
@@ -134,7 +134,7 @@ export default function PainelBanco() {
                         <Badge className={estadoBadge[p.estado] ?? ''} variant="secondary">{p.estado}</Badge>
                       </div>
                       <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1"><Gauge className="w-3 h-3 text-primary" /> Papel Score {p.score_no_pedido ?? '—'}</span>
+                        <span className="inline-flex items-center gap-1"><Gauge className="w-3 h-3 text-primary" /> Giro Score {p.score_no_pedido ?? '—'}</span>
                         <span>{new Date(p.created_at).toLocaleDateString('pt-AO')}</span>
                       </div>
                     </button>
@@ -153,7 +153,7 @@ export default function PainelBanco() {
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-xl bg-muted/40 p-3">
-                          <p className="text-[11px] text-muted-foreground">Papel Score</p>
+                          <p className="text-[11px] text-muted-foreground">Giro Score</p>
                           <p className="font-black text-lg">{seleccionado.score_no_pedido ?? '—'}</p>
                         </div>
                         <div className="rounded-xl bg-muted/40 p-3">
@@ -196,7 +196,7 @@ export default function PainelBanco() {
 
                       <p className="text-[11px] text-muted-foreground">
                         Ao aprovar, o desembolso é criado automaticamente para o IBAN da PME e executado
-                        através da infra-estrutura da Papel, que regista todo o fluxo.
+                        através da infra-estrutura do Giro, que regista todo o fluxo.
                       </p>
                     </div>
                   )}

@@ -68,7 +68,7 @@ export default function Auditoria() {
         { key: 'estado', label: 'Estado' },
         { key: 'detalhe', label: 'Detalhe' },
       ],
-      `papel-auditoria-${new Date().toISOString().slice(0, 10)}`,
+      `giro-auditoria-${new Date().toISOString().slice(0, 10)}`,
     );
   };
 

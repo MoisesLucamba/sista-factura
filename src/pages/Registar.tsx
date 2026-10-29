@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,22 +13,44 @@ import {
 import {
   Loader2, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle2,
 } from 'lucide-react';
-import logoPapel from '@/assets/faktura-logo.png';
+import logoGiroDark from '@/assets/giro-logo-dark.svg';
+import logoGiroLight from '@/assets/giro-logo-light.svg';
 import teamCollab from '@/assets/team-collab.jpg';
+import { TERMOS_VERSION } from '@/lib/legal/termos';
+import { PRIVACIDADE_VERSION } from '@/lib/legal/privacidade';
+import { cancelRegistrationConsent, prepareRegistrationConsent } from '@/lib/legal/consent';
+
+/* Transição suave entre passos */
+const Fade = ({ children }: { children: React.ReactNode }) => (
+  <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 motion-reduce:animate-none">
+    {children}
+  </div>
+);
 
 function Campo({ id, label, type = 'text', placeholder, hint, value, onChange, disabled }: {
   id: string; label: string; type?: string; placeholder?: string; hint?: string;
   value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; disabled?: boolean;
 }) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type={type} value={value} onChange={onChange}
-             placeholder={placeholder} disabled={disabled} />
-      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
+      <Input
+        id={id}
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="h-11 rounded-lg"
+      />
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }
+
+const Par = ({ children }: { children: React.ReactNode }) => (
+  <div className="grid gap-4 sm:grid-cols-2">{children}</div>
+);
 
 type Campos = Record<string, string>;
 
@@ -43,6 +66,7 @@ export default function Registar() {
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   const { signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -82,6 +106,7 @@ export default function Registar() {
       if (tipo === 'seguradora' && !(f.produtos_seguro || '').trim())
         return 'Indica os tipos de produtos de seguro que pretendes oferecer.';
     }
+    if (!legalAccepted) return 'Tens de aceitar os Termos e a Política de Privacidade.';
     if (password.length < 8) return 'A palavra-passe deve ter pelo menos 8 caracteres.';
     return null;
   };
@@ -94,6 +119,18 @@ export default function Registar() {
 
     setLoading(true);
     const nomeConta = (f.nome || '').trim();
+    let consentNonce: string;
+    try {
+      consentNonce = await prepareRegistrationConsent({
+        email: (f.email || '').trim().toLowerCase(),
+        terms_version: TERMOS_VERSION,
+        privacy_version: PRIVACIDADE_VERSION,
+      });
+    } catch (consentError) {
+      setLoading(false);
+      setError(consentError instanceof Error ? consentError.message : 'Não foi possível guardar o aceite dos documentos.');
+      return;
+    }
     const { error: signUpError } = await signUp(
       (f.email || '').trim().toLowerCase(),
       password,
@@ -114,11 +151,13 @@ export default function Registar() {
         iban_institucional: f.iban_institucional,
         integracao_contacto: f.integracao_contacto,
         produtos_seguro: f.produtos_seguro,
+        giro_consent_nonce: consentNonce,
       }
     );
     setLoading(false);
 
     if (signUpError) {
+      await cancelRegistrationConsent(consentNonce);
       setError(signUpError.message.includes('already registered')
         ? 'Já existe uma conta com este email.'
         : signUpError.message);
@@ -130,58 +169,65 @@ export default function Registar() {
   if (sent) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-        <div className="max-w-md text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-7 h-7 text-primary" />
+        <Fade>
+          <div className="max-w-md text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-7 h-7 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">Confirma o teu email</h1>
+            <p className="text-muted-foreground leading-relaxed">
+              Enviámos um link de confirmação para <strong className="text-foreground">{f.email}</strong>.
+              Depois de confirmares, entras no Giro.
+            </p>
+            <Button asChild className="w-full h-11"><Link to="/login">Voltar ao login</Link></Button>
           </div>
-          <h1 className="text-2xl font-black">Confirma o teu email</h1>
-          <p className="text-muted-foreground">
-            Enviámos um link de confirmação para <strong>{f.email}</strong>. Depois de confirmares,
-            entras no Papel.
-          </p>
-          <Button asChild className="w-full"><Link to="/login">Voltar ao login</Link></Button>
-        </div>
+        </Fade>
       </div>
     );
   }
 
+  const perfil = tipo ? PERFIS.find(p => p.id === tipo)! : null;
+  const instituicao = tipo === 'banco' || tipo === 'seguradora';
+  const emailInstHint = 'Não são aceites emails pessoais (gmail, hotmail, outlook…).';
+
   return (
     <div className="min-h-screen flex bg-background">
-      <div className="hidden lg:flex lg:w-[44%] relative flex-col overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={teamCollab} alt="Equipa" className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{
-            background: 'linear-gradient(180deg, rgba(0,0,0,.75) 0%, rgba(0,0,0,.35) 40%, rgba(0,0,0,.9) 100%)',
-          }} />
-        </div>
+      {/* Painel lateral */}
+      <div className="hidden lg:flex lg:w-[42%] relative flex-col overflow-hidden">
+        <img src={teamCollab} alt="Equipa" className="absolute inset-0 w-full h-full object-cover" />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.35) 45%, rgba(0,0,0,.8) 100%)' }}
+        />
         <div className="relative z-10 flex flex-col justify-between h-full p-12">
-          <Link to="/"><img src={logoPapel} alt="Papel" className="h-16 object-contain" /></Link>
+          <Link to="/"><img src={logoGiroDark} alt="Giro" className="h-14 object-contain" /></Link>
           <div>
-            <h2 className="text-white font-black leading-[0.95] mb-4" style={{ fontSize: 'clamp(2rem,3.2vw,3rem)' }}>
+            <h2 className="text-white font-bold leading-[1.05] tracking-tight mb-4" style={{ fontSize: 'clamp(2rem,3vw,2.75rem)' }}>
               Uma plataforma,<br /><span className="text-primary">quatro perfis.</span>
             </h2>
-            <p className="text-white/70 max-w-sm">
-              Particulares, empresas, bancos e seguradoras — todos no mesmo circuito de originação
-              de crédito, com a Papel a registar cada passo.
+            <p className="text-white/75 max-w-sm leading-relaxed">
+              Particulares, empresas, bancos e seguradoras no mesmo circuito de crédito,
+              com cada passo registado.
             </p>
           </div>
-          <p className="text-white/40 text-xs">Papel · Faktura Angola · NIF 5002964031</p>
+          <p className="text-white/50 text-xs">Giro · Faktura Angola · NIF 5002964031</p>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-6 md:p-10 overflow-y-auto">
-        <div className="w-full max-w-lg py-6">
+      {/* Formulário */}
+      <div className="flex-1 flex items-start lg:items-center justify-center p-6 md:p-10 overflow-y-auto">
+        <div className="w-full max-w-md py-6">
           <div className="lg:hidden flex justify-center mb-8">
-            <Link to="/"><img src={logoPapel} alt="Papel" className="h-20 object-contain" /></Link>
+            <Link to="/"><img src={logoGiroLight} alt="Giro" className="h-16 object-contain" /></Link>
           </div>
 
-          {!tipo ? (
-            <>
-              <h1 className="text-3xl font-black tracking-tight mb-2">Que tipo de conta queres?</h1>
-              <p className="text-muted-foreground text-sm mb-6">
-                Escolhe o teu perfil. Só te pedimos os dados que realmente interessam.
+          {!perfil ? (
+            <Fade key="escolha">
+              <h1 className="text-3xl font-bold tracking-tight mb-2">Que tipo de conta queres?</h1>
+              <p className="text-muted-foreground mb-8">
+                Escolhe o teu perfil. Só pedimos os dados que interessam.
               </p>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-3">
                 {PERFIS.map(p => {
                   const Icon = p.icon;
                   return (
@@ -189,53 +235,56 @@ export default function Registar() {
                       key={p.id}
                       type="button"
                       onClick={() => { setTipo(p.id); setError(null); }}
-                      className="group text-left rounded-2xl border border-border bg-card p-5 transition-all hover:border-primary hover:shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]"
+                      className="group w-full flex items-center gap-4 text-left rounded-xl border border-border bg-background p-4 transition-all duration-300 hover:border-primary hover:shadow-md"
                     >
-                      <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                      <div className="w-11 h-11 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
                         <Icon className="w-5 h-5" />
                       </div>
-                      <p className="font-bold">{p.titulo}</p>
-                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{p.descricao}</p>
-                      <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary">
-                        Continuar <ArrowRight className="w-3 h-3" />
-                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold">{p.titulo}</p>
+                        <p className="text-sm text-muted-foreground leading-snug">{p.descricao}</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 shrink-0 text-muted-foreground/40 transition-all duration-300 group-hover:text-primary group-hover:translate-x-0.5" />
                     </button>
                   );
                 })}
               </div>
               <p className="text-sm text-muted-foreground text-center mt-8">
-                Já tens conta? <Link to="/login" className="text-primary font-bold hover:underline">Entrar</Link>
+                Já tens conta? <Link to="/login" className="text-primary font-semibold hover:underline">Entrar</Link>
               </p>
-            </>
+            </Fade>
           ) : (
-            <>
-              <button type="button" onClick={() => { setTipo(null); setError(null); }}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-foreground mb-4">
-                <ArrowLeft className="w-3 h-3" /> Mudar tipo de conta
+            <Fade key={tipo}>
+              <button
+                type="button"
+                onClick={() => { setTipo(null); setError(null); }}
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Mudar tipo de conta
               </button>
 
-              <h1 className="text-3xl font-black tracking-tight mb-1">
-                {PERFIS.find(p => p.id === tipo)!.titulo}
-              </h1>
-              <p className="text-muted-foreground text-sm mb-6">
-                {PERFIS.find(p => p.id === tipo)!.descricao}
-              </p>
+              <h1 className="text-3xl font-bold tracking-tight mb-1.5">{perfil.titulo}</h1>
+              <p className="text-muted-foreground mb-8">{perfil.descricao}</p>
 
               {error && (
-                <Alert variant="destructive" className="mb-4 rounded-xl">
+                <Alert variant="destructive" className="mb-6 rounded-lg">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription className="text-sm">{error}</AlertDescription>
                 </Alert>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 {tipo === 'particular' && (
                   <>
                     <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label="Nome completo *" />
-                    <Campo value={f.bi_numero ?? ''} onChange={set('bi_numero')} disabled={loading} id="bi_numero" label="BI / Documento de identificação *" placeholder="00XXXXXXXLA0XX" />
-                    <Campo value={f.data_nascimento ?? ''} onChange={set('data_nascimento')} disabled={loading} id="data_nascimento" label="Data de nascimento" type="date" />
-                    <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
-                    <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email *" type="email" />
+                    <Par>
+                      <Campo value={f.bi_numero ?? ''} onChange={set('bi_numero')} disabled={loading} id="bi_numero" label="BI / Documento *" placeholder="00XXXXXXXLA0XX" />
+                      <Campo value={f.data_nascimento ?? ''} onChange={set('data_nascimento')} disabled={loading} id="data_nascimento" label="Data de nascimento" type="date" />
+                    </Par>
+                    <Par>
+                      <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email *" type="email" />
+                      <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
+                    </Par>
                     <Campo value={f.morada ?? ''} onChange={set('morada')} disabled={loading} id="morada" label="Morada" placeholder="Rua, bairro, município, província" />
                   </>
                 )}
@@ -243,88 +292,125 @@ export default function Registar() {
                 {tipo === 'empresa' && (
                   <>
                     <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label="Nome da empresa *" />
-                    <Campo value={f.nif ?? ''} onChange={set('nif')} disabled={loading} id="nif" label="NIF *" placeholder="5000000000" />
-                    <Campo value={f.sector_actividade ?? ''} onChange={set('sector_actividade')} disabled={loading} id="sector_actividade" label="Sector de actividade *" placeholder="Comércio a retalho, construção, serviços…" />
+                    <Par>
+                      <Campo value={f.nif ?? ''} onChange={set('nif')} disabled={loading} id="nif" label="NIF *" placeholder="5000000000" />
+                      <Campo value={f.sector_actividade ?? ''} onChange={set('sector_actividade')} disabled={loading} id="sector_actividade" label="Sector de actividade *" placeholder="Comércio, serviços…" />
+                    </Par>
                     <Campo value={f.morada ?? ''} onChange={set('morada')} disabled={loading} id="morada" label="Endereço da sede" />
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <Par>
                       <Campo value={f.responsavel_nome ?? ''} onChange={set('responsavel_nome')} disabled={loading} id="responsavel_nome" label="Responsável *" />
                       <Campo value={f.responsavel_cargo ?? ''} onChange={set('responsavel_cargo')} disabled={loading} id="responsavel_cargo" label="Cargo" placeholder="Administrador, CFO…" />
-                    </div>
-                    <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
-                    <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email *" type="email" />
-                    <div className="rounded-xl border border-border bg-card/60 p-4 text-xs text-muted-foreground">
-                      Depois de confirmares o email, submetes os teus ficheiros <strong>SAF-T (AO)</strong> em
-                      <strong> Enviar SAF-T</strong> para gerar o teu Papel Score.
-                    </div>
+                    </Par>
+                    <Par>
+                      <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email *" type="email" />
+                      <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
+                    </Par>
+                    <p className="rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground leading-relaxed">
+                      Depois de confirmares o email, submetes os teus ficheiros <strong className="text-foreground">SAF-T (AO)</strong> em{' '}
+                      <strong className="text-foreground">Enviar SAF-T</strong> para gerar o teu Giro Score.
+                    </p>
                   </>
                 )}
 
-                {tipo === 'banco' && (
+                {instituicao && (
                   <>
-                    <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label="Nome da instituição *" />
-                    <Campo value={f.nif ?? ''} onChange={set('nif')} disabled={loading} id="nif" label="NIF / nº de registo bancário *" />
-                    <Campo value={f.licenca_numero ?? ''} onChange={set('licenca_numero')} disabled={loading} id="licenca_numero" label="Nº de licença / autorização do BNA *" />
-                    <Campo value={f.responsavel_nome ?? ''} onChange={set('responsavel_nome')} disabled={loading} id="responsavel_nome" label="Responsável de onboarding *" />
-                    <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email institucional *" type="email" placeholder="nome@banco.ao"
-                           hint="Não são aceites emails pessoais (gmail, hotmail, outlook…)." />
-                    <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
-                    <Campo value={f.iban_institucional ?? ''} onChange={set('iban_institucional')} disabled={loading} id="iban_institucional" label="IBAN institucional *" placeholder="AO06 0000 0000 0000 0000 0000 0" />
-                    <div className="space-y-2">
-                      <Label htmlFor="integracao_contacto">Contacto técnico para integração (API / webhook)</Label>
-                      <Textarea id="integracao_contacto" value={f.integracao_contacto ?? ''}
-                                onChange={set('integracao_contacto')} disabled={loading}
-                                placeholder="Email da equipa técnica e URL de webhook para notificações da Papel" />
-                    </div>
+                    <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label={tipo === 'banco' ? 'Nome da instituição *' : 'Nome da seguradora *'} />
+                    <Par>
+                      <Campo value={f.nif ?? ''} onChange={set('nif')} disabled={loading} id="nif" label={tipo === 'banco' ? 'NIF / nº de registo *' : 'NIF / nº de registo *'} />
+                      <Campo value={f.licenca_numero ?? ''} onChange={set('licenca_numero')} disabled={loading} id="licenca_numero" label={tipo === 'banco' ? 'Licença do BNA *' : 'Licença da ARSEG *'} />
+                    </Par>
+                    <Campo value={f.responsavel_nome ?? ''} onChange={set('responsavel_nome')} disabled={loading} id="responsavel_nome" label={tipo === 'banco' ? 'Responsável de onboarding *' : 'Responsável *'} />
+                    <Par>
+                      <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email institucional *" type="email" placeholder={tipo === 'banco' ? 'nome@banco.ao' : 'nome@seguradora.ao'} />
+                      <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
+                    </Par>
+                    <p className="-mt-3 text-xs text-muted-foreground">{emailInstHint}</p>
+
+                    {tipo === 'banco' && (
+                      <>
+                        <Campo value={f.iban_institucional ?? ''} onChange={set('iban_institucional')} disabled={loading} id="iban_institucional" label="IBAN institucional *" placeholder="AO06 0000 0000 0000 0000 0000 0" />
+                        <div className="space-y-1.5">
+                          <Label htmlFor="integracao_contacto" className="text-sm font-medium">Contacto técnico para integração</Label>
+                          <Textarea
+                            id="integracao_contacto"
+                            value={f.integracao_contacto ?? ''}
+                            onChange={set('integracao_contacto')}
+                            disabled={loading}
+                            className="rounded-lg"
+                            placeholder="Email da equipa técnica e URL de webhook para notificações"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {tipo === 'seguradora' && (
+                      <div className="space-y-1.5">
+                        <Label htmlFor="produtos_seguro" className="text-sm font-medium">Produtos de seguro a oferecer *</Label>
+                        <Textarea
+                          id="produtos_seguro"
+                          value={f.produtos_seguro ?? ''}
+                          onChange={set('produtos_seguro')}
+                          disabled={loading}
+                          className="rounded-lg"
+                          placeholder="Multirriscos, acidentes de trabalho, responsabilidade civil, automóvel…"
+                        />
+                      </div>
+                    )}
                   </>
                 )}
 
-                {tipo === 'seguradora' && (
-                  <>
-                    <Campo value={f.nome ?? ''} onChange={set('nome')} disabled={loading} id="nome" label="Nome da seguradora *" />
-                    <Campo value={f.nif ?? ''} onChange={set('nif')} disabled={loading} id="nif" label="NIF / nº de registo *" />
-                    <Campo value={f.licenca_numero ?? ''} onChange={set('licenca_numero')} disabled={loading} id="licenca_numero" label="Nº de licença / autorização da ARSEG *" />
-                    <Campo value={f.responsavel_nome ?? ''} onChange={set('responsavel_nome')} disabled={loading} id="responsavel_nome" label="Responsável *" />
-                    <Campo value={f.email ?? ''} onChange={set('email')} disabled={loading} id="email" label="Email institucional *" type="email" placeholder="nome@seguradora.ao"
-                           hint="Não são aceites emails pessoais (gmail, hotmail, outlook…)." />
-                    <Campo value={f.telefone ?? ''} onChange={set('telefone')} disabled={loading} id="telefone" label="Telemóvel *" placeholder="+244 9XX XXX XXX" />
-                    <div className="space-y-2">
-                      <Label htmlFor="produtos_seguro">Produtos de seguro a oferecer *</Label>
-                      <Textarea id="produtos_seguro" value={f.produtos_seguro ?? ''}
-                                onChange={set('produtos_seguro')} disabled={loading}
-                                placeholder="Multirriscos, acidentes de trabalho, responsabilidade civil, automóvel…" />
-                    </div>
-                  </>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Palavra-passe *</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-sm font-medium">Palavra-passe *</Label>
                   <div className="relative">
-                    <Input id="password" type={showPassword ? 'text' : 'password'} value={password}
-                           onChange={e => setPassword(e.target.value)} autoComplete="new-password"
-                           disabled={loading} className="pr-10" placeholder="Mínimo 8 caracteres" />
-                    <button type="button" onClick={() => setShowPassword(v => !v)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      autoComplete="new-password"
+                      disabled={loading}
+                      className="h-11 rounded-lg pr-10"
+                      placeholder="Mínimo 8 caracteres"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(v => !v)}
+                      aria-label={showPassword ? 'Esconder palavra-passe' : 'Mostrar palavra-passe'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full h-11 font-bold" disabled={loading}>
-                  {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading}>
+                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Criar conta
                   {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
                 </Button>
 
-                <p className="text-[11px] text-muted-foreground text-center">
-                  Ao criar conta aceitas os <Link to="/termos" className="underline">Termos</Link> e a{' '}
-                  <Link to="/privacidade" className="underline">Política de Privacidade</Link>.
-                </p>
+                <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 p-3 text-left">
+                  <Checkbox
+                    id="accept-legal"
+                    checked={legalAccepted}
+                    onCheckedChange={checked => setLegalAccepted(checked === true)}
+                    disabled={loading}
+                    aria-required="true"
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="accept-legal" className="cursor-pointer text-xs leading-relaxed text-muted-foreground">
+                    Li e aceito os{' '}
+                    <Link to="/termos" target="_blank" rel="noreferrer" className="text-primary underline underline-offset-2">Termos e Condições</Link>
+                    {' '}e a{' '}
+                    <Link to="/privacidade" target="_blank" rel="noreferrer" className="text-primary underline underline-offset-2">Política de Privacidade</Link>.
+                  </Label>
+                </div>
               </form>
 
               <p className="text-sm text-muted-foreground text-center mt-6">
-                Já tens conta? <Link to="/login" className="text-primary font-bold hover:underline">Entrar</Link>
+                Já tens conta? <Link to="/login" className="text-primary font-semibold hover:underline">Entrar</Link>
               </p>
-            </>
+            </Fade>
           )}
         </div>
       </div>

@@ -1,4 +1,4 @@
-project_id = "ewfjvgzachtonehujvom"
+project_id = "rqyoxeyptwyhootwxywz"
 
 
 [functions.multicaixa-express]
@@ -12,3 +12,9 @@ verify_jwt = false
 
 [functions.saft-submit]
 verify_jwt = false
+
+[functions.registration-consent]
+verify_jwt = false
+
+[functions.record-consent]
+verify_jwt = true

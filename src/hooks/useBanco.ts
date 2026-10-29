@@ -99,7 +99,7 @@ export function useDecidirPedido() {
       qc.invalidateQueries({ queryKey: ['pedidos_banco'] });
       qc.invalidateQueries({ queryKey: ['desembolsos_banco'] });
       qc.invalidateQueries({ queryKey: ['papel_eventos'] });
-      toast.success('Decisão registada na Papel.');
+      toast.success('Decisão registada no Giro.');
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -146,13 +146,13 @@ export function useActualizarDesembolso() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['desembolsos_banco'] });
       qc.invalidateQueries({ queryKey: ['papel_eventos'] });
-      toast.success('Estado actualizado e registado na Papel.');
+      toast.success('Estado actualizado e registado no Giro.');
     },
     onError: (e: Error) => toast.error(e.message),
   });
 }
 
-export function usePapelEventos(bancoId?: string) {
+export function useGiroEventos(bancoId?: string) {
   return useQuery({
     queryKey: ['papel_eventos', bancoId],
     enabled: !!bancoId,

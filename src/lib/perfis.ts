@@ -21,22 +21,22 @@ export const PERFIS: PerfilConfig[] = [
   {
     id: 'empresa',
     titulo: 'Pessoa Coletiva',
-    descricao: 'Empresas e PMEs. Envia o SAF-T, recebe o Papel Score e pede capital de giro aos bancos parceiros.',
+    descricao: 'Empresas e PMEs. Envia o SAF-T, recebe o Giro Score e pede capital de giro aos bancos parceiros.',
     resumo: 'Envia SAF-T, recebe score e pede capital de giro.',
     icon: Building2,
   },
   {
     id: 'banco',
     titulo: 'Banco / Financiador',
-    descricao: 'Instituições bancárias e financeiras. Recebe pedidos já validados, avalia com o Papel Score e decide.',
+    descricao: 'Instituições bancárias e financeiras. Recebe pedidos já validados, avalia com o Giro Score e decide.',
     resumo: 'Recebe dossiers validados e decide em minutos.',
     icon: Landmark,
   },
   {
     id: 'seguradora',
     titulo: 'Seguradora',
-    descricao: 'Companhias de seguros. Oferece produtos de seguro às PMEs que operam na Papel.',
-    resumo: 'Distribui produtos de seguro às PMEs da Papel.',
+    descricao: 'Companhias de seguros. Oferece produtos de seguro às PMEs que operam no Giro.',
+    resumo: 'Distribui produtos de seguro às PMEs do Giro.',
     icon: ShieldCheck,
   },
 ];

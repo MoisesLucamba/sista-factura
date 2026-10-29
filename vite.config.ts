@@ -19,22 +19,23 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
 
-      includeAssets: ["favicon.ico", "robots.txt", "placeholder.svg"],
+      includeAssets: ["giro-icon.svg", "robots.txt", "placeholder.svg"],
 
       manifest: {
-        name: "Papel — Faktura",
-        short_name: "Papel",
+        name: "Giro — Faktura",
+        short_name: "Giro",
         description: "Plataforma de faturação certificada para Angola, pela Faktura.",
-        theme_color: "#d4a032",
-        background_color: "#0a0a0b",
+        theme_color: "#f6b511",
+        background_color: "#1a1915",
         display: "standalone",
         orientation: "portrait",
         start_url: "/",
         icons: [
           {
-            src: "/favicon.ico",
-            sizes: "64x64",
-            type: "image/x-icon",
+            src: "/giro-icon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any maskable",
           },
         ],
       },

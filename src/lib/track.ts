@@ -1,6 +1,7 @@
 // Lightweight click/event tracker for the public landing page.
 // Writes to `landing_events` (public INSERT via RLS).
 import { supabase } from '@/integrations/supabase/client';
+import { readCookieConsent } from '@/lib/legal/consent';
 
 const SESSION_KEY = 'fkt_session_id';
 
@@ -26,6 +27,8 @@ export interface TrackPayload {
 }
 
 export async function track({ event, section, label, url, metadata }: TrackPayload) {
+  if (readCookieConsent()?.analytics !== true) return;
+
   try {
     const { data } = await supabase.auth.getUser();
     await supabase.from('landing_events').insert([{

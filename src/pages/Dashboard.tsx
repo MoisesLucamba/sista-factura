@@ -10,7 +10,7 @@ import { calcularScore, classeLabel } from '@/lib/credit-score';
 import type { SaftMonth } from '@/lib/saft-parse';
 import {
   Upload, TrendingUp, Gauge, Banknote, Building2, CalendarRange,
-  ArrowRight, AlertCircle, FileCheck2,
+  ArrowRight, AlertCircle, FileCheck2, CheckCircle2, Circle, Info,
 } from 'lucide-react';
 
 const kz = (v: number) =>
@@ -37,14 +37,29 @@ export default function Dashboard() {
   const score = useMemo(() => calcularScore(meses), [meses]);
   const temDados = meses.length > 0;
   const maxMes = Math.max(1, ...meses.map(m => m.total));
+  const picoMes = useMemo(
+    () => meses.reduce<SaftMonth | null>((best, m) => (!best || m.total > best.total ? m : best), null),
+    [meses],
+  );
+  // Mostra no máximo ~12 etiquetas no gráfico, mesmo com muitos meses
+  const passoEtiqueta = Math.max(1, Math.ceil(meses.length / 12));
 
   const breakdownItems = [
-    { label: 'Volume de facturação', valor: score.breakdown.volume, max: 30 },
+    { label: 'Volume de faturação', valor: score.breakdown.volume, max: 30 },
     { label: 'Consistência mensal', valor: score.breakdown.consistencia, max: 25 },
     { label: 'Crescimento', valor: score.breakdown.crescimento, max: 20 },
     { label: 'Histórico enviado', valor: score.breakdown.historico, max: 15 },
     { label: 'Conformidade fiscal', valor: score.breakdown.conformidade, max: 10 },
   ];
+
+  const temPedidos = pedidos.length > 0;
+  const passos = [
+    { label: 'Registar a empresa', feito: !!empresa, to: '/empresa' },
+    { label: 'Enviar o SAF-T', feito: temDados, to: '/saft' },
+    { label: 'Reunir os documentos que o banco pede', feito: null as boolean | null, to: '/documentos' },
+    { label: 'Pedir crédito', feito: temPedidos, to: '/credito' },
+  ];
+  const mostrarPassos = !(empresa && temDados && temPedidos);
 
   return (
     <MainLayout
@@ -56,7 +71,7 @@ export default function Dashboard() {
         {!empresa && (
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4 p-5">
-              <Building2 className="w-6 h-6 text-primary shrink-0" />
+              <Building2 className="w-6 h-6 text-primary shrink-0" aria-hidden="true" />
               <div className="flex-1">
                 <p className="font-semibold">Regista a tua empresa</p>
                 <p className="text-sm text-muted-foreground">
@@ -72,16 +87,52 @@ export default function Dashboard() {
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center text-center gap-4 py-12">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Upload className="w-7 h-7 text-primary" />
+                <Upload className="w-7 h-7 text-primary" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-lg font-bold">Envia o teu primeiro SAF-T</p>
                 <p className="text-sm text-muted-foreground max-w-md mt-1">
-                  Exporta o SAF-T (AO) do software que já usas e envia-o aqui. Em segundos calculamos
-                  o teu score e o limite de crédito recomendado.
+                  Exporta o SAF-T (AO) do software que já usas e envia-o aqui. Validamos o ficheiro
+                  segundo as regras da AGT e, em segundos, calculamos o teu score e o limite de crédito
+                  recomendado.
                 </p>
               </div>
-              <Button asChild size="lg"><Link to="/saft">Enviar SAF-T <ArrowRight className="w-4 h-4 ml-2" /></Link></Button>
+              <Button asChild size="lg"><Link to="/saft">Enviar SAF-T <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" /></Link></Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {mostrarPassos && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Os teus próximos passos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {passos.map((p, i) => {
+                  const conteudo = (
+                    <>
+                      {p.feito ? (
+                        <CheckCircle2 className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-muted-foreground/50 shrink-0" aria-hidden="true" />
+                      )}
+                      <span className={p.feito ? 'text-muted-foreground line-through' : 'font-medium'}>
+                        {p.label}
+                      </span>
+                      {p.feito && <span className="sr-only"> (concluído)</span>}
+                    </>
+                  );
+                  const classes =
+                    'flex items-center gap-3 rounded-xl border border-border p-4 text-sm transition-colors hover:bg-muted/50';
+                  return (
+                    <li key={p.label}>
+                      <Link to={p.to} className={classes}>{conteudo}</Link>
+                      <span className="sr-only">Passo {i + 1}</span>
+                    </li>
+                  );
+                })}
+              </ol>
             </CardContent>
           </Card>
         )}
@@ -90,33 +141,33 @@ export default function Dashboard() {
           <>
             <div className="grid gap-4 md:grid-cols-3">
               <Card className="md:col-span-1 relative overflow-hidden">
-                <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-primary/10 blur-2xl" />
+                <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-primary/10 blur-2xl" aria-hidden="true" />
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                    <Gauge className="w-4 h-4" /> Score de crédito
+                    <Gauge className="w-4 h-4" aria-hidden="true" /> Score de crédito
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-end gap-3">
-                    <span className="text-5xl font-black tabular-nums">{score.score}</span>
+                    <span className="font-display text-5xl font-bold tabular-nums">{score.score}</span>
                     <span className="text-muted-foreground mb-2 text-sm">/ 1000</span>
                   </div>
                   <div className="mt-3 flex items-center gap-2">
                     <Badge className="text-sm">Classe {score.classe}</Badge>
                     <span className="text-sm text-muted-foreground">{classeLabel[score.classe]}</span>
                   </div>
-                  <Progress value={score.score / 10} className="mt-4" />
+                  <Progress value={score.score / 10} className="mt-4" aria-label="Score de crédito" />
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                    <Banknote className="w-4 h-4" /> Limite recomendado
+                    <Banknote className="w-4 h-4" aria-hidden="true" /> Limite recomendado
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-black tabular-nums">{kz(score.limiteRecomendado)}</p>
+                  <p className="font-display text-3xl font-bold tabular-nums">{kz(score.limiteRecomendado)}</p>
                   <p className="text-sm text-muted-foreground mt-2">
                     Até {score.prazoMeses} meses · taxa indicativa {score.taxaMensal}%/mês
                   </p>
@@ -129,11 +180,11 @@ export default function Dashboard() {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" /> Facturação média
+                    <TrendingUp className="w-4 h-4" aria-hidden="true" /> Faturação média
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <p className="text-3xl font-black tabular-nums">{kz(score.mediaMensal)}</p>
+                  <p className="font-display text-3xl font-bold tabular-nums">{kz(score.mediaMensal)}</p>
                   <p className="text-sm text-muted-foreground">por mês · {score.mesesAnalisados} meses analisados</p>
                   <p className="text-sm">
                     Crescimento:{' '}
@@ -145,30 +196,58 @@ export default function Dashboard() {
               </Card>
             </div>
 
+            {/* Aviso: estimativa, não decisão */}
+            <div
+              role="note"
+              className="flex items-start gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm leading-relaxed text-muted-foreground"
+            >
+              <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" aria-hidden="true" />
+              <p>
+                <strong className="text-foreground">Estimativa, não decisão de crédito.</strong> O score e o
+                limite vêm dos ficheiros SAF-T que enviaste. As condições, a decisão e o desembolso são do
+                banco, e o Giro não é uma instituição financeira.
+              </p>
+            </div>
+
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <CalendarRange className="w-4 h-4 text-primary" /> Sazonalidade da facturação
+                    <CalendarRange className="w-4 h-4 text-primary" aria-hidden="true" /> Sazonalidade da faturação
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-end gap-1.5 h-40">
-                    {meses.map(m => (
-                      <div key={m.mes} className="flex-1 flex flex-col items-center gap-1 group">
+                  <div
+                    role="img"
+                    aria-label={
+                      picoMes
+                        ? `Faturação mensal de ${meses.length} meses. Pico em ${picoMes.mes}, com ${kz(picoMes.total)}.`
+                        : 'Faturação mensal'
+                    }
+                    className="flex items-end gap-1.5 h-40"
+                  >
+                    {meses.map((m, i) => (
+                      <div key={m.mes} className="flex-1 flex flex-col items-center gap-1 group" aria-hidden="true">
                         <div
-                          className="w-full rounded-t-md bg-primary/80 group-hover:bg-primary transition-colors"
+                          className={`w-full rounded-t-md transition-colors ${
+                            picoMes && m.mes === picoMes.mes ? 'bg-primary' : 'bg-primary/60 group-hover:bg-primary'
+                          }`}
                           style={{ height: `${Math.max(4, (m.total / maxMes) * 100)}%` }}
                           title={`${m.mes}: ${kz(m.total)}`}
                         />
-                        <span className="text-[9px] text-muted-foreground rotate-45 origin-left whitespace-nowrap">
+                        <span
+                          className={`text-[10px] text-muted-foreground whitespace-nowrap ${
+                            meses.length > 8 ? 'rotate-45 origin-left' : ''
+                          } ${i % passoEtiqueta === 0 ? '' : 'invisible'}`}
+                        >
                           {m.mes.slice(2)}
                         </span>
                       </div>
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground mt-6">
-                    Volatilidade: {(score.volatilidade * 100).toFixed(0)}% — quanto mais estável, maior o limite.
+                    {picoMes && <>Pico em {picoMes.mes}. </>}
+                    Volatilidade: {(score.volatilidade * 100).toFixed(0)}%. Quanto mais estável, maior o limite.
                   </p>
                 </CardContent>
               </Card>
@@ -176,7 +255,7 @@ export default function Dashboard() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <FileCheck2 className="w-4 h-4 text-primary" /> Como o score é calculado
+                    <FileCheck2 className="w-4 h-4 text-primary" aria-hidden="true" /> Como o score é calculado
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -186,7 +265,7 @@ export default function Dashboard() {
                         <span>{item.label}</span>
                         <span className="font-bold tabular-nums">{item.valor} / {item.max}</span>
                       </div>
-                      <Progress value={(item.valor / item.max) * 100} className="h-1.5" />
+                      <Progress value={(item.valor / item.max) * 100} className="h-1.5" aria-label={item.label} />
                     </div>
                   ))}
                 </CardContent>
@@ -203,17 +282,17 @@ export default function Dashboard() {
           <CardContent>
             {pedidos.length === 0 ? (
               <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" /> Ainda não fizeste nenhum pedido.
+                <AlertCircle className="w-4 h-4" aria-hidden="true" /> Ainda não fizeste nenhum pedido.
               </p>
             ) : (
               <div className="divide-y">
                 {pedidos.slice(0, 4).map(p => (
                   <div key={p.id} className="flex items-center justify-between py-3">
                     <div>
-                      <p className="font-semibold">{kz(p.valor_solicitado)}</p>
+                      <p className="font-semibold tabular-nums">{kz(p.valor_solicitado)}</p>
                       <p className="text-xs text-muted-foreground">{p.finalidade || 'Capital de giro'}</p>
                     </div>
-                    <Badge variant="secondary" className="capitalize">{p.estado}</Badge>
+                    <Badge variant="secondary" className="capitalize">{String(p.estado).replace(/_/g, ' ')}</Badge>
                   </div>
                 ))}
               </div>

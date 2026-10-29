@@ -56,7 +56,7 @@ const SidebarProvider = React.forwardRef<
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value;
       setOpenProp ? setOpenProp(openState) : _setOpen(openState);
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax`;
     },
     [setOpenProp, open],
   );
@@ -68,6 +68,9 @@ const SidebarProvider = React.forwardRef<
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Não roubar o atalho enquanto o utilizador escreve num campo
+      const alvo = e.target as HTMLElement | null;
+      if (alvo && (alvo.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(alvo.tagName))) return;
       if (e.key === SIDEBAR_KEYBOARD_SHORTCUT && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         toggleSidebar();
@@ -216,7 +219,7 @@ const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.C
         {...props}
       >
         <PanelLeft className="h-4 w-4 transition-transform duration-300 group-data-[state=collapsed]:rotate-180" />
-        <span className="sr-only">Toggle Sidebar</span>
+        <span className="sr-only">Alternar barra lateral</span>
       </Button>
     );
   },
@@ -232,10 +235,10 @@ const SidebarRail = React.forwardRef<HTMLButtonElement, React.ComponentProps<"bu
       <button
         ref={ref}
         data-sidebar="rail"
-        aria-label="Toggle Sidebar"
+        aria-label="Alternar barra lateral"
         tabIndex={-1}
         onClick={toggleSidebar}
-        title="Toggle Sidebar"
+        title="Alternar barra lateral"
         className={cn(
           "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear",
           "after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] after:rounded-full after:transition-colors after:duration-200",

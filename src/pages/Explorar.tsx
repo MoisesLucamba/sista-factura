@@ -6,7 +6,7 @@ import { SimuladorCredito } from '@/components/credito/SimuladorCredito';
 import { GuestCta } from '@/components/guest/GuestCta';
 import { useGuest } from '@/contexts/GuestContext';
 import { guestMinutesLeft, writeGuest, readGuest } from '@/lib/guest';
-import logoPapel from '@/assets/faktura-logo.png';
+import logoGiro from '@/assets/giro-logo-light.svg';
 import {
   UploadCloud, Gauge, Banknote, BarChart3, Building2, ShieldAlert, Lock, Timer, ArrowRight,
 } from 'lucide-react';
@@ -45,7 +45,7 @@ export default function Explorar() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-3">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoPapel} alt="Papel" className="h-9 object-contain" />
+            <img src={logoGiro} alt="Giro" className="h-9 object-contain" />
           </Link>
           <span className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
             <Timer className="w-3.5 h-3.5 text-primary" />
@@ -60,7 +60,7 @@ export default function Explorar() {
 
       <main className="max-w-6xl mx-auto px-5 py-8 space-y-8 pb-32">
         <div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Bem-vindo ao Papel</h1>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Bem-vindo ao Giro</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
             Esta é a primeira página da plataforma. Em modo visitante podes simular o teu crédito e
             entrar na plataforma durante 2 horas — tudo fica apenas no teu dispositivo.

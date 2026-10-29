@@ -3,6 +3,8 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { DocumentosAdicionais } from '@/components/saft/DocumentosAdicionais';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +13,7 @@ import { parseSaft, validateSaft, type SaftParsed, type SaftValidation } from '@
 import { calcularScore } from '@/lib/credit-score';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { recordConsent, SAFT_ANALYSIS_VERSION } from '@/lib/legal/consent';
 import {
   UploadCloud, FileX2, CheckCircle2, XCircle, Loader2, FileText, ShieldCheck,
 } from 'lucide-react';
@@ -29,12 +32,18 @@ export default function EnviarSaft() {
   const [drag, setDrag] = useState(false);
   const [parsed, setParsed] = useState<SaftParsed | null>(null);
   const [validation, setValidation] = useState<SaftValidation | null>(null);
+  const [analysisConsent, setAnalysisConsent] = useState(false);
 
   const handleFile = async (file: File) => {
+    if (!analysisConsent) {
+      toast.error('Autoriza a análise do SAF-T antes de escolher um ficheiro.');
+      return;
+    }
     setBusy(true);
     setParsed(null);
     setValidation(null);
     try {
+      await recordConsent({ consent_type: 'saft_analysis', granted: true, document_version: SAFT_ANALYSIS_VERSION });
       const xml = await file.text();
       const p = parseSaft(xml);
       const v = validateSaft(p, empresa?.nif);
@@ -114,18 +123,35 @@ export default function EnviarSaft() {
       <div className="space-y-6">
         <Card>
           <CardContent className="p-0">
+            <div className="flex items-start gap-3 border-b border-border p-5 sm:p-6" onClick={event => event.stopPropagation()}>
+              <Checkbox
+                id="saft-analysis-consent"
+                checked={analysisConsent}
+                onCheckedChange={checked => setAnalysisConsent(checked === true)}
+                disabled={busy}
+                aria-required="true"
+                className="mt-0.5"
+              />
+              <Label htmlFor="saft-analysis-consent" className="cursor-pointer text-sm leading-relaxed text-muted-foreground">
+                Autorizo o Giro a ler este SAF-T (AO) no meu dispositivo para validar estrutura, hash, assinaturas e NIF, e a registar os campos extraídos, validações e Score. O ficheiro XML original não é enviado para os servidores.
+              </Label>
+            </div>
             <div
               onDragOver={e => { e.preventDefault(); setDrag(true); }}
               onDragLeave={() => setDrag(false)}
               onDrop={e => {
                 e.preventDefault(); setDrag(false);
                 const f = e.dataTransfer.files?.[0];
-                if (f) handleFile(f);
+                if (f && analysisConsent) handleFile(f);
               }}
-              onClick={() => inputRef.current?.click()}
-              className={`cursor-pointer rounded-xl border-2 border-dashed transition-colors p-12 flex flex-col items-center text-center gap-3 ${
-                drag ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
-              }`}
+              onClick={() => analysisConsent && inputRef.current?.click()}
+              onKeyDown={event => { if (analysisConsent && (event.key === 'Enter' || event.key === ' ')) inputRef.current?.click(); }}
+              role="button"
+              tabIndex={analysisConsent ? 0 : -1}
+              aria-disabled={!analysisConsent || busy}
+              className={`rounded-xl border-2 border-dashed transition-colors p-12 flex flex-col items-center text-center gap-3 ${
+                !analysisConsent || busy ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+              } ${drag ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
             >
               {busy ? <Loader2 className="w-10 h-10 animate-spin text-primary" />
                     : <UploadCloud className="w-10 h-10 text-primary" />}
@@ -134,12 +160,13 @@ export default function EnviarSaft() {
                 Aceitamos o SAF-T (AO) mensal ou anual exportado por qualquer software certificado pela AGT.
                 O ficheiro é analisado no teu dispositivo antes de ser registado.
               </p>
-              <Button type="button" variant="secondary" disabled={busy}>Escolher ficheiro</Button>
+              <Button type="button" variant="secondary" disabled={busy || !analysisConsent}>Escolher ficheiro</Button>
               <input
                 ref={inputRef}
                 type="file"
                 accept=".xml,text/xml,application/xml"
                 className="hidden"
+                disabled={!analysisConsent || busy}
                 onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
               />
             </div>
